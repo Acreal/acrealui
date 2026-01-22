@@ -133,3 +133,10 @@ InitTestScene*.unity*
 /[Aa]ssets/[Uu]ntracked.meta
 
 
+.vsconfig
+Assets/ItemTemplates.txt
+Assets/ItemTemplates.txt.meta
+Assets/MagicItemTemplates.txt
+Assets/MagicItemTemplates.txt.meta
+Assets/StartingSpells.txt
+Assets/StartingSpells.txt.meta

@@ -1,0 +1,628 @@
+/*
+Copyright (c) 2025-2026 Acreal (https://github.com/acreal)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
+documentation files (the "Software"), to deal in the Software without restriction, including without 
+limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of 
+the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
+conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions 
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+*/
+
+using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace AcrealUI
+{
+    [ImportedComponent]
+    public class UIInventoryWindow_ItemList : MonoBehaviour
+    {
+        #region Variables
+        private const int ITEM_ENTRY_BLOCK_SIZE = 5;
+
+        [Header("Item Entries")]
+        [SerializeField] private string _gameObjName_itemEntryParent = null;
+
+        [Header("Filter Toggles")]
+        [SerializeField] private string _gameObjName_toggleGroup = null;
+        [SerializeField] private string _gameObjName_toggle_filterAll = null;
+        [SerializeField] private string _gameObjName_toggle_filterFavorited = null;
+        [SerializeField] private string _gameObjName_toggle_filterWeapons = null;
+        [SerializeField] private string _gameObjName_toggle_filterArmor = null;
+        [SerializeField] private string _gameObjName_toggle_filterPotions = null;
+        [SerializeField] private string _gameObjName_toggle_filterMagic = null;
+        [SerializeField] private string _gameObjName_toggle_filterIngredients = null;
+        [SerializeField] private string _gameObjName_toggle_filterBooks = null;
+        [SerializeField] private string _gameObjName_toggle_filterQuestItems = null;
+        [SerializeField] private string _gameObjName_toggle_filterMisc = null;
+
+        [Header("Item Info Columns")]
+        [SerializeField] private string _gameObjName_sortToggleGroup = null;
+        [SerializeField] private string _gameObjName_sortToggle_name = null;
+        [SerializeField] private string _gameObjName_sortToggle_type = null;
+        [SerializeField] private string _gameObjName_sortToggle_damage = null;
+        [SerializeField] private string _gameObjName_sortToggle_armor = null;
+        [SerializeField] private string _gameObjName_sortToggle_condition = null;
+        [SerializeField] private string _gameObjName_sortToggle_weight = null;
+        [SerializeField] private string _gameObjName_sortToggle_value = null;
+
+        [Header("Text")]
+        [SerializeField] private string _gameObjName_text_itemFilter = null;
+        [SerializeField] private string _gameObjName_weightGoldParent = null;
+        [SerializeField] private string _gameObjName_text_totalGold = null;
+        [SerializeField] private string _gameObjName_text_totalWeight = null;
+
+        [Header("Item Source Tabs")]
+        [SerializeField] private string _gameObjName_inventoryTabToggleGroup = null;
+        [SerializeField] private string _gameObjName_inventoryTabToggle_player = null;
+        [SerializeField] private string _gameObjName_inventoryTabToggle_wagon = null;
+        [SerializeField] private string _gameObjName_inventoryTabToggle_merchant = null;
+        [SerializeField] private string _gameObjName_inventoryTabToggle_lootPile = null;
+        [SerializeField] private string _gameObjName_lootPileIcon = null;
+
+        [Header("Buttons")]
+        [SerializeField] private string _gameObjName_goldButton = null;
+
+        private RectTransform _itemEntryParent = null;
+        private UIToggleGroup _filterToggleGroup = null;
+        private UIToggle _toggle_filterAll = null;
+        private UIToggle _toggle_filterFavorited = null;
+        private UIToggle _toggle_filterWeapons = null;
+        private UIToggle _toggle_filterArmor = null;
+        private UIToggle _toggle_filterPotions = null;
+        private UIToggle _toggle_filterMagic = null;
+        private UIToggle _toggle_filterIngredients = null;
+        private UIToggle _toggle_filterBooks = null;
+        private UIToggle _toggle_filterQuestItems = null;
+        private UIToggle _toggle_filterMisc = null;
+        private UIToggleGroup _sortToggleGroup = null;
+        private UISortToggle _sortToggle_name = null;
+        private UISortToggle _sortToggle_type = null;
+        private UISortToggle _sortToggle_damage = null;
+        private UISortToggle _sortToggle_armor = null;
+        private UISortToggle _sortToggle_condition = null;
+        private UISortToggle _sortToggle_weight = null;
+        private UISortToggle _sortToggle_value = null;
+        private TextMeshProUGUI _text_itemFilter = null;
+        private TextMeshProUGUI _text_totalGold = null;
+        private TextMeshProUGUI _text_totalWeight = null;
+        private GameObject _weightGoldParent = null;
+        private UIButton _goldButton = null;
+        private UIToggleGroup _inventoryTabToggleGroup = null;
+        private UIToggle _inventoryTabToggle_player = null;
+        private UIToggle _inventoryTabToggle_wagon = null;
+        private UIToggle _inventoryTabToggle_merchant = null;
+        private UIToggle _inventoryTabToggle_lootPile = null;
+        private Image _lootPileIcon = null;
+
+        private Dictionary<ulong, UIInventoryWindow_ItemEntry> _uidToItemEntryDict = null;
+        private Stack<UIInventoryWindow_ItemEntry> _itemEntryStack = null;
+        private ItemFilter _currentItemFilter = ItemFilter.All;
+        private ItemColumnFlags _sortItemsColumn = ItemColumnFlags.ItemType;
+        private UISortToggle _activeSortToggle = null;
+        #endregion
+
+
+        #region Events
+        public event Action Event_OnItemFilterChanged = null;
+        public event Action Event_OnSortItemsColumnChanged = null;
+        public event Action Event_OnSortAscendingChanged = null;
+        public event Action Event_OnToggled_InventoryTab_Player = null;
+        public event Action Event_OnToggled_InventoryTab_Wagon = null;
+        public event Action Event_OnToggled_InventoryTab_Merchant = null;
+        public event Action Event_OnToggled_InventoryTab_LootPile = null;
+        public event Action Event_OnGoldButtonClicked = null;
+        #endregion
+
+
+        #region Properties
+        public int itemCount { get { return _uidToItemEntryDict != null ? _uidToItemEntryDict.Count : 0; } }
+        public ItemFilter activeItemFilter {  get { return _currentItemFilter; } }
+        public ItemColumnFlags sortByColumn { get { return _sortItemsColumn; } }
+        public bool sortByAscending { get { return _activeSortToggle == null || _activeSortToggle.sortByAscending; } }
+        public UIToggleGroup tabToggleGroup { get { return _inventoryTabToggleGroup; } }
+        #endregion
+
+
+        #region MonoBehaviour
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+        }
+        #endregion
+
+
+        #region Initialize/Cleanup
+        public void Initialize()
+        {
+            _uidToItemEntryDict = new Dictionary<ulong, UIInventoryWindow_ItemEntry>();
+            _itemEntryStack = new Stack<UIInventoryWindow_ItemEntry>();
+
+
+            if (!string.IsNullOrEmpty(_gameObjName_itemEntryParent))
+            {
+                Transform entryParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemEntryParent);
+                _itemEntryParent = entryParentTform != null ? entryParentTform as RectTransform : null;
+            }
+
+
+            #region Tab Toggle References
+            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggleGroup))
+            {
+                Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggleGroup);
+                _inventoryTabToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
+                if (_inventoryTabToggleGroup != null)
+                {
+                    _inventoryTabToggleGroup.Initialize();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_player))
+            {
+                Transform playerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_player);
+                _inventoryTabToggle_player = playerTform != null ? playerTform.GetComponent<UIToggle>() : null;
+                if (_inventoryTabToggle_player != null)
+                {
+                    _inventoryTabToggle_player.Initialize();
+                    _inventoryTabToggle_player.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Player?.Invoke(); };
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_wagon))
+            {
+                Transform wagonTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_wagon);
+                _inventoryTabToggle_wagon = wagonTform != null ? wagonTform.GetComponent<UIToggle>() : null;
+                if (_inventoryTabToggle_wagon != null)
+                {
+                    _inventoryTabToggle_wagon.Initialize();
+                    _inventoryTabToggle_wagon.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Wagon?.Invoke(); };
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_merchant))
+            {
+                Transform merchTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_merchant);
+                _inventoryTabToggle_merchant = merchTform != null ? merchTform.GetComponent<UIToggle>() : null;
+                if (_inventoryTabToggle_merchant != null)
+                {
+                    _inventoryTabToggle_merchant.Initialize();
+                    _inventoryTabToggle_merchant.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Merchant?.Invoke(); };
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_lootPile))
+            {
+                Transform lootTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_lootPile);
+                _inventoryTabToggle_lootPile = lootTform != null ? lootTform.GetComponent<UIToggle>() : null;
+                if (_inventoryTabToggle_lootPile != null)
+                {
+                    _inventoryTabToggle_lootPile.Initialize();
+                    _inventoryTabToggle_lootPile.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_LootPile?.Invoke(); };
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_lootPileIcon))
+            {
+                Transform lootIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_lootPileIcon);
+                _lootPileIcon = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
+            }
+            #endregion
+
+
+            #region ItemFilter Toggle References
+            if (!string.IsNullOrEmpty(_gameObjName_toggleGroup))
+            {
+                Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_toggleGroup);
+                _filterToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
+                if (_filterToggleGroup != null)
+                {
+                    _filterToggleGroup.Initialize();
+                }
+            }
+
+            _toggle_filterAll = InitializeItemFilterToggle(_gameObjName_toggle_filterAll, ItemFilter.All);
+            _toggle_filterFavorited = InitializeItemFilterToggle(_gameObjName_toggle_filterFavorited, ItemFilter.Favorite);
+            _toggle_filterWeapons = InitializeItemFilterToggle(_gameObjName_toggle_filterWeapons, ItemFilter.Weapons);
+            _toggle_filterArmor = InitializeItemFilterToggle(_gameObjName_toggle_filterArmor, ItemFilter.Armor);
+            _toggle_filterPotions = InitializeItemFilterToggle(_gameObjName_toggle_filterPotions, ItemFilter.Potions);
+            _toggle_filterMagic = InitializeItemFilterToggle(_gameObjName_toggle_filterMagic, ItemFilter.MagicItems);
+            _toggle_filterIngredients = InitializeItemFilterToggle(_gameObjName_toggle_filterIngredients, ItemFilter.Ingredients);
+            _toggle_filterBooks = InitializeItemFilterToggle(_gameObjName_toggle_filterBooks, ItemFilter.Books);
+            _toggle_filterQuestItems = InitializeItemFilterToggle(_gameObjName_toggle_filterQuestItems, ItemFilter.QuestItems);
+            _toggle_filterMisc = InitializeItemFilterToggle(_gameObjName_toggle_filterMisc, ItemFilter.MiscItems);
+            #endregion
+
+
+            #region Sort Toggle References
+            if(!string.IsNullOrEmpty(_gameObjName_sortToggleGroup))
+            {
+                Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
+                if(groupTForm != null) { _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>(); }
+                if(_sortToggleGroup != null) 
+                { 
+                    _sortToggleGroup.Initialize();
+                }
+            }
+
+            _sortToggle_type = InitializeSortItemsToggle(_gameObjName_sortToggle_type, ItemColumnFlags.ItemType);
+            _sortToggle_name = InitializeSortItemsToggle(_gameObjName_sortToggle_name, ItemColumnFlags.Name);
+            _sortToggle_damage = InitializeSortItemsToggle(_gameObjName_sortToggle_damage, ItemColumnFlags.Damage);
+            _sortToggle_armor = InitializeSortItemsToggle(_gameObjName_sortToggle_armor, ItemColumnFlags.Armor);
+            _sortToggle_condition = InitializeSortItemsToggle(_gameObjName_sortToggle_condition, ItemColumnFlags.Condition);
+            _sortToggle_weight = InitializeSortItemsToggle(_gameObjName_sortToggle_weight, ItemColumnFlags.Weight);
+            _sortToggle_value = InitializeSortItemsToggle(_gameObjName_sortToggle_value, ItemColumnFlags.GoldValue);
+            #endregion
+
+
+            #region Text References
+            if (!string.IsNullOrEmpty(_gameObjName_text_itemFilter))
+            {
+                Transform filterTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_itemFilter);
+                _text_itemFilter = filterTextTform != null ? filterTextTform.GetComponent<TextMeshProUGUI>() : null;
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_text_totalGold))
+            {
+                Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
+                _text_totalGold = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_text_totalWeight))
+            {
+                Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalWeight);
+                _text_totalWeight = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
+            }
+
+            if(!string.IsNullOrEmpty(_gameObjName_weightGoldParent))
+            {
+                Transform weightGoldParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightGoldParent);
+                if(weightGoldParentTform != null) { _weightGoldParent = weightGoldParentTform.gameObject; }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_goldButton))
+            {
+                Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
+                if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
+                if(_goldButton != null)
+                {
+                    _goldButton.Event_OnClicked += (_) =>
+                    {
+                        Event_OnGoldButtonClicked?.Invoke();
+                    };
+                }
+            }
+            #endregion
+        }
+
+        public void Clear()
+        {
+            StopAllCoroutines();
+
+            if(_uidToItemEntryDict != null)
+            {
+                foreach(UIInventoryWindow_ItemEntry entry in _uidToItemEntryDict.Values)
+                {
+                    entry.SetItemUID(0);
+                    entry.ClearEvents();
+                    entry.gameObject.SetActive(false);
+                    _itemEntryStack.Push(entry);
+                }
+                _uidToItemEntryDict.Clear();
+            }
+        }
+
+        private UIToggle InitializeItemFilterToggle(string transformName, ItemFilter filter)
+        {
+            if (!string.IsNullOrEmpty(transformName))
+            {
+                Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
+                UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
+                if (toggle != null)
+                {
+                    toggle.Initialize();
+
+                    toggle.Event_OnToggledOn += (_) =>
+                    {
+                        _currentItemFilter = filter;
+                        SetItemFilterText(UIUtilityFunctions.ItemFilterToString(filter));
+                        SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
+                        Event_OnItemFilterChanged?.Invoke();
+                    };
+
+                    return toggle;
+                }
+            }
+            return null;
+        }
+
+        private UISortToggle InitializeSortItemsToggle(string transformName, ItemColumnFlags sortColumn)
+        {
+            if (!string.IsNullOrEmpty(transformName))
+            {
+                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
+                UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;
+                if (sortToggle != null)
+                {
+                    sortToggle.Initialize();
+
+                    sortToggle.Event_OnToggledOn += (UIToggle toggle) => 
+                    {
+                        _sortItemsColumn = sortColumn;
+                        _activeSortToggle = toggle as UISortToggle;
+                        Event_OnSortItemsColumnChanged?.Invoke();
+                    };
+
+                    sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) => 
+                    {
+                        Event_OnSortAscendingChanged?.Invoke();
+                    };
+
+                    return sortToggle;
+                }
+            }
+            return null;
+        }
+        #endregion
+
+
+        #region Public API
+        public void EnableOrDisableTabs(bool enablePlayerTab, bool enableWagonTab, bool enableMerchantTab, bool enableLootPileTab)
+        {
+            if (_inventoryTabToggle_player != null) { _inventoryTabToggle_player.gameObject.SetActive(enablePlayerTab); }
+            if (_inventoryTabToggle_wagon != null) { _inventoryTabToggle_wagon.gameObject.SetActive(enableWagonTab); }
+            if (_inventoryTabToggle_merchant != null) { _inventoryTabToggle_merchant.gameObject.SetActive(enableMerchantTab); }
+            if (_inventoryTabToggle_lootPile != null) { _inventoryTabToggle_lootPile.gameObject.SetActive(enableLootPileTab); }
+        }
+
+        public void ScrollToBottom()
+        {
+            if (gameObject.activeSelf && gameObject.activeInHierarchy)
+            {
+                StartCoroutine(ScrollToBottomDelayed());
+            }
+        }
+
+        public UIInventoryWindow_ItemEntry AddItemEntry(ulong itemUID)
+        {
+            if (_uidToItemEntryDict != null)
+            {
+                UIInventoryWindow_ItemEntry entry;
+                _uidToItemEntryDict.TryGetValue(itemUID, out entry);
+                if (entry != null)
+                { 
+                    return entry;
+                }
+            }
+
+            if (_itemEntryStack == null) { return null; }
+
+            if (_itemEntryStack.Count == 0)
+            {
+                SpawnItemEntryBlock();
+            }
+
+            if(_itemEntryStack.Count > 0)
+            {
+                UIInventoryWindow_ItemEntry entry = _itemEntryStack.Pop();
+                entry.SetItemUID(itemUID);
+                entry.ClearEvents();
+                entry.transform.SetAsLastSibling();
+                entry.gameObject.SetActive(true);
+                _uidToItemEntryDict[itemUID] = entry;
+                return entry;
+            }
+
+            return null;
+        }
+
+        public bool RemoveItemEntry(ulong itemUID)
+        {
+            if(itemUID == 0 || _uidToItemEntryDict == null) { return false; }
+
+            UIInventoryWindow_ItemEntry itemEntry;
+            if (_uidToItemEntryDict.TryGetValue(itemUID, out itemEntry))
+            {
+                bool success = _uidToItemEntryDict.Remove(itemUID);
+
+                if (itemEntry != null && success)
+                {
+                    itemEntry.SetItemUID(0);
+                    itemEntry.gameObject.SetActive(false);
+                    _itemEntryStack.Push(itemEntry);
+                }
+
+                return success;
+            }
+            return false;
+        }
+
+        public void SetTotalGoldText(string totalGoldStr)
+        {
+            if(_text_totalGold != null)
+            {
+                _text_totalGold.text = totalGoldStr;
+                _text_totalGold.gameObject.SetActive(totalGoldStr != null);
+            }
+        }
+
+        public void SetTotalWeightText(string totalWeightStr)
+        {
+            if (_text_totalWeight != null)
+            {
+                _text_totalWeight.text = totalWeightStr;
+                _text_totalWeight.gameObject.SetActive(totalWeightStr != null);
+            }
+
+            if(_weightGoldParent != null)
+            {
+                bool weightActive = _text_totalWeight != null && _text_totalWeight.gameObject.activeSelf;
+                bool goldActive = _text_totalGold != null && _text_totalGold.gameObject.activeSelf;
+                _weightGoldParent.SetActive(weightActive || goldActive);
+            }
+        }
+
+        public void SetItemFilterText(string filterText)
+        {
+            if (_text_itemFilter != null)
+            {
+                _text_itemFilter.text = filterText;
+                _text_itemFilter.gameObject.SetActive(filterText != null);
+            }
+        }
+
+        public void SetLootPileIcon(Sprite icon)
+        {
+            if(_lootPileIcon != null)
+            {
+                _lootPileIcon.sprite = icon;
+                _lootPileIcon.gameObject.SetActive(icon != null);
+            }
+        }
+
+        public void SetItemColumnFlags(ItemColumnFlags filterFlags)
+        {
+            if (_sortToggle_name != null) { _sortToggle_name.gameObject.SetActive((filterFlags & ItemColumnFlags.Name) != 0); }
+            if (_sortToggle_type != null) { _sortToggle_type.gameObject.SetActive((filterFlags & ItemColumnFlags.ItemType) != 0); }
+            if (_sortToggle_damage != null) { _sortToggle_damage.gameObject.SetActive((filterFlags & ItemColumnFlags.Damage) != 0); }
+            if (_sortToggle_armor != null) { _sortToggle_armor.gameObject.SetActive((filterFlags & ItemColumnFlags.Armor) != 0); }
+            if (_sortToggle_condition != null) { _sortToggle_condition.gameObject.SetActive((filterFlags & ItemColumnFlags.Condition) != 0); }
+            if (_sortToggle_weight != null) { _sortToggle_weight.gameObject.SetActive((filterFlags & ItemColumnFlags.Weight) != 0); }
+            if (_sortToggle_value != null) { _sortToggle_value.gameObject.SetActive((filterFlags & ItemColumnFlags.GoldValue) != 0); }
+        }
+
+        public void SetFilterToggleDisabled(ItemFilter filter, bool disabled)
+        {
+            switch(filter)
+            {
+                case ItemFilter.All:
+                    if (_toggle_filterAll != null) { _toggle_filterAll.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.Favorite:
+                    if (_toggle_filterFavorited != null) { _toggle_filterFavorited.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.Weapons:
+                    if (_toggle_filterWeapons != null) { _toggle_filterWeapons.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.Armor:
+                    if (_toggle_filterArmor != null) { _toggle_filterArmor.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.Potions:
+                    if (_toggle_filterPotions != null) { _toggle_filterPotions.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.MagicItems:
+                    if (_toggle_filterMagic != null) { _toggle_filterMagic.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.Books:
+                    if (_toggle_filterBooks != null) { _toggle_filterBooks.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.QuestItems:
+                    if (_toggle_filterQuestItems != null) { _toggle_filterQuestItems.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.MiscItems:
+                    if (_toggle_filterMisc != null) { _toggle_filterMisc.isDisabled = disabled; }
+                    break;
+
+                case ItemFilter.Ingredients:
+                    if (_toggle_filterIngredients != null) { _toggle_filterIngredients.isDisabled = disabled; }
+                    break;
+            }
+        }
+
+        public void SetActiveFilter(ItemFilter filter)
+        {
+            switch (filter)
+            {
+                case ItemFilter.All:
+                    if (_toggle_filterAll != null) { _toggle_filterAll.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.Favorite:
+                    if (_toggle_filterFavorited != null) { _toggle_filterFavorited.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.Weapons:
+                    if (_toggle_filterWeapons != null) { _toggle_filterWeapons.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.Armor:
+                    if (_toggle_filterArmor != null) { _toggle_filterArmor.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.Potions:
+                    if (_toggle_filterPotions != null) { _toggle_filterPotions.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.MagicItems:
+                    if (_toggle_filterMagic != null) { _toggle_filterMagic.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.Books:
+                    if (_toggle_filterBooks != null) { _toggle_filterBooks.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.QuestItems:
+                    if (_toggle_filterQuestItems != null) { _toggle_filterQuestItems.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.MiscItems:
+                    if (_toggle_filterMisc != null) { _toggle_filterMisc.isToggledOn = true; }
+                    break;
+
+                case ItemFilter.Ingredients:
+                    if (_toggle_filterIngredients != null) { _toggle_filterIngredients.isToggledOn = true; }
+                    break;
+            }
+        }
+        #endregion
+
+
+        #region Item Entries
+        private void SpawnItemEntryBlock()
+        {
+            if (UIManager.referenceManager.itemEntryPrefab == null || _itemEntryParent == null) { return; }
+
+            for (int i = 0; i < ITEM_ENTRY_BLOCK_SIZE; i++)
+            {
+                UIInventoryWindow_ItemEntry itemEntry = Instantiate(UIManager.referenceManager.itemEntryPrefab, _itemEntryParent);
+                itemEntry.transform.localScale = Vector3.one;
+                itemEntry.Initalize();
+                itemEntry.gameObject.SetActive(false);
+                _itemEntryStack.Push(itemEntry);
+            }
+        }
+        #endregion
+
+
+        #region Coroutines
+        private IEnumerator<float> ScrollToBottomDelayed()
+        {
+            yield return 0f;
+            ScrollRect scrollRect = _itemEntryParent.GetComponentInParent<ScrollRect>();
+            if(scrollRect != null)
+            {
+                scrollRect.normalizedPosition = Vector2.zero;
+            }
+        }
+        #endregion
+    }
+}

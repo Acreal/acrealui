@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: 85b97ea4ea270a44e85c9c8a67ec6d65
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Calibri
+  fontNames:
+  - Calibri
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: a46cc351e7bcb444295e6294d0b38bf2, type: 3}
+  - {fileID: 12800000, guid: b4e27ed5c7d66104cb9955565ebdb672, type: 3}
+  - {fileID: 12800000, guid: 440facb85ad136843b1e00e5047b1f83, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

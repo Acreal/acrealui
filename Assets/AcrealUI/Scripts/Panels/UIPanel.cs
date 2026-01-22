@@ -1,0 +1,157 @@
+/*
+Copyright (c) 2025-2026 Acreal (https://github.com/acreal)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
+documentation files (the "Software"), to deal in the Software without restriction, including without 
+limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of 
+the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
+conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions 
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE.
+*/
+
+using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace AcrealUI
+{
+    [ImportedComponent]
+    public class UIPanel : MonoBehaviour
+    {
+        #region Variables
+        [SerializeField] private string _gameObjName_layoutElement = null;
+        [SerializeField] private string _gameObjName_scrollGroupParent = null;
+        [SerializeField] private float _panelVerticalSizeOffset = 40f;
+
+        protected CanvasGroup _canvasGroup = null;
+        protected LayoutElement _layoutElement = null;
+
+        protected Transform _scrollGroupParent = null;
+        protected Dictionary<string, UIScrollListGroup> _scrollListGroupDict = null;
+        
+        private Vector2 _panelSize;
+        #endregion
+
+
+        #region Properties
+        public Vector2 panelSize
+        {
+            get { return _panelSize; }
+            protected set
+            {
+                if (Vector2.SqrMagnitude(_panelSize - value) > 0f)
+                {
+                    _panelSize = value;
+                    Event_OnPanelSizeChanged?.Invoke(panelSize);
+                }
+            }
+        }
+
+        public LayoutElement layoutElement { get { return _layoutElement; } }
+        #endregion
+
+
+        #region Events
+        public event System.Action<Vector2> Event_OnPanelSizeChanged = null;
+        #endregion
+
+
+        #region Initilization
+        public virtual void Initialize()
+        {
+            _scrollListGroupDict = new Dictionary<string, UIScrollListGroup>();
+
+            if (_canvasGroup == null)
+            {
+                _canvasGroup = GetComponent<CanvasGroup>();
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_scrollGroupParent))
+            {
+                _scrollGroupParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_scrollGroupParent);
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_layoutElement))
+            {
+                Transform layoutTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_layoutElement);
+                _layoutElement = layoutTform != null ? layoutTform.GetComponent<LayoutElement>() : null;
+            }
+
+            if (_layoutElement == null)
+            {
+                _layoutElement = GetComponent<LayoutElement>();
+            }
+
+            if (_layoutElement != null && (_layoutElement.minHeight > 0 || _layoutElement.minHeight > 0 || _layoutElement.preferredWidth > 0 || _layoutElement.preferredHeight > 0))
+            {
+                float width = Mathf.Max(_layoutElement.minWidth, _layoutElement.preferredWidth);
+                float height = Mathf.Max(_layoutElement.minHeight, _layoutElement.preferredHeight);
+                panelSize = new Vector2(width, height + _panelVerticalSizeOffset);
+            }
+            else
+            {
+                RectTransform rt = transform as RectTransform;
+                panelSize = rt != null ? new Vector2(rt.sizeDelta.x, rt.sizeDelta.y) : Vector2.zero;
+                panelSize = new Vector2(panelSize.x, panelSize.y + _panelVerticalSizeOffset);
+            }
+        }
+        #endregion
+
+
+        #region Show/Hide
+        public virtual void Show()
+        {
+            gameObject.SetActive(true);
+            Event_OnPanelSizeChanged?.Invoke(panelSize);
+        }
+
+        public virtual void Hide()
+        {
+            gameObject.SetActive(false);
+        }
+        #endregion
+
+
+        #region Public API
+        public virtual UIScrollListGroup GetScrollListGroup(string bindingGroupName)
+        {
+            UIScrollListGroup scrollGroup = null;
+            if (bindingGroupName != null)
+            {
+                if (!_scrollListGroupDict.TryGetValue(bindingGroupName, out scrollGroup))
+                {
+                    scrollGroup = PopScrollListGroupFromPool(UIManager.referenceManager.prefab_scrollListGroup, _scrollGroupParent);
+                    if (scrollGroup != null)
+                    {
+                        scrollGroup.Initialize();
+                        scrollGroup.SetTextTitle(bindingGroupName);
+                    }
+
+                    _scrollListGroupDict.Add(bindingGroupName, scrollGroup);
+                }
+            }
+            return scrollGroup;
+        }
+        #endregion
+
+
+        #region ScrollListGroup Management
+        private UIScrollListGroup PopScrollListGroupFromPool(UIScrollListGroup scrollListGroupPrefab, Transform parent)
+        {
+            //TODO(Acreal): add pooling
+            UIScrollListGroup group = Instantiate(scrollListGroupPrefab, parent);
+            group.transform.localScale = Vector3.one;
+            return group;
+        }
+        #endregion
+    }
+}
