@@ -38,7 +38,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 466, y: -14}
+  m_AnchoredPosition: {x: 454, y: -14}
   m_SizeDelta: {x: 120, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1089976893987381767
@@ -82,13 +82,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.32, g: 0.32, b: 0.32, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 84d32cc0347b3fc42b1cd1b879a0da6a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: fe97ef3645e779c45955508a799f6f04, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -97,7 +97,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 10
+  m_PixelsPerUnitMultiplier: 5
 --- !u!114 &2127101859222128100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,7 +147,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 8, y: 8}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7979850359503511054
 CanvasRenderer:
@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 3c8824638c91f4c40945f686e432a6af, type: 3}
+  m_Sprite: {fileID: 21300000, guid: de7d33471aacd054aad4c830bbc5cdba, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -185,7 +185,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 12.74
+  m_PixelsPerUnitMultiplier: 4
 --- !u!114 &9000692374392949051
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -797,7 +797,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 8, y: 8}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8435041775818746074
 CanvasRenderer:
@@ -826,7 +826,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 3c8824638c91f4c40945f686e432a6af, type: 3}
+  m_Sprite: {fileID: 21300000, guid: de7d33471aacd054aad4c830bbc5cdba, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -835,7 +835,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 12.74
+  m_PixelsPerUnitMultiplier: 4
 --- !u!114 &1793095809609316253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -933,7 +933,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 3
+  m_PixelsPerUnitMultiplier: 5
 --- !u!114 &6058664507668388115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -966,13 +966,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 974d71657a3c2314a8ab49f35c39fd52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _toggledOnSpriteName: btn 6
-  _toggledOffSpriteName: btn 8
-  _toggledOnAndPressedSpriteName: btn 6
-  _toggledOffAndPressedSpriteName: btn 9
-  _toggledOnAndHighlightedSpriteName: btn 6
-  _toggledOffAndHighlightedSpriteName: btn 4
-  _disabledSpriteName: btn8_bw
+  _toggledOnSpriteName: Sprite_ButtonOrange_Normal
+  _toggledOffSpriteName: Sprite_ButtonTeal_Normal
+  _toggledOnAndPressedSpriteName: Sprite_ButtonOrange_Normal
+  _toggledOffAndPressedSpriteName: Sprite_ButtonTeal_Pressed
+  _toggledOnAndHighlightedSpriteName: Sprite_ButtonOrange_Normal
+  _toggledOffAndHighlightedSpriteName: Sprite_ButtonTeal_Hovered
+  _disabledSpriteName: Sprite_ButtonWhite_Normal
 --- !u!114 &3753692650688593586
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1461,7 +1461,6 @@ GameObject:
   - component: {fileID: 5866360240525806384}
   - component: {fileID: 2386180410404609804}
   - component: {fileID: 3153241444374499033}
-  - component: {fileID: 4574418009107552970}
   m_Layer: 5
   m_Name: Button_ControlBinding_Primary
   m_TagString: Untagged
@@ -1531,13 +1530,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.32, g: 0.32, b: 0.32, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 84d32cc0347b3fc42b1cd1b879a0da6a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: fe97ef3645e779c45955508a799f6f04, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1577,19 +1576,3 @@ MonoBehaviour:
   _activateObjOnHighlight: 1
   _activateObjOnPress: 1
   _activateObjOnDisable: 0
---- !u!114 &4574418009107552970
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9060433639991393495}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b1516fbd8d93dd4789b56ac0e28414a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _defaultColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
-  _highlightedColor: {r: 1, g: 1, b: 1, a: 1}
-  _pressedColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
-  _disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}

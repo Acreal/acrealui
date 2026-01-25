@@ -106,6 +106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1103ed955a19eb429e91fc12535421c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _initializeOnAwake: 0
   _gameObjectName_text_displayName: Text_Name
   canBeToggledOff: 1
   _gameObjName_valueText: Text_Value
@@ -512,13 +513,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 974d71657a3c2314a8ab49f35c39fd52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _toggledOnSpriteName: btn 6
-  _toggledOffSpriteName: btn 8
-  _toggledOnAndPressedSpriteName: btn 6
-  _toggledOffAndPressedSpriteName: btn 9
-  _toggledOnAndHighlightedSpriteName: btn 6
-  _toggledOffAndHighlightedSpriteName: btn 4
-  _disabledSpriteName: btn8_bw
+  _toggledOnSpriteName: Sprite_ButtonOrange_Normal
+  _toggledOffSpriteName: Sprite_ButtonTeal_Normal
+  _toggledOnAndPressedSpriteName: Sprite_ButtonOrange_Normal
+  _toggledOffAndPressedSpriteName: Sprite_ButtonTeal_Pressed
+  _toggledOnAndHighlightedSpriteName: Sprite_ButtonOrange_Normal
+  _toggledOffAndHighlightedSpriteName: Sprite_ButtonTeal_Hovered
+  _disabledSpriteName: Sprite_ButtonWhite_Normal
 --- !u!114 &1415705272822313852
 MonoBehaviour:
   m_ObjectHideFlags: 0
