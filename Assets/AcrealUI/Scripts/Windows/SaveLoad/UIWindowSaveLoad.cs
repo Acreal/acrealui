@@ -134,6 +134,7 @@ namespace AcrealUI
                     _saveEntriesToggleGroup = _scrollGroupParent.GetComponent<UIToggleGroup>();
                     if (_saveEntriesToggleGroup != null)
                     {
+                        _saveEntriesToggleGroup.Initialize();
                         _saveEntriesToggleGroup.canBeToggledOff = true;
                     }
                     else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIToggleGroup component on gameObject: \"" + _scrollGroupParent.name + "\""); }

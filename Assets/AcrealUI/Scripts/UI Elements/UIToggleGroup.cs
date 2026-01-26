@@ -32,7 +32,6 @@ namespace AcrealUI
 
         public bool canBeToggledOff = false;
 
-        private bool initialized = false;
         private List<UIToggle> _toggles = null;
         private UIToggle _defaultToggle = null;
         #endregion
@@ -41,17 +40,15 @@ namespace AcrealUI
         #region Initialization
         public void Initialize()
         {
-            if (!initialized)
+            if (_toggles == null)
             {
-                initialized = true;
-
                 if (!string.IsNullOrEmpty(_gameObjName_defaultToggle))
                 {
                     Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_defaultToggle);
                     _defaultToggle = defaultTform != null ? defaultTform.GetComponent<UIToggle>() : null;
                 }
 
-                if (_toggles == null && _gameObjNameList_toggles != null)
+                if (_gameObjNameList_toggles != null)
                 {
                     _toggles = new List<UIToggle>();
 
@@ -68,14 +65,16 @@ namespace AcrealUI
                         }
                     }
                 }
+            }
 
-                if (_toggles != null)
+            if (_toggles != null)
+            {
+                for (int i = 0; i < _toggles.Count; i++)
                 {
-                    for (int i = 0; i < _toggles.Count; i++)
-                    {
-                        _toggles[i].canBeToggledOff = canBeToggledOff;
-                        _toggles[i].Event_OnToggledOn += OnToggleSwitchedOn;
-                    }
+                    _toggles[i].canBeToggledOff = canBeToggledOff;
+
+                    _toggles[i].Event_OnToggledOn -= OnToggleSwitchedOn;
+                    _toggles[i].Event_OnToggledOn += OnToggleSwitchedOn;
                 }
             }
         }
@@ -83,11 +82,6 @@ namespace AcrealUI
 
 
         #region MonoBehaviour
-        private void Awake()
-        {
-            Initialize();
-        }
-
         private void Start()
         {
             bool toggleIsOn = false;

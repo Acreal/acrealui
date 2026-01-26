@@ -374,7 +374,7 @@ namespace AcrealUI
                         musicVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
-                            if (Mathf.Abs(DaggerfallUnity.Settings.MusicVolume - slider.GetSliderValue()) >= 1f) { UIUtilityFunctions.PlayButtonClick(); }
+                            if (Mathf.Abs(DaggerfallUnity.Settings.MusicVolume - slider.GetSliderValue()) >= 0.05f) { UIUtilityFunctions.PlayButtonClick(); }
                             DaggerfallUnity.Settings.MusicVolume = slider.GetSliderValue();
                         };
                         #endregion

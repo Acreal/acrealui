@@ -120,6 +120,7 @@ namespace AcrealUI
             _idToSaveGameDataDict = new Dictionary<string, UISaveGameEntry>();
             
             _saveEntriesToggleGroup = _scrollGroupParent.GetComponent<UIToggleGroup>();
+            _saveEntriesToggleGroup.Initialize();
             _saveEntriesToggleGroup.canBeToggledOff = true;
 
             if (!string.IsNullOrEmpty(_gameObjName_saveHeaderParent))

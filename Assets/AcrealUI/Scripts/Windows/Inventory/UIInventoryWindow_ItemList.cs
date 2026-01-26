@@ -222,16 +222,6 @@ namespace AcrealUI
 
 
             #region ItemFilter Toggle References
-            if (!string.IsNullOrEmpty(_gameObjName_toggleGroup))
-            {
-                Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_toggleGroup);
-                _filterToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
-                if (_filterToggleGroup != null)
-                {
-                    _filterToggleGroup.Initialize();
-                }
-            }
-
             _toggle_filterAll = InitializeItemFilterToggle(_gameObjName_toggle_filterAll, ItemFilter.All);
             _toggle_filterFavorited = InitializeItemFilterToggle(_gameObjName_toggle_filterFavorited, ItemFilter.Favorite);
             _toggle_filterWeapons = InitializeItemFilterToggle(_gameObjName_toggle_filterWeapons, ItemFilter.Weapons);
@@ -242,11 +232,21 @@ namespace AcrealUI
             _toggle_filterBooks = InitializeItemFilterToggle(_gameObjName_toggle_filterBooks, ItemFilter.Books);
             _toggle_filterQuestItems = InitializeItemFilterToggle(_gameObjName_toggle_filterQuestItems, ItemFilter.QuestItems);
             _toggle_filterMisc = InitializeItemFilterToggle(_gameObjName_toggle_filterMisc, ItemFilter.MiscItems);
+
+            if (!string.IsNullOrEmpty(_gameObjName_toggleGroup))
+            {
+                Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_toggleGroup);
+                _filterToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
+                if (_filterToggleGroup != null)
+                {
+                    _filterToggleGroup.Initialize();
+                }
+            }
             #endregion
 
 
             #region Sort Toggle References
-            if(!string.IsNullOrEmpty(_gameObjName_sortToggleGroup))
+            if (!string.IsNullOrEmpty(_gameObjName_sortToggleGroup))
             {
                 Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
                 if(groupTForm != null) { _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>(); }
