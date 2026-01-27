@@ -22,7 +22,6 @@ using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AcrealUI
 {
@@ -71,76 +70,69 @@ namespace AcrealUI
         #region Initalization/Cleanup
         public void Initialize(Mod mod)
         {
-            Canvas testCanvas = new GameObject("Test Canvas").AddComponent<Canvas>();
-            testCanvas.gameObject.AddComponent<CanvasScaler>();
-            testCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-            GameObject buttonObj = mod.GetAsset<GameObject>("StandardElement_Button", false);
+            GameObject buttonObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Button", false);
             prefab_button = buttonObj != null ? buttonObj.GetComponent<UIButton>() : null;
 
-            GameObject sliderObj = mod.GetAsset<GameObject>("StandardElement_Slider", false);
+            GameObject sliderObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Slider", false);
             prefab_slider = sliderObj != null ? sliderObj.GetComponent<UISlider>() : null;
 
-            GameObject toggleObj = mod.GetAsset<GameObject>("StandardElement_Toggle", false);
+            GameObject toggleObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Toggle", false);
             prefab_toggle = toggleObj != null ? toggleObj.GetComponent<UIToggle>() : null;
 
-            //GameObject colorPickerObj = mod.GetAsset<GameObject>("Standard ColorPicker", false);
-            //prefab_colorPicker = colorPickerObj != null ? colorPickerObj.GetComponent<UIOptionsPanel_ColorPicker>() : null;
-
-            GameObject scrolLGroupObj = mod.GetAsset<GameObject>("StandardElement_ScrollGroup", false);
+            GameObject scrolLGroupObj = mod.GetAsset<GameObject>("Prefab_StandardElement_ScrollGroup", false);
             prefab_scrollListGroup = scrolLGroupObj != null ? scrolLGroupObj.GetComponent<UIScrollListGroup>() : null;
 
-            GameObject pauseWindowObj = mod.GetAsset<GameObject>("PauseWindow", false);
+            GameObject pauseWindowObj = mod.GetAsset<GameObject>("Prefab_PauseWindow", false);
             prefab_pauseWindow = pauseWindowObj != null ? pauseWindowObj.GetComponent<UIPauseWindow>() : null;
 
-            GameObject saveWindowObj = mod.GetAsset<GameObject>("SaveLoadGameWindow", false);
+            GameObject saveWindowObj = mod.GetAsset<GameObject>("Prefab_SaveLoadGameWindow", false);
             prefab_saveLoadWindow = saveWindowObj != null ? saveWindowObj.GetComponent<UIWindowSaveLoad>() : null;
 
-            GameObject saveEntryObj = mod.GetAsset<GameObject>("SaveGameEntry", false);
+            GameObject saveEntryObj = mod.GetAsset<GameObject>("Prefab_SaveGameEntry", false);
             prefab_saveEntry = saveEntryObj != null ? saveEntryObj.GetComponent<UISaveGameEntry>() : null;
 
-            GameObject keyCodeBindObj = mod.GetAsset<GameObject>("Controls_KeyCodeBindingEntry", false);
+            GameObject keyCodeBindObj = mod.GetAsset<GameObject>("Prefab_KeyCodeControlBindingEntry", false);
             prefab_keyCodeBindEntry = keyCodeBindObj != null ? keyCodeBindObj.GetComponent<UIKeyCodeBindingEntry>() : null;
 
-            GameObject axisBindObj = mod.GetAsset<GameObject>("Controls_AxisBindingEntry", false);
+            GameObject axisBindObj = mod.GetAsset<GameObject>("Prefab_AxisControlBindingEntry", false);
             prefab_axisBindEntry = axisBindObj != null ? axisBindObj.GetComponent<UIAxisBindingEntry>() : null;
 
-            GameObject joystickBindObj = mod.GetAsset<GameObject>("Controls_JoystickBindingEntry", false);
+            GameObject joystickBindObj = mod.GetAsset<GameObject>("Prefab_JoystickControlBindingEntry", false);
             prefab_joystickBindEntry = joystickBindObj != null ? joystickBindObj.GetComponent<UIJoystickKeyBindingEntry>() : null;
 
-            prefab_hud = mod.GetAsset<GameObject>("HUD");
+            prefab_hud = mod.GetAsset<GameObject>("Prefab_HUD");
 
-            GameObject inventoryWindowObj = mod.GetAsset<GameObject>("UIWindow_Inventory");
+            GameObject inventoryWindowObj = mod.GetAsset<GameObject>("Prefab_InventoryWindow", false);
             prefab_inventoryWindow = inventoryWindowObj != null ? inventoryWindowObj.GetComponent<UIWindowInventory>() : null;
 
-            GameObject itemEntryObj = mod.GetAsset<GameObject>("InventoryWindow_ItemEntry");
+            GameObject itemEntryObj = mod.GetAsset<GameObject>("Prefab_InventoryItemEntry");
             itemEntryPrefab = itemEntryObj != null ? itemEntryObj.GetComponent<UIInventoryWindow_ItemEntry>() : null;
 
-            GameObject payerStatEntryObj = mod.GetAsset<GameObject>("StatsPanel_StatEntry");
+            GameObject payerStatEntryObj = mod.GetAsset<GameObject>("Prefab_CharacterStatEntry");
             prefab_playerStatEntry = payerStatEntryObj != null ? payerStatEntryObj.GetComponent<UIPlayerStatEntry>() : null;
 
-            GameObject skillEntryObj = mod.GetAsset<GameObject>("StatsPanel_SkillEntry");
+            GameObject skillEntryObj = mod.GetAsset<GameObject>("Prefab_CharacterSkillEntry");
             prefab_playerSkillEntry = skillEntryObj != null ? skillEntryObj.GetComponent<UIPlayerSkillEntry>() : null;
 
-            GameObject tooltipCanvasObj = mod.GetAsset<GameObject>("Tooltip_Canvas");
+            GameObject tooltipCanvasObj = mod.GetAsset<GameObject>("Prefab_TooltipCanvas");
             prefab_tooltipCanvas = tooltipCanvasObj != null ? tooltipCanvasObj.GetComponent<Canvas>() : null;
 
-            GameObject textTooltipObj = mod.GetAsset<GameObject>("Tooltip_Text");
+            GameObject textTooltipObj = mod.GetAsset<GameObject>("Prefab_TextTooltip");
             prefab_textTooltip = textTooltipObj != null ? textTooltipObj.GetComponent<UITextTooltip>() : null;
 
-            GameObject iconTextTooltipObj = mod.GetAsset<GameObject>("Tooltip_IconText");
+            GameObject iconTextTooltipObj = mod.GetAsset<GameObject>("Prefab_IconTextTooltip");
             prefab_iconTextTooltip = iconTextTooltipObj != null ? iconTextTooltipObj.GetComponent<UITooltip_IconText>() : null;
 
-            GameObject itemDetailsTooltipObj = mod.GetAsset<GameObject>("Tooltip_ItemDetails");
+            GameObject itemDetailsTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemDetailsTooltip");
             prefab_itemDetailsTooltip = itemDetailsTooltipObj != null ? itemDetailsTooltipObj.GetComponent<UITooltip_ItemDetails>() : null;
 
-            GameObject powerEntryTooltipObj = mod.GetAsset<GameObject>("Tooltip_ItemPowerEntry");
+            GameObject powerEntryTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemPowerEntryTooltip");
             prefab_tooltip_itemPowerEntry = powerEntryTooltipObj != null ? powerEntryTooltipObj.GetComponent<UITooltip_ItemPowerEntry>() : null;
 
-            GameObject statEntryTooltipObj = mod.GetAsset<GameObject>("Tooltip_ItemStatEntry");
+            GameObject statEntryTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemStatEntryTooltip");
             prefab_tooltip_itemStatEntry = statEntryTooltipObj != null ? statEntryTooltipObj.GetComponent<UITooltip_ItemStatEntry>() : null;
 
-            GameObject statSliderEntryTooltipObj = mod.GetAsset<GameObject>("Tooltip_ItemStatSliderEntry");
+            GameObject statSliderEntryTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemStatSliderEntryTooltip");
             prefab_tooltip_itemStatSliderEntry = statSliderEntryTooltipObj != null ? statSliderEntryTooltipObj.GetComponent<UITooltip_ItemStatSliderEntry>() : null;
 
             _keyCodeToIconDict = new Dictionary<KeyCode, Sprite>()

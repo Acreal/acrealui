@@ -630,7 +630,7 @@ namespace AcrealUI
             else
             {
                 ImageData imageData = DaggerfallUnity.Instance.ItemHelper.GetInventoryImage(item);
-                Sprite itemIcon = SpriteManager.GetOrCreateSprite(imageData);
+                Sprite itemIcon = UISpriteManager.GetOrCreateSprite(imageData);
 
                 bool ignoreCondition = item == null || item.maxCondition < 1 || (!UIUtilityFunctions.ItemIsEquippable(item) && !UIUtilityFunctions.ItemIsMagic(item));
                 float conPerc = ignoreCondition ? -1f : (item.ConditionPercentage / 100f);
@@ -1814,14 +1814,14 @@ namespace AcrealUI
         {
             if (DaggerfallUnity.Instance == null) { return null; }
             ImageData imgData = DaggerfallUnity.Instance.ItemHelper.GetContainerImage(InventoryContainerImages.Ground);
-            return SpriteManager.GetOrCreateSprite(imgData);
+            return UISpriteManager.GetOrCreateSprite(imgData);
         }
 
         public static Sprite GetWagonContainerIcon()
         {
             if(DaggerfallUnity.Instance == null) { return null; }
             ImageData imgData = DaggerfallUnity.Instance.ItemHelper.GetContainerImage(InventoryContainerImages.Wagon);
-            return SpriteManager.GetOrCreateSprite(imgData);
+            return UISpriteManager.GetOrCreateSprite(imgData);
         }
 
         public static Sprite GetLootContainerIcon(DaggerfallLoot lootTarget)
@@ -1857,12 +1857,12 @@ namespace AcrealUI
                 {
                     string filename = TextureFile.IndexToFileName(lootTarget.TextureArchive);
                     ImageData containerImage = ImageReader.GetImageData(filename, lootTarget.TextureRecord, 0, true);
-                    return SpriteManager.GetOrCreateSprite(containerImage);
+                    return UISpriteManager.GetOrCreateSprite(containerImage);
                 }
                 else
                 {
                     ImageData containerImage = DaggerfallUnity.Instance.ItemHelper.GetContainerImage(lootTarget.ContainerImage);
-                    return SpriteManager.GetOrCreateSprite(containerImage);
+                    return UISpriteManager.GetOrCreateSprite(containerImage);
                 }
             }
             return GetRandomLootContainerIcon();
@@ -1877,7 +1877,7 @@ namespace AcrealUI
 
             string filename = TextureFile.IndexToFileName(dropIconArchive);
             ImageData containerImage = ImageReader.GetImageData(filename, dropIconTexture, 0, true);
-            return SpriteManager.GetOrCreateSprite(containerImage);
+            return UISpriteManager.GetOrCreateSprite(containerImage);
         }
         #endregion
 

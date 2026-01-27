@@ -70,7 +70,7 @@ namespace AcrealUI
 
         private void Awake()
         {
-            SpriteManager.Initialize();
+            UISpriteManager.Initialize();
 
             if (referenceManager == null)
             {
@@ -87,9 +87,9 @@ namespace AcrealUI
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************************[NEW WINDOWS]******************************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(PauseWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(InventoryWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(SaveWindowController));
+            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
+            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
+            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveWindowController));
 
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,7 +184,7 @@ namespace AcrealUI
             }
             referenceManager = null;
 
-            SpriteManager.Shutdown();
+            UISpriteManager.Shutdown();
         }
     }
 }
