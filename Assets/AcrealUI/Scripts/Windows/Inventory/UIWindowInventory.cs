@@ -29,8 +29,8 @@ namespace AcrealUI
     public class UIWindowInventory : UIWindow
     {
         #region Variables
-        private const float _PLAYER_INVENTORY_SIZE = 350f;
-        private const float _CONTAINER_INVENTORY_SIZE = 300f;
+        private const float _PLAYER_INVENTORY_SIZE = 400f;
+        private const float _CONTAINER_INVENTORY_SIZE = 350f;
 
         [Header("Panels")]
         [SerializeField] private string _gameObjName_panel_playerStats = null;
