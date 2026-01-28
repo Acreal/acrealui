@@ -61,7 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: -1
-  m_MinHeight: 24
+  m_MinHeight: 26
   m_PreferredWidth: -1
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
@@ -1021,7 +1021,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9cd018687d254ea4798b9b932c014f82, type: 3}
+  m_Sprite: {fileID: 21300000, guid: cb9efde075d38b04299354631c9ec840, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1044,8 +1044,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 20
-  m_MinHeight: 20
+  m_MinWidth: 24
+  m_MinHeight: 24
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: -1
@@ -5248,8 +5248,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 18
-  m_MinHeight: 18
+  m_MinWidth: 24
+  m_MinHeight: 24
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: -1
@@ -5807,8 +5807,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 18
-  m_MinHeight: 18
+  m_MinWidth: 20
+  m_MinHeight: 20
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: -1
@@ -6621,8 +6621,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 18
-  m_MinHeight: 18
+  m_MinWidth: 24
+  m_MinHeight: 24
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: -1
@@ -7213,8 +7213,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 18
-  m_MinHeight: 18
+  m_MinWidth: 24
+  m_MinHeight: 24
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: -1

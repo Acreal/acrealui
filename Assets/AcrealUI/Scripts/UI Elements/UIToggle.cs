@@ -32,7 +32,11 @@ namespace AcrealUI
 
         //set by UIToggleGroup to indicate whether this
         //toggle can be clicked consecutively
+        #if UNITY_EDITOR
+        public bool canBeToggledOff = true;
+        #else
         [HideInInspector] public bool canBeToggledOff = true;
+        #endif
 
         protected bool _isToggledOn = false;
         private string _displayName = null;

@@ -246,16 +246,6 @@ namespace AcrealUI
 
 
             #region Sort Toggle References
-            if (!string.IsNullOrEmpty(_gameObjName_sortToggleGroup))
-            {
-                Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
-                if(groupTForm != null) { _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>(); }
-                if(_sortToggleGroup != null) 
-                { 
-                    _sortToggleGroup.Initialize();
-                }
-            }
-
             _sortToggle_type = InitializeSortItemsToggle(_gameObjName_sortToggle_type, ItemColumnFlags.ItemType);
             _sortToggle_name = InitializeSortItemsToggle(_gameObjName_sortToggle_name, ItemColumnFlags.Name);
             _sortToggle_damage = InitializeSortItemsToggle(_gameObjName_sortToggle_damage, ItemColumnFlags.Damage);
@@ -263,6 +253,16 @@ namespace AcrealUI
             _sortToggle_condition = InitializeSortItemsToggle(_gameObjName_sortToggle_condition, ItemColumnFlags.Condition);
             _sortToggle_weight = InitializeSortItemsToggle(_gameObjName_sortToggle_weight, ItemColumnFlags.Weight);
             _sortToggle_value = InitializeSortItemsToggle(_gameObjName_sortToggle_value, ItemColumnFlags.GoldValue);
+
+            if (!string.IsNullOrEmpty(_gameObjName_sortToggleGroup))
+            {
+                Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
+                if (groupTForm != null) { _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>(); }
+                if (_sortToggleGroup != null)
+                {
+                    _sortToggleGroup.Initialize();
+                }
+            }
             #endregion
 
 

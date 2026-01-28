@@ -496,8 +496,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -720,8 +720,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Tooltip Message...
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 64912141814911d47ba0e4bd3383b74e, type: 2}
-  m_sharedMaterial: {fileID: 21672099190753660, guid: 64912141814911d47ba0e4bd3383b74e,
+  m_fontAsset: {fileID: 11400000, guid: 2e9a0bfb439ddec4384028e09365e95b, type: 2}
+  m_sharedMaterial: {fileID: 866853051545086650, guid: 2e9a0bfb439ddec4384028e09365e95b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -746,8 +746,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 32
+  m_fontSizeBase: 32
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -896,8 +896,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 36
-  m_MinHeight: 36
+  m_MinWidth: 40
+  m_MinHeight: 40
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: -1

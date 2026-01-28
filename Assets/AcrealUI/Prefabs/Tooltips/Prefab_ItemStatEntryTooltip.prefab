@@ -38,7 +38,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 115, y: 24}
+  m_SizeDelta: {x: 115, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5214024222182913038
 MonoBehaviour:
@@ -79,9 +79,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: 200
-  m_MinHeight: 24
+  m_MinHeight: 32
   m_PreferredWidth: -1
-  m_PreferredHeight: -1
+  m_PreferredHeight: 0
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -167,8 +167,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Title:'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 64912141814911d47ba0e4bd3383b74e, type: 2}
-  m_sharedMaterial: {fileID: 21672099190753660, guid: 64912141814911d47ba0e4bd3383b74e,
+  m_fontAsset: {fileID: 11400000, guid: 2e9a0bfb439ddec4384028e09365e95b, type: 2}
+  m_sharedMaterial: {fileID: 866853051545086650, guid: 2e9a0bfb439ddec4384028e09365e95b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -193,8 +193,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 32
+  m_fontSizeBase: 32
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -322,8 +322,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Value
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 64912141814911d47ba0e4bd3383b74e, type: 2}
-  m_sharedMaterial: {fileID: 21672099190753660, guid: 64912141814911d47ba0e4bd3383b74e,
+  m_fontAsset: {fileID: 11400000, guid: 2e9a0bfb439ddec4384028e09365e95b, type: 2}
+  m_sharedMaterial: {fileID: 866853051545086650, guid: 2e9a0bfb439ddec4384028e09365e95b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -348,8 +348,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 32
+  m_fontSizeBase: 32
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
