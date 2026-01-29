@@ -3646,6 +3646,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameObjName_canvasComponent: 
   _gameObjName_canvasGroup: MainPivot
+  _gameObjName_closeWindowButton: Button_Close
+  _gameObjName_backButton: Button_Back
   _gameObjName_rawImage_saveScreenShot: RawImage_ScreenShot
   _gameObjName_inputField_saveName: InputField_SaveName
   _gameObjName_parent_scrollGroup: ToggleGroup_Content

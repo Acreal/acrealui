@@ -60,6 +60,33 @@ namespace AcrealUI
                     _saveLoadGameWindow.Initialize();
                     _saveLoadGameWindow.SetIsSaving(mode == Modes.SaveGame);
 
+                    _saveLoadGameWindow.Event_OnCloseButtonClicked += () =>
+                    {
+                        DaggerfallUI.Instance.PopToHUD();
+                    };
+
+                    _saveLoadGameWindow.Event_OnBackButtonClicked += () =>
+                    {
+                        switch (_currentState)
+                        {
+                            case SaveWindowState.SelectCharacter:
+                            case SaveWindowState.ImportSave:
+                                if (_saveLoadGameWindow.isSaving)
+                                {
+                                    SetState(SaveWindowState.Save);
+                                }
+                                else
+                                {
+                                    SetState(SaveWindowState.Load);
+                                }
+                                break;
+
+                            default:
+                                CancelWindow();
+                                break;
+                        }
+                    };
+
                     _saveLoadGameWindow.Event_ButtonClick_SaveGame += () =>
                     {
                         string characterName = GameManager.Instance.PlayerEntity.Name;

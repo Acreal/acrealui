@@ -54,8 +54,6 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_panelVideoSettings = null;
         [SerializeField] private string _gameObjName_panelControlSettings = null;
         [SerializeField] private string _gameObjName_panelExitGame = null;
-        [SerializeField] private string _gameObjName_button_back = null;
-        [SerializeField] private string _gameObjName_button_close = null;
         [SerializeField] private string _gameObjName_headerText = null;
 
         private UIPanelPaused _panelPaused = null;
@@ -65,8 +63,6 @@ namespace AcrealUI
         private UIPanel _panelAudioSettings = null;
         private UIPanel _panelVideoSettings = null;
         private UIPanel _panelExitGame = null;
-        private UIButton _button_back = null;
-        private UIButton _button_close = null;
         private TextMeshProUGUI _headerText = null;
 
         private PauseWindowState _currentState = PauseWindowState.None;
@@ -84,12 +80,6 @@ namespace AcrealUI
         public UIPanel panelAudioSettings { get { return _panelAudioSettings; } }
         public UIPanel panelVideoSettings { get { return _panelVideoSettings; } }
         public UIPanel panelExitGame { get { return _panelExitGame; } }
-        #endregion
-
-
-        #region Events
-        public event System.Action Event_OnButtonClicked_Back = null;
-        public event System.Action Event_OnButtonClicked_Close = null;
         #endregion
 
 
@@ -160,24 +150,6 @@ namespace AcrealUI
                 _panelExitGame.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_ExitGame script from GameObject \"" + (exitTform != null ? exitTform.gameObject.name : "NULL")); }
-
-            Transform backTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_back);
-            _button_back = backTform != null ? backTform.GetComponent<UIButton>() : null;
-            if (_button_back != null)
-            {
-                _button_back.Initialize();
-                _button_back.Event_OnClicked += (_) => { Event_OnButtonClicked_Back?.Invoke(); };
-            }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIButton script from GameObject \"" + (backTform != null ? backTform.gameObject.name : "NULL")); }
-
-            Transform closeTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_close);
-            _button_close = closeTform != null ? closeTform.GetComponent<UIButton>() : null;
-            if (_button_close != null)
-            {
-                _button_close.Initialize();
-                _button_close.Event_OnClicked += (_) => { Event_OnButtonClicked_Close?.Invoke(); };
-            }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIButton script from GameObject \"" + (closeTform != null ? closeTform.gameObject.name : "NULL")); }
 
             Transform headerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_headerText);
             _headerText = headerTform != null ? headerTform.GetComponent<TextMeshProUGUI>() : null;

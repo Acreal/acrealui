@@ -69,9 +69,9 @@ namespace AcrealUI
                     _pauseWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_pauseWindow);
                     _pauseWindowInstance.Initialize();
 
-                    _pauseWindowInstance.Event_OnButtonClicked_Back += OnBackButtonClicked;
+                    _pauseWindowInstance.Event_OnBackButtonClicked += OnBackButtonClicked;
 
-                    _pauseWindowInstance.Event_OnButtonClicked_Close += () =>
+                    _pauseWindowInstance.Event_OnCloseButtonClicked += () =>
                     {
                         UIUtilityFunctions.PlayButtonClick();
                         CancelWindow();

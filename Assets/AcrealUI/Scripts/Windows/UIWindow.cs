@@ -29,11 +29,21 @@ namespace AcrealUI
         #region Variables
         [SerializeField] string _gameObjName_canvasComponent = null;
         [SerializeField] string _gameObjName_canvasGroup = null;
+        [SerializeField] string _gameObjName_closeWindowButton = null;
+        [SerializeField] string _gameObjName_backButton = null;
 
         protected Canvas _canvasComponent = null;
         protected CanvasGroup _canvasGroup = null;
+        protected UIButton _closeWindowButton = null;
+        protected UIButton _backButton = null;
 
         private bool _isOpen = false;
+        #endregion
+
+
+        #region Events
+        public event System.Action Event_OnBackButtonClicked = null;
+        public event System.Action Event_OnCloseButtonClicked = null;
         #endregion
 
 
@@ -68,6 +78,7 @@ namespace AcrealUI
             //"(Clone)" tag in some cases
             gameObject.name = gameObject.name.Replace("(Clone)", "");
 
+            // FIND CANVAS COMPONENT
             Transform canvasTform = null;
             if (!string.IsNullOrEmpty(_gameObjName_canvasComponent))
             {
@@ -80,10 +91,41 @@ namespace AcrealUI
                 _canvasComponent.enabled = false;
             }
 
+            // FIND CANVAS GROUP
             Transform canvasGroupTform = null;
             if (!string.IsNullOrEmpty(_gameObjName_canvasGroup)) { canvasGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_canvasGroup); }
             if(canvasGroupTform == null) { canvasGroupTform = transform; }
             _canvasGroup = canvasGroupTform != null ? canvasGroupTform.GetComponent<CanvasGroup>() : null;
+
+            // FIND CLOSE BUTTON
+            if (!string.IsNullOrEmpty(_gameObjName_closeWindowButton))
+            {
+                Transform closeTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_closeWindowButton);
+                _closeWindowButton = closeTform != null ? closeTform.GetComponent<UIButton>() : null;
+                if(_closeWindowButton != null)
+                {
+                    _closeWindowButton.Initialize();
+                    _closeWindowButton.Event_OnClicked += (_) =>
+                    {
+                        Event_OnCloseButtonClicked?.Invoke();
+                    };
+                }
+            }
+
+            // FIND BACK BUTTON
+            if (!string.IsNullOrEmpty(_gameObjName_backButton))
+            {
+                Transform backTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_backButton);
+                _backButton = backTform != null ? backTform.GetComponent<UIButton>() : null;
+                if (_backButton != null)
+                {
+                    _backButton.Initialize();
+                    _backButton.Event_OnClicked += (_) =>
+                    {
+                        Event_OnBackButtonClicked?.Invoke();
+                    };
+                }
+            }
         }
 
         public virtual void Cleanup()

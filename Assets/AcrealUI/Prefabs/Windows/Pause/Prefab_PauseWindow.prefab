@@ -115,6 +115,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameObjName_canvasComponent: 
   _gameObjName_canvasGroup: CanvasGroup_Main
+  _gameObjName_closeWindowButton: Button_Close
+  _gameObjName_backButton: Button_Back
   _gameObjName_panelPaused: UIPanel_Pause
   _gameObjName_panelSettings: UIPanel_Settings
   _gameObjName_panelGeneralSettings: UIPanel_Settings_General
@@ -122,8 +124,6 @@ MonoBehaviour:
   _gameObjName_panelVideoSettings: UIPanel_Settings_Video
   _gameObjName_panelControlSettings: UIPanel_Settings_Controls
   _gameObjName_panelExitGame: UIPanel_ExitGame
-  _gameObjName_button_back: Button_Back
-  _gameObjName_button_close: Button_Close
   _gameObjName_headerText: Text_Header
 --- !u!1 &3322949823600261697
 GameObject:
