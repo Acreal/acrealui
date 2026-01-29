@@ -835,7 +835,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region IGameWindow
+        #region IWindowController
         public void ShowWindow()
         {
             if (_pauseWindowInstance != null)

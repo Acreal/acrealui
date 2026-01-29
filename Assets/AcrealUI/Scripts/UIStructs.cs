@@ -17,6 +17,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using System;
 using UnityEngine;
 
 namespace AcrealUI
@@ -100,12 +101,13 @@ namespace AcrealUI
     {
         public bool isValid;
         public int saveKey;
+        public DateTime realTimestamp; //used for sorting saves by most recent
         public string saveName;
         public string saveFilePath;
         public string characterName;
         public string gameVersion;
-        public string realTimestamp;
-        public string gameTimestamp;
+        public string realTimestampString;
+        public string gameTimestampString;
         public Texture2D screenshot;
     }
     #endregion

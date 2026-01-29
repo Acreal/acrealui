@@ -308,20 +308,6 @@ namespace AcrealUI
         #region Show/Hide
         protected override void ShowInternal()
         {
-            if (!_isSaving)
-            {
-                SelectMostRecentSaveGameData();
-            }
-            else
-            {
-                ClearSelectedSaveData();
-            }
-
-            if (_saveEntriesToggleGroup != null)
-            {
-                _saveEntriesToggleGroup.ToggleDefault();
-            }
-
             base.ShowInternal();
         }
 
@@ -419,7 +405,7 @@ namespace AcrealUI
         {
             DaggerfallEntity playerEntity = GameManager.Instance.PlayerEntity;
             string characterName = playerEntity != null ? playerEntity.Name : null;
-            SetSelectedSaveGameData(new UISaveGameData { characterName = characterName });
+            SetSelectedSaveGameData(new UISaveGameData());
         }
 
         public void SetSelectedSaveGameData(UISaveGameData saveGameData)
@@ -476,6 +462,10 @@ namespace AcrealUI
                             if (saveEntry.isToggledOn)
                             {
                                 SetSelectedSaveGameData(saveEntry.GetSaveData());
+                            }
+                            else if(_selectedSaveGameData.saveKey == saveEntry.GetSaveData().saveKey)
+                            {
+                                ClearSelectedSaveData();
                             }
                         }
                     };
@@ -547,12 +537,12 @@ namespace AcrealUI
             {
                 if (_realTimeText != null)
                 {
-                    _realTimeText.text = _selectedSaveGameData.realTimestamp;
+                    _realTimeText.text = _selectedSaveGameData.realTimestampString;
                 }
 
                 if (_gameTimeText != null)
                 {
-                    _gameTimeText.text = _selectedSaveGameData.gameTimestamp;
+                    _gameTimeText.text = _selectedSaveGameData.gameTimestampString;
                 }
             }
             else

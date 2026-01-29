@@ -59,7 +59,6 @@ namespace AcrealUI
                 {
                     _saveLoadGameWindow.Initialize();
                     _saveLoadGameWindow.SetIsSaving(mode == Modes.SaveGame);
-                    _saveLoadGameWindow.SetSelectedSaveGameData(new UISaveGameData());
 
                     _saveLoadGameWindow.Event_ButtonClick_SaveGame += () =>
                     {
@@ -173,8 +172,8 @@ namespace AcrealUI
                         }
                         else
                         {
+                            _saveLoadGameWindow.ClearSelectedSaveData();
                             _saveLoadGameWindow.toggleGroup.SetActiveToggle(null);
-                            _saveLoadGameWindow.SetSelectedSaveGameData(new UISaveGameData());
                             _saveLoadGameWindow.SetSaveOrLoadButtonEnabled(mode == Modes.SaveGame);
                         }
                     };
@@ -187,7 +186,7 @@ namespace AcrealUI
         #region Base Class Overrides
         public override void OnPush()
         {
-            currentPlayerName = GameManager.Instance.PlayerEntity.Name;
+            currentPlayerName = GameManager.Instance != null && GameManager.Instance.PlayerEntity != null ? GameManager.Instance.PlayerEntity.Name : null;
 
             // TODO(Acreal): find a better way to determine this rather than checking for "Nameless"
             // assuming players can name themselves this intentionally
@@ -198,7 +197,7 @@ namespace AcrealUI
 
             if (!_selectedSaveGameData.isValid)
             {
-                _selectedSaveGameData = UIUtilityFunctions.GetMostRecentSaveGameData();
+                _selectedSaveGameData = UIUtilityFunctions.GetMostRecentSaveGameData(currentPlayerName);
             }
 
             if (mode == Modes.SaveGame)
@@ -216,6 +215,8 @@ namespace AcrealUI
         public override void OnPop()
         {
             base.OnPop();
+
+            _selectedSaveGameData = new UISaveGameData();
 
             // TODO(Acreal): keep track of window instances internally so there's no need
             // to destroy every time
@@ -250,8 +251,9 @@ namespace AcrealUI
                         if (allSaveData != null)
                         {
                             hasSaves = allSaveData.Count > 0;
-                            foreach (UISaveGameData saveData in allSaveData)
+                            for (int i = 0; i < allSaveData.Count; i++)
                             {
+                                UISaveGameData saveData = allSaveData[i];
                                 if (saveData.saveKey < 0)
                                 {
                                     return;
@@ -264,6 +266,8 @@ namespace AcrealUI
                                 {
                                     saveEntry.SetSaveData(saveData);
                                     saveEntry.SetDisplayName(saveData.saveName);
+
+                                    saveEntry.transform.SetSiblingIndex(i);
 
                                     saveEntry.Event_OnToggledOn += (UIToggle toggle) =>
                                     {
@@ -314,6 +318,8 @@ namespace AcrealUI
                                     if (entry != null)
                                     {
                                         currentPlayerName = entry.GetSaveData().characterName;
+
+                                        _saveLoadGameWindow.SetSelectedSaveGameData(UIUtilityFunctions.GetMostRecentSaveGameData(currentPlayerName));
 
                                         if (mode == Modes.SaveGame)
                                         {
@@ -398,7 +404,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region IGameWindow
+        #region IWindowController
         public void ShowWindow()
         {
             if(PreviousWindow != null)

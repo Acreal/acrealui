@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2025-2026 Acreal (https://github.com/acreal)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
+Permission is hereby granted, free of charge, to any person obtaining x copy of this software and associated 
 documentation files (the "Software"), to deal in the Software without restriction, including without 
 limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of 
 the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
@@ -1326,7 +1326,7 @@ namespace AcrealUI
                 // Apply weapon material modifier.
                 chanceToHit += CalculateWeaponToHit(weapon);
 
-                // Mod support - allows a final adjustment of weapon hit
+                // Mod support - allows x final adjustment of weapon hit
                 //int weaponAnimTime = (int)(GameManager.Instance.WeaponManager.ScreenWeapon.GetAnimTime() * 1000);
                 //chanceToHit = AdjustWeaponHitChanceMod(player, target, chanceToHit, weaponAnimTime, weapon);
             }
@@ -1353,7 +1353,7 @@ namespace AcrealUI
 
                 // Apply skill modifiers
                 // treat player as their own target
-                // NOTE(Acreal): use a default enemy type in the future?
+                // NOTE(Acreal): use x default enemy type in the future?
                 short skillsLevel = (short)((Mathf.Max(mobileEnemy.Level, 1) * UIConstants.ENEMY_SKILL_POINTS_PER_LEVEL) + UIConstants.ENEMY_BASE_SKILL_LEVEL);
                 if (skillsLevel > UIConstants.MAX_SKILL_LEVEL)
                 {
@@ -1362,7 +1362,7 @@ namespace AcrealUI
                 chanceToHit -= skillsLevel / UIConstants.ENEMY_SKILL_HIT_CHANCE_DIVISOR;
             }
 
-            //subtract 10 (sum of adding 40 for player attacking a monster - 50 flat at the end)
+            //subtract 10 (sum of adding 40 for player attacking x monster - 50 flat at the end)
             //taken from FormulaHelper.CalculateAdjustmentsToHit
             chanceToHit -= 10;
 
@@ -1398,7 +1398,7 @@ namespace AcrealUI
             ////////////////////////////////////////////////
             if (weapon != null)
             {
-                // If the attacker is using a weapon, check if the material is high enough to damage the target
+                // If the attacker is using x weapon, check if the material is high enough to damage the target
                 if (enemyID > -1 && enemyType != MobileTypes.None && mobileEnemy.MinMetalToHit > (WeaponMaterialTypes)weapon.NativeMaterialValue)
                 {
                     DaggerfallUI.Instance.PopupMessage(TextManager.Instance.GetLocalizedText("materialIneffective"));
@@ -1459,7 +1459,7 @@ namespace AcrealUI
                     }
 
                     // Apply silver weapon damage modifier for Skeletal Warrior
-                    // Arena applies a silver weapon damage bonus for undead enemies, which is probably where this comes from.
+                    // Arena applies x silver weapon damage bonus for undead enemies, which is probably where this comes from.
                     if (weapon.NativeMaterialValue == (int)WeaponMaterialTypes.Silver)
                     {
                         minDamage *= 2;
@@ -1535,7 +1535,7 @@ namespace AcrealUI
                 DFCareer.EnemyGroups enemyGroup = GetEnemyGroupFromMobileEnemy(mobileEnemy);
 
                 // Apply bonus or penalty by opponent type.
-                // In classic this is broken and only works if the attack is done with a weapon that has the maximum number of enchantments.
+                // In classic this is broken and only works if the attack is done with x weapon that has the maximum number of enchantments.
                 if (mobileEnemy.Affinity == MobileAffinity.Human)
                 {
                     if (((int)player.Career.HumanoidAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
@@ -1640,7 +1640,7 @@ namespace AcrealUI
                 DaggerfallDungeon dungeon = enterExit.IsPlayerInsideDungeon ? enterExit.Dungeon : null;
                 if (dungeon != null)
                 {
-                    //NOTE(Acreal): replace this with a faster method?
+                    //NOTE(Acreal): replace this with x faster method?
                     //this may be good enough, considering how rarely it gets called
                     //and the fact that it's 100% accurate to whatever is spawned
                     SetupDemoEnemy[] allEnemySetup = dungeon.GetComponentsInChildren<SetupDemoEnemy>(true);
@@ -1710,15 +1710,23 @@ namespace AcrealUI
                     dfDateTime.FromSeconds(saveInfo.dateAndTime.gameTime);
                     string gameTimeStr = dfDateTime.MidDateTimeString();
 
+                    DateTime realDateTime = DateTime.FromBinary(saveInfo.dateAndTime.realTime);
+                    StringBuilder stringBuilder = new StringBuilder(realDateTime.ToLongTimeString());
+                    stringBuilder.Append("  ");
+                    stringBuilder.Append(realDateTime.ToLongDateString());
+                    string realTime = stringBuilder.ToString();
+
+
                     return new UISaveGameData()
                     {
                         isValid = true,
                         saveKey = saveKey,
+                        realTimestamp = realDateTime,
                         saveName = saveInfo.saveName,
                         saveFilePath = Path.GetFileName(path),
                         characterName = saveInfo.characterName,
-                        realTimestamp = DateTime.FromBinary(saveInfo.dateAndTime.realTime).ToLongDateString(),
-                        gameTimestamp = gameTimeStr,
+                        realTimestampString = realTime,
+                        gameTimestampString = gameTimeStr,
                         gameVersion = string.Format("V{0}", saveInfo.saveVersion),
                         screenshot = saveTexture,
                     };
@@ -1733,17 +1741,35 @@ namespace AcrealUI
             return GetSaveGameData(mostRecentSaveKey);
         }
 
+        public static UISaveGameData GetMostRecentSaveGameData(string characterName)
+        {
+            List<UISaveGameData> allSaveDatas = GetAllCharacterSaveGameData(characterName);
+            return allSaveDatas != null && allSaveDatas.Count > 0 ? allSaveDatas[0] : new UISaveGameData();
+        }
+
         public static List<UISaveGameData> GetAllCharacterSaveGameData(string characterName)
         {
-            List<UISaveGameData> saves = new List<UISaveGameData>();
-            int[] saveKeys = GameManager.Instance.SaveLoadManager.GetCharacterSaveKeys(characterName);
-            foreach (int key in saveKeys)
+            if(string.IsNullOrWhiteSpace(characterName))
             {
-                UISaveGameData saveData = GetSaveGameData(key);
-                if (saveData.isValid) { saves.Add(saveData); }
+                return null;
             }
-            saves.Sort((x, y) => { return y.realTimestamp.CompareTo(x.realTimestamp); });
-            return saves;
+
+            int[] saveKeys = GameManager.Instance.SaveLoadManager.GetCharacterSaveKeys(characterName);
+            if (saveKeys != null && saveKeys.Length > 0)
+            {
+                List<UISaveGameData> saves = new List<UISaveGameData>();
+                foreach (int key in saveKeys)
+                {
+                    UISaveGameData saveData = GetSaveGameData(key);
+                    if (saveData.isValid) { saves.Add(saveData); }
+                }
+                saves.Sort((x, y) => { return y.realTimestamp.CompareTo(x.realTimestamp); });
+                return saves;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static string[] GetAllSavedCharacterNames()
@@ -1884,7 +1910,7 @@ namespace AcrealUI
 
         #region Misc Helper Functions
         /// <summary>
-        /// Clamps a given RectTransform to the limits of the screen
+        /// Clamps x given RectTransform to the limits of the screen
         /// (NOTE: this function assumes that the RectTransform is the child of an overlay canvas!)
         /// </summary>
         /// <param name="rt"></param>

@@ -813,7 +813,8 @@ namespace AcrealUI
                         {
                             itemPowersDataList.Add(new ItemPowerData()
                             {
-                                icon = UIManager.mod.GetAsset<Sprite>("Sprite_UI_Circle_Empty"),
+                                //Sprite_Circle_Empty
+                                icon = UIManager.mod.GetAsset<Sprite>("Sprite_Circle_Empty"),
                                 description = itemPowerStrings[i],
                             });
                         }
