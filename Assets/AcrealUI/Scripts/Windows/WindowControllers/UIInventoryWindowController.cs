@@ -114,8 +114,9 @@ namespace AcrealUI
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnGoldButtonClicked += () =>
                     {
+                        UIUtilityFunctions.PlayButtonClick();
+
                         // Show message box
-                        DaggerfallUI.Instance.PlayOneShot(SoundClips.ButtonClick);
                         const int goldToDropTextId = 25;
                         DaggerfallInputMessageBox mb = new DaggerfallInputMessageBox(uiManager, this);
                         mb.SetTextTokens(goldToDropTextId);

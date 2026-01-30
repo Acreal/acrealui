@@ -42,8 +42,8 @@ namespace AcrealUI
 
 
         #region Events
-        public event System.Action Event_OnBackButtonClicked = null;
-        public event System.Action Event_OnCloseButtonClicked = null;
+        public event System.Action Event_ButtonClick_PrevWindow = null;
+        public event System.Action Event_ButtonClick_CloseWindow = null;
         #endregion
 
 
@@ -107,7 +107,7 @@ namespace AcrealUI
                     _closeWindowButton.Initialize();
                     _closeWindowButton.Event_OnClicked += (_) =>
                     {
-                        Event_OnCloseButtonClicked?.Invoke();
+                        Event_ButtonClick_CloseWindow?.Invoke();
                     };
                 }
             }
@@ -122,7 +122,7 @@ namespace AcrealUI
                     _backButton.Initialize();
                     _backButton.Event_OnClicked += (_) =>
                     {
-                        Event_OnBackButtonClicked?.Invoke();
+                        Event_ButtonClick_PrevWindow?.Invoke();
                     };
                 }
             }
