@@ -136,10 +136,7 @@ namespace AcrealUI
                 _text_bindingValue_secondary.text = primaryBinding;
             }
         }
-        #endregion
 
-
-        #region Utility
         public void SetBindingValueColor(Color c, bool primary)
         {
             if (primary)

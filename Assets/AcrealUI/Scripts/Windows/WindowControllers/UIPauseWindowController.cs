@@ -1115,7 +1115,7 @@ namespace AcrealUI
                             }
                             else
                             {
-                                bindingEntry.SetPrimaryBindingValue(keyText);
+                                bindingEntry.SetSecondaryBindingValue(keyText);
                                 _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = keyText;
                             }
 

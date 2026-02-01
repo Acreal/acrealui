@@ -17,7 +17,6 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
-using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using UnityEngine;
@@ -90,7 +89,7 @@ namespace AcrealUI
                         }
                         else
                         {
-                            binding.SetBindingValueColor(DaggerfallUI.DaggerfallDefaultTextColor, true);
+                            binding.SetBindingValueColor(Color.white, true);
                         }
 
                         if (duplicateKeyBindings.Contains(binding.secondaryBindingString))
@@ -99,7 +98,7 @@ namespace AcrealUI
                         }
                         else
                         {
-                            binding.SetBindingValueColor(DaggerfallUI.DaggerfallDefaultTextColor, false);
+                            binding.SetBindingValueColor(Color.white, false);
                         }
                     }
                 }

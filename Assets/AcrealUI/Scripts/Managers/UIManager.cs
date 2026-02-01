@@ -45,10 +45,10 @@ NOTES(Acreal):
 */
 
 using UnityEngine;
-using UnityEngine.EventSystems;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using DaggerfallWorkshop;
 
 namespace AcrealUI
 {
@@ -59,7 +59,7 @@ namespace AcrealUI
         public static UIReferenceManager referenceManager { get; private set; }
         public static UITooltipManager tooltipManager { get; private set; }
 
-        [Invoke(StateManager.StateTypes.Start, 0)]
+        [Invoke(StateManager.StateTypes.Start)]
         public static void Init(InitParams initParams)
         {
             mod = initParams.Mod;
@@ -84,6 +84,26 @@ namespace AcrealUI
                 tooltipManager.Initialize();
             }
 
+            
+            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
+            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
+            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveWindowController));
+
+
+            
+
+            mod.IsReady = true;
+        }
+
+        private void Start()
+        {
+            //if (referenceManager.prefab_hud != null)
+            //{
+            //    Instantiate(referenceManager.prefab_hud);
+            //}
+
+            //DaggerfallUI.Instance.DaggerfallHUD.Enabled = false;
+
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************************[NEW WINDOWS]******************************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,12 +111,9 @@ namespace AcrealUI
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveWindowController));
 
-
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************[WINDOWS THAT NEED TO BE REPLACED]*********************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Tavern, null);
-
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Automap, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Banking, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.BankPurchasePopup, null);
@@ -123,6 +140,7 @@ namespace AcrealUI
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Start, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.StartNewGameWizard, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, null);
+            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Tavern, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.TeleportPopUp, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Trade, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Transport, null);
@@ -140,18 +158,6 @@ namespace AcrealUI
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.JoystickControls, null);   <-- now rolled into the pause window
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Controls, null;            <-- now rolled into the pause window
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.CharacterSheet, null);     <-- now rolled into the inventory window
-
-            mod.IsReady = true;
-        }
-
-        private void Start()
-        {
-            //if (referenceManager.prefab_hud != null)
-            //{
-            //    Instantiate(referenceManager.prefab_hud);
-            //}
-
-            //DaggerfallUI.Instance.DaggerfallHUD.Enabled = false;
         }
 
         private void Update()
