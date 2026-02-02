@@ -56,9 +56,9 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_panelExitGame = null;
         [SerializeField] private string _gameObjName_headerText = null;
 
-        private UIPanelPaused _panelPaused = null;
-        private UIPanelSettings _panelSettings = null;
-        private UIPanelControls _panelControlSettings = null;
+        private UIPausePanel _panelPaused = null;
+        private UISettingsMenuPanel _panelSettings = null;
+        private UIControlOptionsPanel _panelControlSettings = null;
         private UIPanel _panelGeneralSettings = null;
         private UIPanel _panelAudioSettings = null;
         private UIPanel _panelVideoSettings = null;
@@ -73,9 +73,9 @@ namespace AcrealUI
 
         #region Properties
         public PauseWindowState currentState { get { return _currentState; } }
-        public UIPanelPaused panelPaused { get { return _panelPaused; } }
-        public UIPanelSettings panelSettings { get { return _panelSettings; } }
-        public UIPanelControls panelControlSettings { get { return _panelControlSettings; } }
+        public UIPausePanel panelPaused { get { return _panelPaused; } }
+        public UISettingsMenuPanel panelSettings { get { return _panelSettings; } }
+        public UIControlOptionsPanel panelControlSettings { get { return _panelControlSettings; } }
         public UIPanel panelGeneralSettings { get { return _panelGeneralSettings; } }
         public UIPanel panelAudioSettings { get { return _panelAudioSettings; } }
         public UIPanel panelVideoSettings { get { return _panelVideoSettings; } }
@@ -89,22 +89,22 @@ namespace AcrealUI
             base.Initialize();
 
             Transform pauseTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelPaused);
-            _panelPaused = pauseTform != null ? pauseTform.GetComponent<UIPanelPaused>() : null;
+            _panelPaused = pauseTform != null ? pauseTform.GetComponent<UIPausePanel>() : null;
             if (_panelPaused)
             { 
                 _panelPaused.Initialize();
                 _panelPaused.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanelPaused script from GameObject \"" + (pauseTform != null ? pauseTform.gameObject.name : "NULL")); }
+            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPausePanel script from GameObject \"" + (pauseTform != null ? pauseTform.gameObject.name : "NULL")); }
 
             Transform settingsTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelSettings);
-            _panelSettings = settingsTform != null ? settingsTform.GetComponent<UIPanelSettings>() : null;
+            _panelSettings = settingsTform != null ? settingsTform.GetComponent<UISettingsMenuPanel>() : null;
             if (_panelSettings) 
             { 
                 _panelSettings.Initialize();
                 _panelSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanelSettings script from GameObject \"" + (settingsTform != null ? settingsTform.gameObject.name : "NULL")); }
+            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UISettingsMenuPanel script from GameObject \"" + (settingsTform != null ? settingsTform.gameObject.name : "NULL")); }
 
             Transform generalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelGeneralSettings);
             _panelGeneralSettings = generalTform != null ? generalTform.GetComponent<UIPanel>() : null;
@@ -134,13 +134,13 @@ namespace AcrealUI
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_VideoSettings script from GameObject \"" + (videoTform != null ? videoTform.gameObject.name : "NULL")); }
 
             Transform controlTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelControlSettings);
-            _panelControlSettings = controlTform != null ? controlTform.GetComponent<UIPanelControls>() : null;
+            _panelControlSettings = controlTform != null ? controlTform.GetComponent<UIControlOptionsPanel>() : null;
             if (_panelControlSettings)
             {
                 _panelControlSettings.Initialize();
                 _panelControlSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanelControls script from GameObject \"" + (controlTform != null ? controlTform.gameObject.name : "NULL")); }
+            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIControlOptionsPanel script from GameObject \"" + (controlTform != null ? controlTform.gameObject.name : "NULL")); }
 
             Transform exitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelExitGame);
             _panelExitGame = exitTform != null ? exitTform.GetComponent<UIPanel>() : null;

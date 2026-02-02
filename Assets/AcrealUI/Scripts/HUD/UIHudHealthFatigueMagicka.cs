@@ -19,10 +19,12 @@ DEALINGS IN THE SOFTWARE.
 
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Entity;
+using DaggerfallWorkshop.Game.Utility.ModSupport;
 using UnityEngine;
 
 namespace AcrealUI
 {
+    [ImportedComponent]
     public class UIHudHealthFatigueMagicka : MonoBehaviour
     {
         [SerializeField] private string _gameObjName_healthSlider = null;
@@ -75,6 +77,9 @@ namespace AcrealUI
 
         private void Update()
         {
+            // TODO(Acreal): move this to UIUtilityFunctions so there's no need
+            // to reference DaggerfallUnity scripts in here
+            // make it event-based
             PlayerEntity player = GameManager.Instance.PlayerEntity;
 
             float healthPercent = player.CurrentHealthPercent;

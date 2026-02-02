@@ -287,7 +287,6 @@ GameObject:
   - component: {fileID: 1627492647771304494}
   - component: {fileID: 2278817580035769657}
   - component: {fileID: 4179920970740393734}
-  - component: {fileID: 7104392018764914130}
   m_Layer: 5
   m_Name: Image_Hue
   m_TagString: Untagged
@@ -348,21 +347,6 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 2
---- !u!114 &7104392018764914130
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1627492647771304493}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd3cce5a27f2db94fa394c4719bddecd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  picker: {fileID: 0}
-  type: 4
-  direction: 0
 --- !u!1 &1627492648238873486
 GameObject:
   m_ObjectHideFlags: 0
@@ -432,7 +416,6 @@ GameObject:
   - component: {fileID: 1627492648337211783}
   - component: {fileID: 1627492648337211782}
   - component: {fileID: 1627492648337211781}
-  - component: {fileID: 4250251939146625768}
   m_Layer: 5
   m_Name: Slider_HandleType
   m_TagString: Untagged
@@ -547,20 +530,6 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4250251939146625768
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1627492648337211787}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91558da930270ac4a960ba03b81c836a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ColorPicker: {fileID: 0}
-  type: 4
 --- !u!1 &5533763165176955619
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,8 +681,8 @@ RectTransform:
   m_Father: {fileID: 1746453235004737276}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 24, y: 14}
   m_Pivot: {x: 0.5, y: 0.5}

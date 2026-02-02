@@ -21,6 +21,7 @@ using UnityEngine;
 
 namespace AcrealUI
 {
+    [System.Obsolete]
     public class UIOptionsPanel : MonoBehaviour
     {
         public virtual string panelTitle

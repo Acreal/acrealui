@@ -178,10 +178,10 @@ namespace AcrealUI
                         _pauseWindowInstance.panelGeneralSettings.gameObject.SetActive(false);
 
                         #region Gameplay Settings
-                        UIScrollListGroup generalGroup = _pauseWindowInstance.panelGeneralSettings.GetScrollListGroup("Gameplay"); //TODO(Acreal): localize this string
+                        UIScrollListGroup generalGroup = _pauseWindowInstance.panelGeneralSettings.GetScrollListGroup("Gameplay"); // TODO(Acreal): localize this string
 
                         UIToggle headbobToggle = generalGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        headbobToggle.SetDisplayName("Head Bobbing"); //TODO(Acreal): localize this string
+                        headbobToggle.SetDisplayName("Head Bobbing"); // TODO(Acreal): localize this string
                         headbobToggle.isToggledOn = DaggerfallUnity.Settings.HeadBobbing;
                         headbobToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -199,11 +199,75 @@ namespace AcrealUI
                     {
                         _pauseWindowInstance.panelVideoSettings.gameObject.SetActive(false);
 
+
+                        #region Resolution Setting
+                        Resolution[] allResolutions = Screen.resolutions;
+                        
+                        UIScrollListGroup resolutionGroup = _pauseWindowInstance.panelVideoSettings.GetScrollListGroup("Resolution"); // TODO(Acreal): localize this string
+                        UIToggleGroup resolutionToggleGroup = resolutionGroup.groupParent.gameObject.AddComponent<UIToggleGroup>();
+                        resolutionToggleGroup.canBeToggledOff = false;
+                        resolutionToggleGroup.Initialize();
+
+                        UIScrollListGroup refreshRateGroup = _pauseWindowInstance.panelVideoSettings.GetScrollListGroup("Refresh Rate"); // TODO(Acreal): localize this string
+                        UIToggleGroup refreshRateToggleGroup = refreshRateGroup.groupParent.gameObject.AddComponent<UIToggleGroup>();
+                        refreshRateToggleGroup.canBeToggledOff = false;
+                        refreshRateToggleGroup.Initialize();
+
+                        UIResolutionToggle currentResolutionEntry = null;
+                        for(int i = 0; i < allResolutions.Length; i++)
+                        {
+                            #region Resolution
+                            UIResolutionToggle resolutionEntry = resolutionGroup.AddToggle(UIManager.referenceManager.prefab_resolutionSettingEntry) as UIResolutionToggle;
+                            resolutionEntry.resolution = allResolutions[i];
+                            resolutionEntry.SetResolutionText(allResolutions[i].width + "x" + allResolutions[i].height);
+                            //resolutionEntry.SetRefreshRateText(allResolutions[i].refreshRate.ToString("N0")); // OBSOLETE
+
+                            resolutionToggleGroup.AddToggle(resolutionEntry);
+
+                            if (currentResolutionEntry == null &&
+                                allResolutions[i].width == Screen.currentResolution.width &&
+                                allResolutions[i].height == Screen.currentResolution.height &&
+                                allResolutions[i].refreshRate == Screen.currentResolution.refreshRate)
+                            {
+                                currentResolutionEntry = resolutionEntry;
+                            }
+
+                            resolutionEntry.Event_OnToggledOn += (_) =>
+                            {
+                                DaggerfallUnity.Settings.ResolutionWidth = resolutionEntry.resolution.width;
+                                DaggerfallUnity.Settings.ResolutionHeight = resolutionEntry.resolution.height;
+
+                                if (DaggerfallUnity.Settings.ExclusiveFullscreen)
+                                {
+                                    Screen.SetResolution(resolutionEntry.resolution.width, resolutionEntry.resolution.height, FullScreenMode.ExclusiveFullScreen, resolutionEntry.resolution.refreshRate);
+                                }
+                                else
+                                {
+                                    Screen.SetResolution(resolutionEntry.resolution.width, resolutionEntry.resolution.height, DaggerfallUnity.Settings.Fullscreen, resolutionEntry.resolution.refreshRate);
+                                }
+                            };
+                            #endregion
+
+                            #region Refresh Rate
+                            // START_HERE(Acreal):
+                            // add refresh rate entries as separate toggles
+                            // remove text variables from UIResolutionToggle
+                            // refresh rate will be a separate toggle, and
+                            // the parent class has a text field already
+                            #endregion
+                        }
+
+                        if (currentResolutionEntry != null)
+                        {
+                            resolutionToggleGroup.SetActiveToggle(currentResolutionEntry);
+                        }
+                        #endregion
+
                         #region Camera Settings
-                        UIScrollListGroup cameraGroup = _pauseWindowInstance.panelVideoSettings.GetScrollListGroup("Camera");
+                        UIScrollListGroup cameraGroup = _pauseWindowInstance.panelVideoSettings.GetScrollListGroup("Camera"); // TODO(Acreal): localize this string
 
                         UISlider fov = cameraGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        fov.SetTextTitle("Field of View"); //TODO(Acreal): localize this string
+                        fov.SetTextTitle("Field of View"); // TODO(Acreal): localize this string
                         fov.SetSliderMinMax(60, 120, true);
                         fov.SetSliderValue(DaggerfallUnity.Settings.FieldOfView, true);
                         fov.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -219,10 +283,10 @@ namespace AcrealUI
                         #endregion
 
                         #region Shadow Settings
-                        UIScrollListGroup shadowGroup = _pauseWindowInstance.panelVideoSettings.GetScrollListGroup("Shadows");
+                        UIScrollListGroup shadowGroup = _pauseWindowInstance.panelVideoSettings.GetScrollListGroup("Shadows"); // TODO(Acreal): localize this string
 
                         UISlider shadowRes = shadowGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        shadowRes.SetTextTitle("Shadow Resolution"); //TODO(Acreal): localize this string
+                        shadowRes.SetTextTitle("Shadow Resolution"); // TODO(Acreal): localize this string
                         shadowRes.SetSliderMinMax(0, 3, true);
                         shadowRes.SetSliderValue(DaggerfallUnity.Settings.ShadowResolutionMode, true);
                         shadowRes.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -232,7 +296,7 @@ namespace AcrealUI
                         };
 
                         UISlider shadowDistExt = shadowGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        shadowDistExt.SetTextTitle("Exterior Shadow Distance"); //TODO(Acreal): localize this string
+                        shadowDistExt.SetTextTitle("Exterior Shadow Distance"); // TODO(Acreal): localize this string
                         shadowDistExt.SetSliderMinMax(0.1f, 150f, false);
                         shadowDistExt.SetSliderValue(DaggerfallUnity.Settings.ExteriorShadowDistance, true);
                         shadowDistExt.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -242,7 +306,7 @@ namespace AcrealUI
                         };
 
                         UISlider shadowDistInt = shadowGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        shadowDistInt.SetTextTitle("Interior Shadow Distance"); //TODO(Acreal): localize this string
+                        shadowDistInt.SetTextTitle("Interior Shadow Distance"); // TODO(Acreal): localize this string
                         shadowDistInt.SetSliderMinMax(0.1f, 50f, false);
                         shadowDistInt.SetSliderValue(DaggerfallUnity.Settings.InteriorShadowDistance, true);
                         shadowDistInt.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -252,7 +316,7 @@ namespace AcrealUI
                         };
 
                         UISlider shadowDistDungeon = shadowGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        shadowDistDungeon.SetTextTitle("Dungeon Shadow Distance"); //TODO(Acreal): localize this string
+                        shadowDistDungeon.SetTextTitle("Dungeon Shadow Distance"); // TODO(Acreal): localize this string
                         shadowDistDungeon.SetSliderMinMax(0.1f, 50f, false);
                         shadowDistDungeon.SetSliderValue(DaggerfallUnity.Settings.DungeonShadowDistance, true);
                         shadowDistDungeon.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -262,7 +326,7 @@ namespace AcrealUI
                         };
 
                         UIToggle exteriorLightShadows = shadowGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        exteriorLightShadows.SetDisplayName("Exterior Lights Cast Shadows"); //TODO(Acreal): localize this string
+                        exteriorLightShadows.SetDisplayName("Exterior Lights Cast Shadows"); // TODO(Acreal): localize this string
                         exteriorLightShadows.isToggledOn = DaggerfallUnity.Settings.ExteriorLightShadows;
                         exteriorLightShadows.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -274,7 +338,7 @@ namespace AcrealUI
                         };
 
                         UIToggle interiorLightShadows = shadowGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        interiorLightShadows.SetDisplayName("Interior Lights Cast Shadows"); //TODO(Acreal): localize this string
+                        interiorLightShadows.SetDisplayName("Interior Lights Cast Shadows"); // TODO(Acreal): localize this string
                         interiorLightShadows.isToggledOn = DaggerfallUnity.Settings.InteriorLightShadows;
                         interiorLightShadows.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -286,7 +350,7 @@ namespace AcrealUI
                         };
 
                         UIToggle dungeonLightShadows = shadowGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        dungeonLightShadows.SetDisplayName("Dungeon Lights Cast Shadows"); //TODO(Acreal): localize this string
+                        dungeonLightShadows.SetDisplayName("Dungeon Lights Cast Shadows"); // TODO(Acreal): localize this string
                         dungeonLightShadows.isToggledOn = DaggerfallUnity.Settings.DungeonLightShadows;
                         dungeonLightShadows.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -298,7 +362,7 @@ namespace AcrealUI
                         };
 
                         UIToggle npcShadows = shadowGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        npcShadows.SetDisplayName("Dynamic NPCs Cast Shadows"); //TODO(Acreal): localize this string
+                        npcShadows.SetDisplayName("Dynamic NPCs Cast Shadows"); // TODO(Acreal): localize this string
                         npcShadows.isToggledOn = DaggerfallUnity.Settings.MobileNPCShadows;
                         npcShadows.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -310,7 +374,7 @@ namespace AcrealUI
                         };
 
                         UIToggle billboardShadows = shadowGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        billboardShadows.SetDisplayName("Object Billboards Cast Shadows"); //TODO(Acreal): localize this string
+                        billboardShadows.SetDisplayName("Object Billboards Cast Shadows"); // TODO(Acreal): localize this string
                         billboardShadows.isToggledOn = DaggerfallUnity.Settings.GeneralBillboardShadows;
                         billboardShadows.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -322,7 +386,7 @@ namespace AcrealUI
                         };
 
                         UIToggle natureBillboardShadows = shadowGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        natureBillboardShadows.SetDisplayName("Foliage Billboards Cast Shadows"); //TODO(Acreal): localize this string
+                        natureBillboardShadows.SetDisplayName("Foliage Billboards Cast Shadows"); // TODO(Acreal): localize this string
                         natureBillboardShadows.isToggledOn = DaggerfallUnity.Settings.NatureBillboardShadows;
                         natureBillboardShadows.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -334,16 +398,16 @@ namespace AcrealUI
                         };
                         #endregion
 
-                        //TODO(Acreal): finish adding video options
-                        //DROPDOWN: resolution selection
-                        //SLIDER: fullscreen mode
-                        //SLIDER: retro rendering mode
-                        //SLIDER: main filter mode
-                        //SLIDER: quality level
-                        //TOGGLE: random dungeon textures
-                        //TOGGLE: vsync
-                        //TOGGLE: ambient lit interiors
-                        //TOGGLE: texture array
+                        // TODO(Acreal): finish adding video options
+                        // DROPDOWN: resolution selection
+                        // SLIDER: fullscreen mode
+                        // SLIDER: retro rendering mode
+                        // SLIDER: main filter mode
+                        // SLIDER: quality level
+                        // TOGGLE: random dungeon textures
+                        // TOGGLE: vsync
+                        // TOGGLE: ambient lit interiors
+                        // TOGGLE: texture array
                     }
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,10 +418,10 @@ namespace AcrealUI
                         _pauseWindowInstance.panelAudioSettings.gameObject.SetActive(false);
 
                         #region Volume Settings
-                        UIScrollListGroup volumeGroup = _pauseWindowInstance.panelAudioSettings.GetScrollListGroup("Volume"); //TODO(Acreal): localize this string
+                        UIScrollListGroup volumeGroup = _pauseWindowInstance.panelAudioSettings.GetScrollListGroup("Volume"); // TODO(Acreal): localize this string
 
                         UISlider soundVolume = volumeGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        soundVolume.SetTextTitle("Sound"); //TODO(Acreal): localize this string
+                        soundVolume.SetTextTitle("Sound"); // TODO(Acreal): localize this string
                         soundVolume.SetSliderMinMax(0f, 1f, false);
                         soundVolume.SetSliderValue(DaggerfallUnity.Settings.SoundVolume, true);
                         soundVolume.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -368,7 +432,7 @@ namespace AcrealUI
                         };
 
                         UISlider musicVolume = volumeGroup.AddSlider(UIManager.referenceManager.prefab_slider);
-                        musicVolume.SetTextTitle("Music"); //TODO(Acreal): localize this string
+                        musicVolume.SetTextTitle("Music"); // TODO(Acreal): localize this string
                         musicVolume.SetSliderMinMax(0f, 1f, false);
                         musicVolume.SetSliderValue(DaggerfallUnity.Settings.MusicVolume, true);
                         musicVolume.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -435,10 +499,10 @@ namespace AcrealUI
                         };
 
                         #region Movement Control Settings
-                        UIScrollListGroup movementGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Movement"); //TODO(Acreal): localize this string
+                        UIScrollListGroup movementGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Movement"); // TODO(Acreal): localize this string
 
                         UIToggle invertLookToggle = movementGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        invertLookToggle.SetDisplayName("Invert Look"); //TODO(Acreal): localize this string
+                        invertLookToggle.SetDisplayName("Invert Look"); // TODO(Acreal): localize this string
                         invertLookToggle.isToggledOn = DaggerfallUnity.Settings.InvertMouseVertical;
                         invertLookToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -448,7 +512,7 @@ namespace AcrealUI
                         };
 
                         UIToggle movementAccelerationToggle = movementGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        movementAccelerationToggle.SetDisplayName("Movement Acceleration"); //TODO(Acreal): localize this string
+                        movementAccelerationToggle.SetDisplayName("Movement Acceleration"); // TODO(Acreal): localize this string
                         movementAccelerationToggle.isToggledOn = DaggerfallUnity.Settings.MovementAcceleration;
                         movementAccelerationToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -458,7 +522,7 @@ namespace AcrealUI
                         };
 
                         UIToggle bowsDrawAndRelease = movementGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        bowsDrawAndRelease.SetDisplayName("Bows Draw and Release"); //TODO(Acreal): localize this string
+                        bowsDrawAndRelease.SetDisplayName("Bows Draw and Release"); // TODO(Acreal): localize this string
                         bowsDrawAndRelease.isToggledOn = DaggerfallUnity.Settings.BowDrawback;
                         bowsDrawAndRelease.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -468,7 +532,7 @@ namespace AcrealUI
                         };
 
                         UIToggle sneakToggle = movementGroup.AddToggle(UIManager.referenceManager.prefab_toggle);
-                        sneakToggle.SetDisplayName("Toggle Sneak"); //TODO(Acreal): localize this string
+                        sneakToggle.SetDisplayName("Toggle Sneak"); // TODO(Acreal): localize this string
                         sneakToggle.isToggledOn = DaggerfallUnity.Settings.ToggleSneak;
                         sneakToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -514,7 +578,7 @@ namespace AcrealUI
                         #endregion
 
                         #region Combat Control Settings
-                        UIScrollListGroup combatGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Combat"); //TODO(Acreal): localize this string
+                        UIScrollListGroup combatGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Combat"); // TODO(Acreal): localize this string
 
                         UISlider slider_weaponSwingMode = combatGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         slider_weaponSwingMode.Initialize();
@@ -557,7 +621,7 @@ namespace AcrealUI
                         #endregion
 
                         #region Interaction Control Settings
-                        UIScrollListGroup interactGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Interaction"); //TODO(Acreal): localize this string
+                        UIScrollListGroup interactGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Interaction"); // TODO(Acreal): localize this string
 
                         List<InputManager.Actions> interactActions = new List<InputManager.Actions>()
                         {
@@ -585,7 +649,7 @@ namespace AcrealUI
                         #endregion
 
                         #region Interface Control Settings
-                        UIScrollListGroup interfaceGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Interface"); //TODO(Acreal): localize this string
+                        UIScrollListGroup interfaceGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Interface"); // TODO(Acreal): localize this string
 
                         List<InputManager.Actions> interfaceActions = new List<InputManager.Actions>()
                         {
@@ -616,7 +680,7 @@ namespace AcrealUI
                         #endregion
 
                         #region System Control Settings
-                        UIScrollListGroup systemGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("System"); //TODO(Acreal): localize this string
+                        UIScrollListGroup systemGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("System"); // TODO(Acreal): localize this string
 
                         List<InputManager.Actions> systemActions = new List<InputManager.Actions>()
                         {
@@ -643,7 +707,7 @@ namespace AcrealUI
                         #endregion
 
                         #region Axis Control Settings
-                        UIScrollListGroup axisGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Axis Bindings"); //TODO(Acreal): localize this string
+                        UIScrollListGroup axisGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Axis Bindings"); // TODO(Acreal): localize this string
 
                         List<InputManager.AxisActions> axisActions = new List<InputManager.AxisActions>()
                         {
@@ -675,11 +739,11 @@ namespace AcrealUI
                         #endregion
 
                         #region Joystick Control Settings
-                        UIScrollListGroup joystickGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Joystick Controls"); //TODO(Acreal): localize this string
+                        UIScrollListGroup joystickGroup = _pauseWindowInstance.panelControlSettings.GetScrollListGroup("Joystick Controls"); // TODO(Acreal): localize this string
 
                         UISlider slider_lookSensitivity = joystickGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         slider_lookSensitivity.Initialize();
-                        slider_lookSensitivity.SetTextTitle("Look Sensitivity"); //TODO(Acreal): localize this string
+                        slider_lookSensitivity.SetTextTitle("Look Sensitivity"); // TODO(Acreal): localize this string
                         slider_lookSensitivity.SetSliderMinMax(0f, 1f, false);
                         slider_lookSensitivity.SetSliderValue(DaggerfallUnity.Settings.JoystickLookSensitivity, true);
                         slider_lookSensitivity.SetTextValue(DaggerfallUnity.Settings.JoystickLookSensitivity.ToString("F2"));
@@ -693,7 +757,7 @@ namespace AcrealUI
 
                         UISlider slider_uiMouseSensitivity = joystickGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         slider_uiMouseSensitivity.Initialize();
-                        slider_uiMouseSensitivity.SetTextTitle("UI Mouse Sensitivity"); //TODO(Acreal): localize this string
+                        slider_uiMouseSensitivity.SetTextTitle("UI Mouse Sensitivity"); // TODO(Acreal): localize this string
                         slider_uiMouseSensitivity.SetSliderMinMax(0f, 1f, false);
                         slider_uiMouseSensitivity.SetSliderValue(DaggerfallUnity.Settings.MouseLookSensitivity, true);
                         slider_uiMouseSensitivity.SetTextValue(DaggerfallUnity.Settings.MouseLookSensitivity.ToString("F2"));
@@ -707,7 +771,7 @@ namespace AcrealUI
 
                         UISlider slider_uiMouseSmoothing = joystickGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         slider_uiMouseSmoothing.Initialize();
-                        slider_uiMouseSmoothing.SetTextTitle("Mouse Smoothing Factor"); //TODO(Acreal): localize this string
+                        slider_uiMouseSmoothing.SetTextTitle("Mouse Smoothing Factor"); // TODO(Acreal): localize this string
                         slider_uiMouseSmoothing.SetSliderMinMax(0f, 0.9f, false);
                         slider_uiMouseSmoothing.SetSliderValue(DaggerfallUnity.Settings.MouseLookSmoothingFactor, true);
                         slider_uiMouseSmoothing.SetTextValue(DaggerfallUnity.Settings.MouseLookSmoothingFactor.ToString("F2"));
@@ -721,7 +785,7 @@ namespace AcrealUI
 
                         UISlider slider_maxMovementThreshold = joystickGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         slider_maxMovementThreshold.Initialize();
-                        slider_maxMovementThreshold.SetTextTitle("Maximum Movement Threshold"); //TODO(Acreal): localize this string
+                        slider_maxMovementThreshold.SetTextTitle("Maximum Movement Threshold"); // TODO(Acreal): localize this string
                         slider_maxMovementThreshold.SetSliderMinMax(0f, 1f, false);
                         slider_maxMovementThreshold.SetSliderValue(DaggerfallUnity.Settings.JoystickMovementThreshold, true);
                         slider_maxMovementThreshold.SetTextValue(DaggerfallUnity.Settings.JoystickMovementThreshold.ToString("F2"));
@@ -735,7 +799,7 @@ namespace AcrealUI
 
                         UISlider slider_deadzone = joystickGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         slider_deadzone.Initialize();
-                        slider_deadzone.SetTextTitle("Deadzone"); //TODO(Acreal): localize this string
+                        slider_deadzone.SetTextTitle("Deadzone"); // TODO(Acreal): localize this string
                         slider_deadzone.SetSliderMinMax(0f, 1f, false);
                         slider_deadzone.SetSliderValue(DaggerfallUnity.Settings.JoystickDeadzone, true);
                         slider_deadzone.SetTextValue(DaggerfallUnity.Settings.JoystickDeadzone.ToString("F2"));
@@ -761,7 +825,7 @@ namespace AcrealUI
                             UIJoystickKeyBindingEntry joystickBindingEntry = (UIJoystickKeyBindingEntry)joystickGroup.AddBindingEntry(UIManager.referenceManager.prefab_joystickBindEntry, actionStr);
                             joystickBindingEntry.Initialize();
                             joystickBindingEntry.SetActionEnum(joystickActions[i]);
-                            joystickBindingEntry.SetActionEnumString(actionStr);  //TODO(Acreal): localize this string
+                            joystickBindingEntry.SetActionEnumString(actionStr);  // TODO(Acreal): localize this string
                             joystickBindingEntry.SetDisplayName(Controls_GetControlBindName(actionStr));
                             joystickBindingEntry.SetPrimaryBindingValue(Controls_GetControlBindValue(actionStr, true));
                             joystickBindingEntry.SetSecondaryBindingValue(Controls_GetControlBindValue(actionStr, false));
@@ -904,7 +968,7 @@ namespace AcrealUI
             InputManager.JoystickUIActions joystickInputAction;
             if (_stringToActionEnumDict.TryGetValue(actionEnumAsString, out inputAction))
             {
-                //TODO(Acreal): Get localized versions of these strings
+                // TODO(Acreal): Get localized versions of these strings
                 //just not sure where to find them yet...
                 return actionEnumAsString;
             }
@@ -1025,7 +1089,7 @@ namespace AcrealUI
 
         private IEnumerator<float> WaitForKeyPress(UIControlBindingEntry bindingEntry, bool isPrimaryBinding)
         {
-            //TODO(Acreal): set this value based on the binding entry that was clicked
+            // TODO(Acreal): set this value based on the binding entry that was clicked
             //(primary and secondary bindings are displayed simultaneously in the ui)
             ControlsConfigManager.Instance.UsingPrimary = isPrimaryBinding;
 
@@ -1068,7 +1132,7 @@ namespace AcrealUI
                             bindingEntry.SetPrimaryBindingValue(axisText);
                             _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = axisText;
 
-                            //TODO(Acreal): add tooltips to keybindings
+                            // TODO(Acreal): add tooltips to keybindings
                             //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
                             //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
 
@@ -1087,7 +1151,7 @@ namespace AcrealUI
                             bindingEntry.SetPrimaryBindingValue(joystickText);
                             _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = joystickText;
 
-                            //TODO(Acreal): add tooltips to keybindings
+                            // TODO(Acreal): add tooltips to keybindings
                             //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
                             //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
 
@@ -1112,7 +1176,7 @@ namespace AcrealUI
                                 _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = keyText;
                             }
 
-                            //TODO(Acreal): add tooltips to keybindings
+                            // TODO(Acreal): add tooltips to keybindings
                             //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
                             //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
 

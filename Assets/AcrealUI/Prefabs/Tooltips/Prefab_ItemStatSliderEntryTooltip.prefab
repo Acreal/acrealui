@@ -362,13 +362,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 881769733437428956}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f0e54bf1e2892d4eb5cde4a8d97cc7f, type: 3}
+  m_Script: {fileID: 11500000, guid: 9814509c4edf5d5498a5d321894a0661, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _gameObjName_image_icon: 
   _gameObjName_text_title: Text_Title
-  _gameObjName_text_description: Text_ConditionValue
-  _gameObjName_slider_condition: UISlider_ItemCondition
+  _gameObjName_text_description: 
+  _gameObjName_slider_condition: Text_ConditionValue
 --- !u!1 &881769733862990750
 GameObject:
   m_ObjectHideFlags: 0

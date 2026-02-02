@@ -17,8 +17,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
-using DaggerfallWorkshop.Game;
-using DaggerfallWorkshop.Game.Entity;
+using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -26,6 +25,7 @@ using UnityEngine.UI;
 
 namespace AcrealUI
 {
+    [ImportedComponent]
     public class UIWindowSaveLoad : UIWindow
     {
         #region Variables
@@ -306,11 +306,6 @@ namespace AcrealUI
 
 
         #region Show/Hide
-        protected override void ShowInternal()
-        {
-            base.ShowInternal();
-        }
-
         protected override void HideInternal()
         {
             ClearSelectedSaveData();
@@ -403,8 +398,7 @@ namespace AcrealUI
 
         public void ClearSelectedSaveData()
         {
-            DaggerfallEntity playerEntity = GameManager.Instance.PlayerEntity;
-            string characterName = playerEntity != null ? playerEntity.Name : null;
+            string characterName = UIUtilityFunctions.GetPlayerName();
             SetSelectedSaveGameData(new UISaveGameData());
         }
 

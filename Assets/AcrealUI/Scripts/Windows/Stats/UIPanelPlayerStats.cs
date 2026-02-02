@@ -17,8 +17,6 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
-using DaggerfallWorkshop.Game;
-using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using TMPro;
@@ -469,10 +467,7 @@ namespace AcrealUI
         {
             if (_paperDollRawImage != null)
             {
-                DaggerfallUI.Instance.PaperDollRenderer.Refresh(PaperDollRenderer.LayerFlags.All, GameManager.Instance.PlayerEntity);
-                Texture2D dollTex = DaggerfallUI.Instance.PaperDollRenderer.PaperDollTexture;
-                _paperDollRawImage.texture = dollTex;
-
+                _paperDollRawImage.texture = UIUtilityFunctions.GetPaperDollTexture();
 
                 LayoutElement layoutElem = _paperDollRawImage.GetComponent<LayoutElement>();
                 if (layoutElem != null)

@@ -162,10 +162,10 @@ namespace AcrealUI
             HideActiveTooltip();
 
             UITooltip tooltip = null;
-            UITooltip_IconText iconTextTooltip = null;
+            UITextIconTooltip iconTextTooltip = null;
             if (_tooltipInstanceDictionary.TryGetValue(TooltipType.IconText, out tooltip))
             {
-                iconTextTooltip = tooltip as UITooltip_IconText;
+                iconTextTooltip = tooltip as UITextIconTooltip;
             }
 
             if (iconTextTooltip != null)
@@ -196,10 +196,10 @@ namespace AcrealUI
             HideActiveTooltip();
 
             UITooltip tooltip = null;
-            UITooltip_ItemDetails itemDetailsTooltip = null;
+            UIItemDetailsTooltip itemDetailsTooltip = null;
             if (_tooltipInstanceDictionary.TryGetValue(TooltipType.ItemDetails, out tooltip))
             {
-                itemDetailsTooltip = tooltip as UITooltip_ItemDetails;
+                itemDetailsTooltip = tooltip as UIItemDetailsTooltip;
             }
 
             if (itemDetailsTooltip != null)
@@ -227,7 +227,7 @@ namespace AcrealUI
                 {
                     for (int i = 0; i < itemStatData.Count; i++)
                     {
-                        UITooltip_ItemStatEntry statEntry = itemDetailsTooltip.AddItemStat();
+                        UIItemStatTooltipEntry statEntry = itemDetailsTooltip.AddItemStat();
                         statEntry.SetIcon(itemStatData[i].icon);
                         statEntry.SetTitle(itemStatData[i].name);
                         statEntry.SetDescription(itemStatData[i].description);
@@ -238,7 +238,7 @@ namespace AcrealUI
                 {
                     for (int i = 0; i < itemStatSliderData.Count; i++)
                     {
-                        UITooltip_ItemStatSliderEntry statEntry = itemDetailsTooltip.AddItemStatSlider();
+                        UIItemStatSliderTooltipEntry statEntry = itemDetailsTooltip.AddItemStatSlider();
                         statEntry.SetIcon(itemStatSliderData[i].icon);
                         statEntry.SetTitle(itemStatSliderData[i].name);
                         statEntry.SetDescription(itemStatSliderData[i].description);
@@ -250,7 +250,7 @@ namespace AcrealUI
                 {
                     for (int i = 0; i < itemPowersData.Count; i++)
                     {
-                        UITooltip_ItemPowerEntry statEntry = itemDetailsTooltip.AddItemPower();
+                        UIItemPowerTooltipEntry statEntry = itemDetailsTooltip.AddItemPower();
                         statEntry.SetIcon(itemPowersData[i].icon);
                         statEntry.SetTitle(itemPowersData[i].name);
                         statEntry.SetDescription(itemPowersData[i].description);

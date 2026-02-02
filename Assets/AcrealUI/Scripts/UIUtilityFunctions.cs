@@ -27,6 +27,7 @@ using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.MagicAndEffects;
 using DaggerfallWorkshop.Game.Serialization;
+using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Utility;
 using System;
 using System.Collections.Generic;
@@ -77,6 +78,12 @@ namespace AcrealUI
 
 
         #region Player
+        public static string GetPlayerName()
+        {
+            DaggerfallEntity playerEntity = GameManager.Instance != null ? GameManager.Instance.PlayerEntity : null;
+            return playerEntity != null ? playerEntity.Name : null;
+        }
+
         public static float GetPlayerExperiencePercent(PlayerEntity playerEntity)
         {
             if (playerEntity == null) { return 0f; }
@@ -139,6 +146,344 @@ namespace AcrealUI
         #endregion
 
 
+        #region Player Stats
+        public static float GetPlayerBaseHitChancePercent(DaggerfallUnityItem weapon, int enemyID = -1)
+        {
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            if(player == null)
+            {
+                return 0f;
+            }
+
+            int skillID = weapon != null ? weapon.GetWeaponSkillIDAsShort() : (short)DFCareer.Skills.HandToHand;
+            int chanceToHit = player.Skills.GetLiveSkillValue(skillID);
+
+            // Apply swing modifiers
+            ToHitAndDamageMods swingMods = CalculateSwingModifiers(GameManager.Instance.WeaponManager.ScreenWeapon);
+            chanceToHit += swingMods.toHitMod;
+
+            // Apply proficiency modifiers
+            ToHitAndDamageMods proficiencyMods = CalculateProficiencyModifiers(player, weapon);
+            chanceToHit += proficiencyMods.toHitMod;
+
+            // Apply racial bonuses
+            ToHitAndDamageMods racialMods = CalculateRacialModifiers(player, weapon, player);
+            chanceToHit += racialMods.toHitMod;
+
+            if(skillID != (short)DFCareer.Skills.HandToHand)
+            {
+                // Apply weapon material modifier.
+                chanceToHit += CalculateWeaponToHit(weapon);
+
+                // Mod support - allows x final adjustment of weapon hit
+                //int weaponAnimTime = (int)(GameManager.Instance.WeaponManager.ScreenWeapon.GetAnimTime() * 1000);
+                //chanceToHit = AdjustWeaponHitChanceMod(player, target, chanceToHit, weaponAnimTime, weapon);
+            }
+
+            // Apply enchantment modifier
+            chanceToHit += player.ChanceToHitModifier;
+
+            if (enemyID >= 0)
+            {
+                // Get enemy information
+                MobileTypes enemyType = (MobileTypes)enemyID;
+                MonsterCareers enemyCareer = (MonsterCareers)enemyID;
+                EnemyBasics.GetEnemy(enemyType, out MobileEnemy mobileEnemy);
+                DFCareer career = DaggerfallEntity.GetMonsterCareerTemplate(enemyCareer);
+                int luck = career != null ? career.Luck : UIConstants.ENEMY_BASE_SKILL_LEVEL;
+                int agility = career != null ? career.Luck : UIConstants.ENEMY_BASE_SKILL_LEVEL;
+
+                // Get armor value for struck body part
+                chanceToHit += (sbyte)(mobileEnemy.ArmorValue * UIConstants.ENEMY_ARMOR_MULTIPLIER);
+
+                // Apply stat differential modifiers (default: luck and agility)
+                chanceToHit += (player.Stats.LiveLuck - luck) / UIConstants.ENEMY_STAT_HIT_CHANCE_DIVISOR; // Apply luck modifier
+                chanceToHit += (player.Stats.LiveAgility - agility) / UIConstants.ENEMY_STAT_HIT_CHANCE_DIVISOR; // Apply agility modifier
+
+                // Apply skill modifiers
+                // treat player as their own target
+                // NOTE(Acreal): use x default enemy type in the future?
+                short skillsLevel = (short)((Mathf.Max(mobileEnemy.Level, 1) * UIConstants.ENEMY_SKILL_POINTS_PER_LEVEL) + UIConstants.ENEMY_BASE_SKILL_LEVEL);
+                if (skillsLevel > UIConstants.MAX_SKILL_LEVEL)
+                {
+                    skillsLevel = UIConstants.MAX_SKILL_LEVEL;
+                }
+                chanceToHit -= skillsLevel / UIConstants.ENEMY_SKILL_HIT_CHANCE_DIVISOR;
+            }
+
+            //subtract 10 (sum of adding 40 for player attacking x monster - 50 flat at the end)
+            //taken from FormulaHelper.CalculateAdjustmentsToHit
+            chanceToHit -= 10;
+
+            chanceToHit = Mathf.Clamp(chanceToHit, UIConstants.MIN_HIT_CHANCE, UIConstants.MAX_HIT_CHANCE);
+            return chanceToHit;
+        }
+
+        public static void GetWeaponMinMaxDamage(DaggerfallUnityItem weapon, out int minDamage, out int maxDamage, int enemyID = -1, bool assumeBackstab = false)
+        {
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            if (player == null)
+            {
+                minDamage = 0;
+                maxDamage = 0;
+                return;
+            }
+
+            MobileTypes enemyType = enemyID > -1 ? (MobileTypes)enemyID : MobileTypes.None;
+            MobileEnemy mobileEnemy = new MobileEnemy();
+            if (enemyID > -1 && enemyType != MobileTypes.None)
+            {
+                EnemyBasics.GetEnemy(enemyType, out mobileEnemy);
+            }
+
+            minDamage = 0;
+            maxDamage = 0;
+            int damageModifiers = 0;
+            short skillID = 0;
+
+
+            ////////////////////////////////////////////////
+            /// Below Code Was Copied From FormulaHelper.cs
+            ////////////////////////////////////////////////
+            if (weapon != null)
+            {
+                // If the attacker is using x weapon, check if the material is high enough to damage the target
+                if (enemyID > -1 && enemyType != MobileTypes.None && mobileEnemy.MinMetalToHit > (WeaponMaterialTypes)weapon.NativeMaterialValue)
+                {
+                    DaggerfallUI.Instance.PopupMessage(TextManager.Instance.GetLocalizedText("materialIneffective"));
+                    return;
+                }
+                // Get weapon skill used
+                skillID = weapon.GetWeaponSkillIDAsShort();
+            }
+            else
+            {
+                skillID = (short)DFCareer.Skills.HandToHand;
+            }
+
+            // Apply swing modifiers
+            ToHitAndDamageMods swingMods = CalculateSwingModifiers(GameManager.Instance.WeaponManager.ScreenWeapon);
+            damageModifiers += swingMods.damageMod;
+
+            // Apply proficiency modifiers
+            ToHitAndDamageMods proficiencyMods = CalculateProficiencyModifiers(player, weapon);
+            damageModifiers += proficiencyMods.damageMod;
+
+            // Apply racial bonuses
+            ToHitAndDamageMods racialMods = CalculateRacialModifiers(player, weapon, player);
+            damageModifiers += racialMods.damageMod;
+
+            // Apply strength modifier
+            damageModifiers += DamageModifier(player.Stats.LiveStrength);
+
+            // Apply EnemyType bonus/penalty
+            if (enemyID > -1 && enemyType != MobileTypes.None)
+            {
+                int enemyTypeBonus = GetPlayerDamageBonusOrPenaltyByEnemyType(mobileEnemy);
+                damageModifiers += enemyTypeBonus;
+            }
+
+            if (skillID == (short)DFCareer.Skills.HandToHand)
+            {
+                int handToHandSkill = player.Skills.GetLiveSkillValue(DFCareer.Skills.HandToHand);
+                minDamage = CalculateHandToHandMinDamage(handToHandSkill) + damageModifiers;
+                maxDamage = CalculateHandToHandMaxDamage(handToHandSkill) + damageModifiers;
+            }
+            else if (weapon != null)
+            {
+                // Apply material modifier.
+                // The in-game display in Daggerfall of weapon damages with material modifiers is incorrect. The material modifier is half of what the display suggests.
+                damageModifiers += weapon.GetWeaponMaterialModifier();
+
+                minDamage = weapon.GetBaseDamageMin() + damageModifiers;
+                maxDamage = weapon.GetBaseDamageMax() + damageModifiers;
+
+                if (enemyID > -1 && enemyType != MobileTypes.None && enemyID == (int)MonsterCareers.SkeletalWarrior)
+                {
+                    // Apply edged-weapon damage modifier for Skeletal Warrior
+                    if ((weapon.flags & 0x10) == 0)
+                    {
+                        minDamage /= 2;
+                        maxDamage /= 2;
+                    }
+
+                    // Apply silver weapon damage modifier for Skeletal Warrior
+                    // Arena applies x silver weapon damage bonus for undead enemies, which is probably where this comes from.
+                    if (weapon.NativeMaterialValue == (int)WeaponMaterialTypes.Silver)
+                    {
+                        minDamage *= 2;
+                        maxDamage *= 2;
+                    }
+                }
+            }
+
+            if (assumeBackstab)
+            {
+                minDamage *= UIConstants.BACKSTAB_DAMAGE_MODIFIER;
+                maxDamage *= UIConstants.BACKSTAB_DAMAGE_MODIFIER;
+            }
+
+            minDamage = Mathf.Max(minDamage, 0);
+            maxDamage = Mathf.Max(maxDamage, 0);
+        }
+
+        public static string GetPlayerBaseHitChanceString(DaggerfallUnityItem weapon, int enemyID = -1)
+        {
+            return string.Format("{0:N0}%", GetPlayerBaseHitChancePercent(weapon, enemyID));
+        }
+
+        public static string GetPlayerDamageString(DaggerfallUnityItem weapon, int enemyID = -1)
+        {
+            GetWeaponMinMaxDamage(weapon, out int minDmg, out int maxDmg, enemyID);
+            if (minDmg == 0 && maxDmg == 0) { return string.Format("{0:N0}", minDmg); }
+            else { return string.Format("{0:N0}-{1:N0}", minDmg, maxDmg); }
+        }
+
+        public static void GetPlayerAttackModifiers(DaggerfallUnityItem weapon, out int damageModifier, out int chanceToHitModifier)
+        {
+            // Apply swing modifiers
+            ToHitAndDamageMods swingMods = CalculateSwingModifiers(GameManager.Instance.WeaponManager.ScreenWeapon);
+            damageModifier = swingMods.damageMod;
+            chanceToHitModifier = swingMods.toHitMod;
+
+            // Apply proficiency modifiers
+            ToHitAndDamageMods proficiencyMods = CalculateProficiencyModifiers(GameManager.Instance.PlayerEntity, weapon);
+            damageModifier += proficiencyMods.damageMod;
+            chanceToHitModifier += proficiencyMods.toHitMod;
+
+            // Apply racial bonuses
+            ToHitAndDamageMods racialMods = CalculateRacialModifiers(GameManager.Instance.PlayerEntity, weapon, GameManager.Instance.PlayerEntity);
+            damageModifier += racialMods.damageMod;
+            chanceToHitModifier += racialMods.toHitMod;
+        }
+
+        public static int GetPlayerArmorAfterCalculation()
+        {
+            int totalArmor = 0;
+            PlayerEntity playerEntity = GameManager.Instance.PlayerEntity;
+            if (playerEntity != null)
+            {
+                for (int i = 0; i < playerEntity.ArmorValues.Length; i++)
+                {
+                    int armorMod = playerEntity.DecreasedArmorValueModifier - playerEntity.IncreasedArmorValueModifier;
+                    sbyte av = playerEntity.ArmorValues[i];
+                    int bpAv = (100 - av) / 5 + armorMod;
+                    totalArmor += bpAv;
+                }
+            }
+            return totalArmor;
+        }
+
+        public static int GetPlayerDamageBonusOrPenaltyByEnemyType(MobileEnemy mobileEnemy)
+        {
+            int damage = 0;
+
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            if (player != null)
+            {
+                DFCareer.EnemyGroups enemyGroup = GetEnemyGroupFromMobileEnemy(mobileEnemy);
+
+                // Apply bonus or penalty by opponent type.
+                // In classic this is broken and only works if the attack is done with x weapon that has the maximum number of enchantments.
+                if (mobileEnemy.Affinity == MobileAffinity.Human)
+                {
+                    if (((int)player.Career.HumanoidAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
+                    if (((int)player.Career.HumanoidAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
+                }
+                else if (enemyGroup == DFCareer.EnemyGroups.Undead)
+                {
+                    if (((int)player.Career.UndeadAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
+                    if (((int)player.Career.UndeadAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
+                }
+                else if (enemyGroup == DFCareer.EnemyGroups.Daedra)
+                {
+                    if (((int)player.Career.DaedraAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
+                    if (((int)player.Career.DaedraAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
+                }
+                else if (enemyGroup == DFCareer.EnemyGroups.Animals)
+                {
+                    if (((int)player.Career.AnimalsAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
+                    if (((int)player.Career.AnimalsAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
+                }
+            }
+
+            return damage;
+        }
+
+        public static DFCareer.EnemyGroups GetEnemyGroupFromMobileEnemy(MobileEnemy mobileEnemy)
+        {
+            MonsterCareers enemyCareer = (MonsterCareers)mobileEnemy.ID;
+            switch (enemyCareer)
+            {
+                case MonsterCareers.Rat:
+                case MonsterCareers.GiantBat:
+                case MonsterCareers.GrizzlyBear:
+                case MonsterCareers.SabertoothTiger:
+                case MonsterCareers.Spider:
+                case MonsterCareers.Slaughterfish:
+                case MonsterCareers.GiantScorpion:
+                case MonsterCareers.Dragonling:
+                case MonsterCareers.Horse_Invalid:             // (grouped as undead in classic)
+                case MonsterCareers.Dragonling_Alternate:      // (grouped as undead in classic)
+                    return DFCareer.EnemyGroups.Animals;
+                case MonsterCareers.Imp:
+                case MonsterCareers.Spriggan:
+                case MonsterCareers.Orc:
+                case MonsterCareers.Centaur:
+                case MonsterCareers.Werewolf:
+                case MonsterCareers.Nymph:
+                case MonsterCareers.OrcSergeant:
+                case MonsterCareers.Harpy:
+                case MonsterCareers.Wereboar:
+                case MonsterCareers.Giant:
+                case MonsterCareers.OrcShaman:
+                case MonsterCareers.Gargoyle:
+                case MonsterCareers.OrcWarlord:
+                case MonsterCareers.Dreugh:                    // (grouped as undead in classic)
+                case MonsterCareers.Lamia:                     // (grouped as undead in classic)
+                    return DFCareer.EnemyGroups.Humanoid;
+                case MonsterCareers.SkeletalWarrior:
+                case MonsterCareers.Zombie:                    // (grouped as animal in classic)
+                case MonsterCareers.Ghost:
+                case MonsterCareers.Mummy:
+                case MonsterCareers.Wraith:
+                case MonsterCareers.Vampire:
+                case MonsterCareers.VampireAncient:
+                case MonsterCareers.Lich:
+                case MonsterCareers.AncientLich:
+                    return DFCareer.EnemyGroups.Undead;
+                case MonsterCareers.FrostDaedra:
+                case MonsterCareers.FireDaedra:
+                case MonsterCareers.Daedroth:
+                case MonsterCareers.DaedraSeducer:
+                case MonsterCareers.DaedraLord:
+                    return DFCareer.EnemyGroups.Daedra;
+                case MonsterCareers.FireAtronach:
+                case MonsterCareers.IronAtronach:
+                case MonsterCareers.FleshAtronach:
+                case MonsterCareers.IceAtronach:
+                    return DFCareer.EnemyGroups.None;
+
+                default:
+                    return DFCareer.EnemyGroups.None;
+            }
+        }
+        #endregion
+
+
+        #region Paper Doll
+        public static Texture2D GetPaperDollTexture()
+        {
+            if (GameManager.Instance != null && GameManager.Instance.PlayerEntity != null)
+            {
+                DaggerfallUI.Instance.PaperDollRenderer.Refresh(PaperDollRenderer.LayerFlags.All, GameManager.Instance.PlayerEntity);
+                return DaggerfallUI.Instance.PaperDollRenderer.PaperDollTexture;
+            }
+            return null;
+        }
+        #endregion
+
+
         #region Items
         public static ItemType ItemToItemType(DaggerfallUnityItem item)
         {
@@ -190,7 +535,7 @@ namespace AcrealUI
                         return ItemType.Junk;
 
                     case ItemGroups.MiscItems:
-                        switch((MiscItems)item.TemplateIndex)
+                        switch ((MiscItems)item.TemplateIndex)
                         {
                             case MiscItems.Letter_of_credit:
                             case MiscItems.House_Deed:
@@ -376,7 +721,7 @@ namespace AcrealUI
                         {
                             return ItemArchetype.Religion;
                         }
-                        else if(item.TemplateIndex == (int)MiscellaneousIngredients1.Small_tooth || item.TemplateIndex == (int)MiscellaneousIngredients1.Medium_tooth || item.TemplateIndex == (int)MiscellaneousIngredients1.Big_tooth)
+                        else if (item.TemplateIndex == (int)MiscellaneousIngredients1.Small_tooth || item.TemplateIndex == (int)MiscellaneousIngredients1.Medium_tooth || item.TemplateIndex == (int)MiscellaneousIngredients1.Big_tooth)
                         {
                             return ItemArchetype.ToothIngredient;
                         }
@@ -917,7 +1262,7 @@ namespace AcrealUI
                         }
 
                         string potionFormat = null;
-                        if(!_potionRecipeKeyToPowerFormatDict.TryGetValue(potionRecipe.DisplayNameKey, out potionFormat))
+                        if (!_potionRecipeKeyToPowerFormatDict.TryGetValue(potionRecipe.DisplayNameKey, out potionFormat))
                         {
                             potionFormat = "{0}";
                         }
@@ -953,7 +1298,7 @@ namespace AcrealUI
                         if (startIdx >= 0 && endIdx >= 0)
                         {
                             tokens[startIdx].text = tokens[startIdx].text.Remove(0, 1);
-                            tokens[endIdx].text = tokens[endIdx].text.Remove(tokens[endIdx].text.Length-1, 1);
+                            tokens[endIdx].text = tokens[endIdx].text.Remove(tokens[endIdx].text.Length - 1, 1);
                             for (int i = startIdx; i <= endIdx; i++)
                             {
                                 string text = tokens[i].text;
@@ -1038,214 +1383,214 @@ namespace AcrealUI
             return powersList;
         }
 
-        private static string LocalizeEntityEffect(IEntityEffect entityEffect)
-        {
-            StringBuilder stringBuilder = new StringBuilder(entityEffect.DisplayName);
-            stringBuilder.Append(": ");
-            for (int i = 0; i < entityEffect.SpellBookDescription.Length; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(entityEffect.SpellBookDescription[i].text))
-                {
-                    stringBuilder.Append(entityEffect.SpellBookDescription[i].text);
-                }
-            }
-            return stringBuilder.ToString();
-        }
+        //private static string LocalizeEntityEffect(IEntityEffect entityEffect)
+        //{
+        //    StringBuilder stringBuilder = new StringBuilder(entityEffect.DisplayName);
+        //    stringBuilder.Append(": ");
+        //    for (int i = 0; i < entityEffect.SpellBookDescription.Length; i++)
+        //    {
+        //        if (!string.IsNullOrWhiteSpace(entityEffect.SpellBookDescription[i].text))
+        //        {
+        //            stringBuilder.Append(entityEffect.SpellBookDescription[i].text);
+        //        }
+        //    }
+        //    return stringBuilder.ToString();
+        //}
 
-        private static string LocalizeEnchantment(DaggerfallEnchantment enchantment)
-        {
-            // Also 65535 to handle saves from when the type was read as an unsigned value
-            if (enchantment.type == EnchantmentTypes.None || (int)enchantment.type == 65535)
-            {
-                return null;
-            }
+        //private static string LocalizeEnchantment(DaggerfallEnchantment enchantment)
+        //{
+        //    // Also 65535 to handle saves from when the type was read as an unsigned value
+        //    if (enchantment.type == EnchantmentTypes.None || (int)enchantment.type == 65535)
+        //    {
+        //        return null;
+        //    }
 
-            string firstPart = TextManager.Instance.GetLocalizedTextList("itemPowers")[(int)enchantment.type] + " ";
+        //    string firstPart = TextManager.Instance.GetLocalizedTextList("itemPowers")[(int)enchantment.type] + " ";
 
-            if (enchantment.type == EnchantmentTypes.SoulBound && enchantment.param != -1)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("enemyNames")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.ExtraSpellPts)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("extraSpellPtsTimes")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.PotentVs || enchantment.type == EnchantmentTypes.LowDamageVs)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("enemyGroupNames")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.RegensHealth)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("regensHealthTimes")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.VampiricEffect)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("vampiricEffectRanges")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.IncreasedWeightAllowance)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("increasedWeightAllowances")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.EnhancesSkill)
-            {
-                return firstPart + DaggerfallUnity.Instance.TextProvider.GetSkillName((DaggerfallConnect.DFCareer.Skills)enchantment.param);
-            }
-            else if (enchantment.type == EnchantmentTypes.ImprovesTalents)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("improvedTalents")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.GoodRepWith || enchantment.type == EnchantmentTypes.BadRepWith)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("repWithGroups")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.ItemDeteriorates)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("itemDeteriorateLocations")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.UserTakesDamage)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("userTakesDamageLocations")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.HealthLeech)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("healthLeechStopConditions")[enchantment.param];
-            }
-            else if (enchantment.type == EnchantmentTypes.BadReactionsFrom)
-            {
-                return firstPart + TextManager.Instance.GetLocalizedTextList("badReactionFromEnemyGroups")[enchantment.param];
-            }
-            else if (enchantment.type <= EnchantmentTypes.CastWhenStrikes)
-            {
-                List<DaggerfallConnect.Save.SpellRecord.SpellRecordData> spells = DaggerfallSpellReader.ReadSpellsFile();
-                
-                foreach (DaggerfallConnect.Save.SpellRecord.SpellRecordData spell in spells)
-                {
-                    if (spell.index == enchantment.param)
-                    {
-                        string spellName = TextManager.Instance.GetLocalizedSpellName(spell.index);
-                        return firstPart + spellName;
-                    }
-                }
+        //    if (enchantment.type == EnchantmentTypes.SoulBound && enchantment.param != -1)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("enemyNames")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.ExtraSpellPts)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("extraSpellPtsTimes")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.PotentVs || enchantment.type == EnchantmentTypes.LowDamageVs)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("enemyGroupNames")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.RegensHealth)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("regensHealthTimes")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.VampiricEffect)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("vampiricEffectRanges")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.IncreasedWeightAllowance)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("increasedWeightAllowances")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.EnhancesSkill)
+        //    {
+        //        return firstPart + DaggerfallUnity.Instance.TextProvider.GetSkillName((DaggerfallConnect.DFCareer.Skills)enchantment.param);
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.ImprovesTalents)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("improvedTalents")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.GoodRepWith || enchantment.type == EnchantmentTypes.BadRepWith)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("repWithGroups")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.ItemDeteriorates)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("itemDeteriorateLocations")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.UserTakesDamage)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("userTakesDamageLocations")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.HealthLeech)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("healthLeechStopConditions")[enchantment.param];
+        //    }
+        //    else if (enchantment.type == EnchantmentTypes.BadReactionsFrom)
+        //    {
+        //        return firstPart + TextManager.Instance.GetLocalizedTextList("badReactionFromEnemyGroups")[enchantment.param];
+        //    }
+        //    else if (enchantment.type <= EnchantmentTypes.CastWhenStrikes)
+        //    {
+        //        List<DaggerfallConnect.Save.SpellRecord.SpellRecordData> spells = DaggerfallSpellReader.ReadSpellsFile();
 
-                return firstPart;
-            }
-            else
-            {
-                return firstPart;
-            }
-        }
+        //        foreach (DaggerfallConnect.Save.SpellRecord.SpellRecordData spell in spells)
+        //        {
+        //            if (spell.index == enchantment.param)
+        //            {
+        //                string spellName = TextManager.Instance.GetLocalizedSpellName(spell.index);
+        //                return firstPart + spellName;
+        //            }
+        //        }
 
-        private static int GetItemInfoID(DaggerfallUnityItem item)
-        {
-            switch (item.ItemGroup)
-            {
-                case ItemGroups.Armor:
-                    if (ArmorShouldShowMaterial(item))
-                    {
-                        return 1000;                                                // Handle armor showing material
-                    }
-                    else
-                    {
-                        return 1014;                                                // Handle armor not showing material
-                    }
+        //        return firstPart;
+        //    }
+        //    else
+        //    {
+        //        return firstPart;
+        //    }
+        //}
 
-                case ItemGroups.Weapons:
-                    if (item.TemplateIndex == (int)Weapons.Arrow)
-                    {
-                        return 1011;                                                // Handle arrows
-                    }
-                    else if (item.IsArtifact)
-                    {
-                        return 1012;                                                // Handle artifacts
-                    }
-                    else
-                    {
-                        return 1001;                                                // Handle weapons
-                    }
+        //private static int GetItemInfoID(DaggerfallUnityItem item)
+        //{
+        //    switch (item.ItemGroup)
+        //    {
+        //        case ItemGroups.Armor:
+        //            if (ArmorShouldShowMaterial(item))
+        //            {
+        //                return 1000;                                                // Handle armor showing material
+        //            }
+        //            else
+        //            {
+        //                return 1014;                                                // Handle armor not showing material
+        //            }
 
-                case ItemGroups.Books:
-                    if (item.legacyMagic != null && item.legacyMagic[0].type == EnchantmentTypes.SpecialArtifactEffect)
-                    {
-                        return 1015;                                                // Handle Oghma Infinium
-                    }
-                    else
-                    {
-                        return 1009;                                                // Handle other books
-                    }
+        //        case ItemGroups.Weapons:
+        //            if (item.TemplateIndex == (int)Weapons.Arrow)
+        //            {
+        //                return 1011;                                                // Handle arrows
+        //            }
+        //            else if (item.IsArtifact)
+        //            {
+        //                return 1012;                                                // Handle artifacts
+        //            }
+        //            else
+        //            {
+        //                return 1001;                                                // Handle weapons
+        //            }
 
-                case ItemGroups.Paintings:
-                    {
-                        return 250;
-                    }
+        //        case ItemGroups.Books:
+        //            if (item.legacyMagic != null && item.legacyMagic[0].type == EnchantmentTypes.SpecialArtifactEffect)
+        //            {
+        //                return 1015;                                                // Handle Oghma Infinium
+        //            }
+        //            else
+        //            {
+        //                return 1009;                                                // Handle other books
+        //            }
 
-                case ItemGroups.MiscItems:
-                    // A few items in the MiscItems group have their own text display
-                    if (item.IsPotionRecipe)
-                    {
-                        return -1;                                                  // Special case handled outside of this function
-                    }
-                    else if (item.TemplateIndex == (int)MiscItems.House_Deed)
-                    {
-                        return 1073;                                                // Handle house deeds
-                    }
-                    else if (item.TemplateIndex == (int)MiscItems.Soul_trap)
-                    {
-                        return 1004;                                                // Handle soul traps
-                    }
-                    else if (item.TemplateIndex == (int)MiscItems.Letter_of_credit)
-                    {
-                        return 1007;                                                // Handle letters of credit
-                    }
-                    else
-                    {
-                        return 1003;                                                // Default misc items
-                    }
+        //        case ItemGroups.Paintings:
+        //            {
+        //                return 250;
+        //            }
 
-                default:
-                    // Handle potions in glass bottles
-                    // In classic, the check is whether RecordRoot.SublistHead is non-null and of PotionMix type.
-                    if (item.IsPotion)
-                    {
-                        return 1008;
-                    }
-                    // Handle Azura's Star
-                    else if (item.legacyMagic != null && item.legacyMagic[0].type == EnchantmentTypes.SpecialArtifactEffect && item.legacyMagic[0].param == 9)
-                    {
-                        return 1004;
-                    }
-                    else
-                    {
-                        // Default fallback if none of the above applied
-                        return 1003;
-                    }
-            }
-        }
+        //        case ItemGroups.MiscItems:
+        //            // A few items in the MiscItems group have their own text display
+        //            if (item.IsPotionRecipe)
+        //            {
+        //                return -1;                                                  // Special case handled outside of this function
+        //            }
+        //            else if (item.TemplateIndex == (int)MiscItems.House_Deed)
+        //            {
+        //                return 1073;                                                // Handle house deeds
+        //            }
+        //            else if (item.TemplateIndex == (int)MiscItems.Soul_trap)
+        //            {
+        //                return 1004;                                                // Handle soul traps
+        //            }
+        //            else if (item.TemplateIndex == (int)MiscItems.Letter_of_credit)
+        //            {
+        //                return 1007;                                                // Handle letters of credit
+        //            }
+        //            else
+        //            {
+        //                return 1003;                                                // Default misc items
+        //            }
 
-        private static bool ArmorShouldShowMaterial(DaggerfallUnityItem item)
-        {
-            // HelmAndShieldMaterialDisplay setting for showing material for helms and shields:
-            // 0 : Don't show (classic behavior)
-            // 1 : Show for all but leather and chain
-            // 2 : Show for all but leather
-            // 3 : Show for all
-            if (item.IsArtifact)
-                return false;
-            else if (item.IsShield || item.TemplateIndex == (int)Armor.Helm)
-            {
-                if ((DaggerfallUnity.Settings.HelmAndShieldMaterialDisplay == 1)
-                    && ((ArmorMaterialTypes)item.nativeMaterialValue >= ArmorMaterialTypes.Iron))
-                    return true;
-                else if ((DaggerfallUnity.Settings.HelmAndShieldMaterialDisplay == 2)
-                    && ((ArmorMaterialTypes)item.nativeMaterialValue >= ArmorMaterialTypes.Chain))
-                    return true;
-                else if (DaggerfallUnity.Settings.HelmAndShieldMaterialDisplay == 3)
-                    return true;
-                else
-                    return false;
-            }
-            else
-                return true;
-        }
+        //        default:
+        //            // Handle potions in glass bottles
+        //            // In classic, the check is whether RecordRoot.SublistHead is non-null and of PotionMix type.
+        //            if (item.IsPotion)
+        //            {
+        //                return 1008;
+        //            }
+        //            // Handle Azura's Star
+        //            else if (item.legacyMagic != null && item.legacyMagic[0].type == EnchantmentTypes.SpecialArtifactEffect && item.legacyMagic[0].param == 9)
+        //            {
+        //                return 1004;
+        //            }
+        //            else
+        //            {
+        //                // Default fallback if none of the above applied
+        //                return 1003;
+        //            }
+        //    }
+        //}
+
+        //private static bool ArmorShouldShowMaterial(DaggerfallUnityItem item)
+        //{
+        //    // HelmAndShieldMaterialDisplay setting for showing material for helms and shields:
+        //    // 0 : Don't show (classic behavior)
+        //    // 1 : Show for all but leather and chain
+        //    // 2 : Show for all but leather
+        //    // 3 : Show for all
+        //    if (item.IsArtifact)
+        //        return false;
+        //    else if (item.IsShield || item.TemplateIndex == (int)Armor.Helm)
+        //    {
+        //        if ((DaggerfallUnity.Settings.HelmAndShieldMaterialDisplay == 1)
+        //            && ((ArmorMaterialTypes)item.nativeMaterialValue >= ArmorMaterialTypes.Iron))
+        //            return true;
+        //        else if ((DaggerfallUnity.Settings.HelmAndShieldMaterialDisplay == 2)
+        //            && ((ArmorMaterialTypes)item.nativeMaterialValue >= ArmorMaterialTypes.Chain))
+        //            return true;
+        //        else if (DaggerfallUnity.Settings.HelmAndShieldMaterialDisplay == 3)
+        //            return true;
+        //        else
+        //            return false;
+        //    }
+        //    else
+        //        return true;
+        //}
         #endregion
 
 
@@ -1292,331 +1637,6 @@ namespace AcrealUI
             else
             {
                 Debug.LogError("Sorting by Column with Value \"" + column.ToString() + "\" is either not supported or not intended.");
-            }
-        }
-        #endregion
-
-
-        #region Player Stats
-        public static float GetPlayerBaseHitChancePercent(DaggerfallUnityItem weapon, int enemyID = -1)
-        {
-            PlayerEntity player = GameManager.Instance.PlayerEntity;
-            if(player == null)
-            {
-                return 0f;
-            }
-
-            int skillID = weapon != null ? weapon.GetWeaponSkillIDAsShort() : (short)DFCareer.Skills.HandToHand;
-            int chanceToHit = player.Skills.GetLiveSkillValue(skillID);
-
-            // Apply swing modifiers
-            ToHitAndDamageMods swingMods = CalculateSwingModifiers(GameManager.Instance.WeaponManager.ScreenWeapon);
-            chanceToHit += swingMods.toHitMod;
-
-            // Apply proficiency modifiers
-            ToHitAndDamageMods proficiencyMods = CalculateProficiencyModifiers(player, weapon);
-            chanceToHit += proficiencyMods.toHitMod;
-
-            // Apply racial bonuses
-            ToHitAndDamageMods racialMods = CalculateRacialModifiers(player, weapon, player);
-            chanceToHit += racialMods.toHitMod;
-
-            if(skillID != (short)DFCareer.Skills.HandToHand)
-            {
-                // Apply weapon material modifier.
-                chanceToHit += CalculateWeaponToHit(weapon);
-
-                // Mod support - allows x final adjustment of weapon hit
-                //int weaponAnimTime = (int)(GameManager.Instance.WeaponManager.ScreenWeapon.GetAnimTime() * 1000);
-                //chanceToHit = AdjustWeaponHitChanceMod(player, target, chanceToHit, weaponAnimTime, weapon);
-            }
-
-            // Apply enchantment modifier
-            chanceToHit += player.ChanceToHitModifier;
-
-            if (enemyID >= 0)
-            {
-                // Get enemy information
-                MobileTypes enemyType = (MobileTypes)enemyID;
-                MonsterCareers enemyCareer = (MonsterCareers)enemyID;
-                EnemyBasics.GetEnemy(enemyType, out MobileEnemy mobileEnemy);
-                DFCareer career = DaggerfallEntity.GetMonsterCareerTemplate(enemyCareer);
-                int luck = career != null ? career.Luck : UIConstants.ENEMY_BASE_SKILL_LEVEL;
-                int agility = career != null ? career.Luck : UIConstants.ENEMY_BASE_SKILL_LEVEL;
-
-                // Get armor value for struck body part
-                chanceToHit += (sbyte)(mobileEnemy.ArmorValue * UIConstants.ENEMY_ARMOR_MULTIPLIER);
-
-                // Apply stat differential modifiers (default: luck and agility)
-                chanceToHit += (player.Stats.LiveLuck - luck) / UIConstants.ENEMY_STAT_HIT_CHANCE_DIVISOR; // Apply luck modifier
-                chanceToHit += (player.Stats.LiveAgility - agility) / UIConstants.ENEMY_STAT_HIT_CHANCE_DIVISOR; // Apply agility modifier
-
-                // Apply skill modifiers
-                // treat player as their own target
-                // NOTE(Acreal): use x default enemy type in the future?
-                short skillsLevel = (short)((Mathf.Max(mobileEnemy.Level, 1) * UIConstants.ENEMY_SKILL_POINTS_PER_LEVEL) + UIConstants.ENEMY_BASE_SKILL_LEVEL);
-                if (skillsLevel > UIConstants.MAX_SKILL_LEVEL)
-                {
-                    skillsLevel = UIConstants.MAX_SKILL_LEVEL;
-                }
-                chanceToHit -= skillsLevel / UIConstants.ENEMY_SKILL_HIT_CHANCE_DIVISOR;
-            }
-
-            //subtract 10 (sum of adding 40 for player attacking x monster - 50 flat at the end)
-            //taken from FormulaHelper.CalculateAdjustmentsToHit
-            chanceToHit -= 10;
-
-            chanceToHit = Mathf.Clamp(chanceToHit, UIConstants.MIN_HIT_CHANCE, UIConstants.MAX_HIT_CHANCE);
-            return chanceToHit;
-        }
-
-        public static void GetWeaponMinMaxDamage(DaggerfallUnityItem weapon, out int minDamage, out int maxDamage, int enemyID = -1, bool assumeBackstab = false)
-        {
-            PlayerEntity player = GameManager.Instance.PlayerEntity;
-            if (player == null)
-            {
-                minDamage = 0;
-                maxDamage = 0;
-                return;
-            }
-
-            MobileTypes enemyType = enemyID > -1 ? (MobileTypes)enemyID : MobileTypes.None;
-            MobileEnemy mobileEnemy = new MobileEnemy();
-            if (enemyID > -1 && enemyType != MobileTypes.None)
-            {
-                EnemyBasics.GetEnemy(enemyType, out mobileEnemy);
-            }
-
-            minDamage = 0;
-            maxDamage = 0;
-            int damageModifiers = 0;
-            short skillID = 0;
-
-
-            ////////////////////////////////////////////////
-            /// Below Code Was Copied From FormulaHelper.cs
-            ////////////////////////////////////////////////
-            if (weapon != null)
-            {
-                // If the attacker is using x weapon, check if the material is high enough to damage the target
-                if (enemyID > -1 && enemyType != MobileTypes.None && mobileEnemy.MinMetalToHit > (WeaponMaterialTypes)weapon.NativeMaterialValue)
-                {
-                    DaggerfallUI.Instance.PopupMessage(TextManager.Instance.GetLocalizedText("materialIneffective"));
-                    return;
-                }
-                // Get weapon skill used
-                skillID = weapon.GetWeaponSkillIDAsShort();
-            }
-            else
-            {
-                skillID = (short)DFCareer.Skills.HandToHand;
-            }
-
-            // Apply swing modifiers
-            ToHitAndDamageMods swingMods = CalculateSwingModifiers(GameManager.Instance.WeaponManager.ScreenWeapon);
-            damageModifiers += swingMods.damageMod;
-
-            // Apply proficiency modifiers
-            ToHitAndDamageMods proficiencyMods = CalculateProficiencyModifiers(player, weapon);
-            damageModifiers += proficiencyMods.damageMod;
-
-            // Apply racial bonuses
-            ToHitAndDamageMods racialMods = CalculateRacialModifiers(player, weapon, player);
-            damageModifiers += racialMods.damageMod;
-
-            // Apply strength modifier
-            damageModifiers += DamageModifier(player.Stats.LiveStrength);
-
-            // Apply EnemyType bonus/penalty
-            if (enemyID > -1 && enemyType != MobileTypes.None)
-            {
-                int enemyTypeBonus = GetPlayerDamageBonusOrPenaltyByEnemyType(mobileEnemy);
-                damageModifiers += enemyTypeBonus;
-            }
-
-            if (skillID == (short)DFCareer.Skills.HandToHand)
-            {
-                int handToHandSkill = player.Skills.GetLiveSkillValue(DFCareer.Skills.HandToHand);
-                minDamage = CalculateHandToHandMinDamage(handToHandSkill) + damageModifiers;
-                maxDamage = CalculateHandToHandMaxDamage(handToHandSkill) + damageModifiers;
-            }
-            else if (weapon != null)
-            {
-                // Apply material modifier.
-                // The in-game display in Daggerfall of weapon damages with material modifiers is incorrect. The material modifier is half of what the display suggests.
-                damageModifiers += weapon.GetWeaponMaterialModifier();
-
-                minDamage = weapon.GetBaseDamageMin() + damageModifiers;
-                maxDamage = weapon.GetBaseDamageMax() + damageModifiers;
-
-                if (enemyID > -1 && enemyType != MobileTypes.None && enemyID == (int)MonsterCareers.SkeletalWarrior)
-                {
-                    // Apply edged-weapon damage modifier for Skeletal Warrior
-                    if ((weapon.flags & 0x10) == 0)
-                    {
-                        minDamage /= 2;
-                        maxDamage /= 2;
-                    }
-
-                    // Apply silver weapon damage modifier for Skeletal Warrior
-                    // Arena applies x silver weapon damage bonus for undead enemies, which is probably where this comes from.
-                    if (weapon.NativeMaterialValue == (int)WeaponMaterialTypes.Silver)
-                    {
-                        minDamage *= 2;
-                        maxDamage *= 2;
-                    }
-                }
-            }
-
-            if (assumeBackstab)
-            {
-                minDamage *= UIConstants.BACKSTAB_DAMAGE_MODIFIER;
-                maxDamage *= UIConstants.BACKSTAB_DAMAGE_MODIFIER;
-            }
-
-            minDamage = Mathf.Max(minDamage, 0);
-            maxDamage = Mathf.Max(maxDamage, 0);
-        }
-
-        public static string GetPlayerBaseHitChanceString(DaggerfallUnityItem weapon, int enemyID = -1)
-        {
-            return string.Format("{0:N0}%", GetPlayerBaseHitChancePercent(weapon, enemyID));
-        }
-
-        public static string GetPlayerDamageString(DaggerfallUnityItem weapon, int enemyID = -1)
-        {
-            GetWeaponMinMaxDamage(weapon, out int minDmg, out int maxDmg, enemyID);
-            if (minDmg == 0 && maxDmg == 0) { return string.Format("{0:N0}", minDmg); }
-            else { return string.Format("{0:N0}-{1:N0}", minDmg, maxDmg); }
-        }
-
-        public static void GetPlayerAttackModifiers(DaggerfallUnityItem weapon, out int damageModifier, out int chanceToHitModifier)
-        {
-            // Apply swing modifiers
-            ToHitAndDamageMods swingMods = CalculateSwingModifiers(GameManager.Instance.WeaponManager.ScreenWeapon);
-            damageModifier = swingMods.damageMod;
-            chanceToHitModifier = swingMods.toHitMod;
-
-            // Apply proficiency modifiers
-            ToHitAndDamageMods proficiencyMods = CalculateProficiencyModifiers(GameManager.Instance.PlayerEntity, weapon);
-            damageModifier += proficiencyMods.damageMod;
-            chanceToHitModifier += proficiencyMods.toHitMod;
-
-            // Apply racial bonuses
-            ToHitAndDamageMods racialMods = CalculateRacialModifiers(GameManager.Instance.PlayerEntity, weapon, GameManager.Instance.PlayerEntity);
-            damageModifier += racialMods.damageMod;
-            chanceToHitModifier += racialMods.toHitMod;
-        }
-
-        public static int GetPlayerArmorAfterCalculation()
-        {
-            int totalArmor = 0;
-            PlayerEntity playerEntity = GameManager.Instance.PlayerEntity;
-            if (playerEntity != null)
-            {
-                for (int i = 0; i < playerEntity.ArmorValues.Length; i++)
-                {
-                    int armorMod = playerEntity.DecreasedArmorValueModifier - playerEntity.IncreasedArmorValueModifier;
-                    sbyte av = playerEntity.ArmorValues[i];
-                    int bpAv = (100 - av) / 5 + armorMod;
-                    totalArmor += bpAv;
-                }
-            }
-            return totalArmor;
-        }
-
-        public static int GetPlayerDamageBonusOrPenaltyByEnemyType(MobileEnemy mobileEnemy)
-        {
-            int damage = 0;
-
-            PlayerEntity player = GameManager.Instance.PlayerEntity;
-            if (player != null)
-            {
-                DFCareer.EnemyGroups enemyGroup = GetEnemyGroupFromMobileEnemy(mobileEnemy);
-
-                // Apply bonus or penalty by opponent type.
-                // In classic this is broken and only works if the attack is done with x weapon that has the maximum number of enchantments.
-                if (mobileEnemy.Affinity == MobileAffinity.Human)
-                {
-                    if (((int)player.Career.HumanoidAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
-                    if (((int)player.Career.HumanoidAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
-                }
-                else if (enemyGroup == DFCareer.EnemyGroups.Undead)
-                {
-                    if (((int)player.Career.UndeadAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
-                    if (((int)player.Career.UndeadAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
-                }
-                else if (enemyGroup == DFCareer.EnemyGroups.Daedra)
-                {
-                    if (((int)player.Career.DaedraAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
-                    if (((int)player.Career.DaedraAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
-                }
-                else if (enemyGroup == DFCareer.EnemyGroups.Animals)
-                {
-                    if (((int)player.Career.AnimalsAttackModifier & (int)DFCareer.AttackModifier.Bonus) != 0) { damage += player.Level; }
-                    if (((int)player.Career.AnimalsAttackModifier & (int)DFCareer.AttackModifier.Phobia) != 0) { damage -= player.Level; }
-                }
-            }
-
-            return damage;
-        }
-
-        public static DFCareer.EnemyGroups GetEnemyGroupFromMobileEnemy(MobileEnemy mobileEnemy)
-        {
-            MonsterCareers enemyCareer = (MonsterCareers)mobileEnemy.ID;
-            switch (enemyCareer)
-            {
-                case MonsterCareers.Rat:
-                case MonsterCareers.GiantBat:
-                case MonsterCareers.GrizzlyBear:
-                case MonsterCareers.SabertoothTiger:
-                case MonsterCareers.Spider:
-                case MonsterCareers.Slaughterfish:
-                case MonsterCareers.GiantScorpion:
-                case MonsterCareers.Dragonling:
-                case MonsterCareers.Horse_Invalid:             // (grouped as undead in classic)
-                case MonsterCareers.Dragonling_Alternate:      // (grouped as undead in classic)
-                    return DFCareer.EnemyGroups.Animals;
-                case MonsterCareers.Imp:
-                case MonsterCareers.Spriggan:
-                case MonsterCareers.Orc:
-                case MonsterCareers.Centaur:
-                case MonsterCareers.Werewolf:
-                case MonsterCareers.Nymph:
-                case MonsterCareers.OrcSergeant:
-                case MonsterCareers.Harpy:
-                case MonsterCareers.Wereboar:
-                case MonsterCareers.Giant:
-                case MonsterCareers.OrcShaman:
-                case MonsterCareers.Gargoyle:
-                case MonsterCareers.OrcWarlord:
-                case MonsterCareers.Dreugh:                    // (grouped as undead in classic)
-                case MonsterCareers.Lamia:                     // (grouped as undead in classic)
-                    return DFCareer.EnemyGroups.Humanoid;
-                case MonsterCareers.SkeletalWarrior:
-                case MonsterCareers.Zombie:                    // (grouped as animal in classic)
-                case MonsterCareers.Ghost:
-                case MonsterCareers.Mummy:
-                case MonsterCareers.Wraith:
-                case MonsterCareers.Vampire:
-                case MonsterCareers.VampireAncient:
-                case MonsterCareers.Lich:
-                case MonsterCareers.AncientLich:
-                    return DFCareer.EnemyGroups.Undead;
-                case MonsterCareers.FrostDaedra:
-                case MonsterCareers.FireDaedra:
-                case MonsterCareers.Daedroth:
-                case MonsterCareers.DaedraSeducer:
-                case MonsterCareers.DaedraLord:
-                    return DFCareer.EnemyGroups.Daedra;
-                case MonsterCareers.FireAtronach:
-                case MonsterCareers.IronAtronach:
-                case MonsterCareers.FleshAtronach:
-                case MonsterCareers.IceAtronach:
-                    return DFCareer.EnemyGroups.None;
-
-                default:
-                    return DFCareer.EnemyGroups.None;
             }
         }
         #endregion
@@ -1788,6 +1808,11 @@ namespace AcrealUI
         public static string GetLocalizedText(string key)
         {
             return TextManager.Instance != null ? TextManager.Instance.GetLocalizedText(key) : null;
+        }
+
+        public static string GetLocalizedText(string localizationTableID, string key)
+        {
+            return TextManager.Instance != null ? TextManager.Instance.GetText(localizationTableID, key) : null;
         }
 
         public static string SplitStringIntoWords(string text)

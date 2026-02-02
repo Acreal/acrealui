@@ -32,12 +32,14 @@ namespace AcrealUI
         public UISlider prefab_slider = null;
         public UIToggle prefab_toggle = null;
         public UIScrollListGroup prefab_scrollListGroup = null;
-        //public UIOptionsPanel_ColorPicker prefab_colorPicker = null;
+        //public UIColorPickerOptionsPanel prefab_colorPicker = null;
 
         public UIPauseWindow prefab_pauseWindow = null;
         public UIWindowSaveLoad prefab_saveLoadWindow = null;
 
         public UISaveGameEntry prefab_saveEntry = null;
+       
+        public UIResolutionToggle prefab_resolutionSettingEntry = null;
 
         public UIWindowInventory prefab_inventoryWindow = null;
         public UIInventoryWindow_ItemEntry itemEntryPrefab = null;
@@ -46,11 +48,11 @@ namespace AcrealUI
 
         public Canvas prefab_tooltipCanvas = null;
         public UITextTooltip prefab_textTooltip = null;
-        public UITooltip_IconText prefab_iconTextTooltip = null;
-        public UITooltip_ItemDetails prefab_itemDetailsTooltip = null;
-        public UITooltip_ItemStatEntry prefab_tooltip_itemStatEntry = null;
-        public UITooltip_ItemStatSliderEntry prefab_tooltip_itemStatSliderEntry = null;
-        public UITooltip_ItemPowerEntry prefab_tooltip_itemPowerEntry = null;
+        public UITextIconTooltip prefab_iconTextTooltip = null;
+        public UIItemDetailsTooltip prefab_itemDetailsTooltip = null;
+        public UIItemStatTooltipEntry prefab_tooltip_itemStatEntry = null;
+        public UIItemStatSliderTooltipEntry prefab_tooltip_itemStatSliderEntry = null;
+        public UIItemPowerTooltipEntry prefab_tooltip_itemPowerEntry = null;
 
         public UIKeyCodeBindingEntry prefab_keyCodeBindEntry = null;
         public UIAxisBindingEntry prefab_axisBindEntry = null;
@@ -121,19 +123,22 @@ namespace AcrealUI
             prefab_textTooltip = textTooltipObj != null ? textTooltipObj.GetComponent<UITextTooltip>() : null;
 
             GameObject iconTextTooltipObj = mod.GetAsset<GameObject>("Prefab_IconTextTooltip");
-            prefab_iconTextTooltip = iconTextTooltipObj != null ? iconTextTooltipObj.GetComponent<UITooltip_IconText>() : null;
+            prefab_iconTextTooltip = iconTextTooltipObj != null ? iconTextTooltipObj.GetComponent<UITextIconTooltip>() : null;
 
             GameObject itemDetailsTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemDetailsTooltip");
-            prefab_itemDetailsTooltip = itemDetailsTooltipObj != null ? itemDetailsTooltipObj.GetComponent<UITooltip_ItemDetails>() : null;
+            prefab_itemDetailsTooltip = itemDetailsTooltipObj != null ? itemDetailsTooltipObj.GetComponent<UIItemDetailsTooltip>() : null;
 
             GameObject powerEntryTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemPowerEntryTooltip");
-            prefab_tooltip_itemPowerEntry = powerEntryTooltipObj != null ? powerEntryTooltipObj.GetComponent<UITooltip_ItemPowerEntry>() : null;
+            prefab_tooltip_itemPowerEntry = powerEntryTooltipObj != null ? powerEntryTooltipObj.GetComponent<UIItemPowerTooltipEntry>() : null;
 
             GameObject statEntryTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemStatEntryTooltip");
-            prefab_tooltip_itemStatEntry = statEntryTooltipObj != null ? statEntryTooltipObj.GetComponent<UITooltip_ItemStatEntry>() : null;
+            prefab_tooltip_itemStatEntry = statEntryTooltipObj != null ? statEntryTooltipObj.GetComponent<UIItemStatTooltipEntry>() : null;
 
             GameObject statSliderEntryTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemStatSliderEntryTooltip");
-            prefab_tooltip_itemStatSliderEntry = statSliderEntryTooltipObj != null ? statSliderEntryTooltipObj.GetComponent<UITooltip_ItemStatSliderEntry>() : null;
+            prefab_tooltip_itemStatSliderEntry = statSliderEntryTooltipObj != null ? statSliderEntryTooltipObj.GetComponent<UIItemStatSliderTooltipEntry>() : null;
+
+            GameObject resolutionEntryObj = mod.GetAsset<GameObject>("Prefab_ResolutionSettingEntry");
+            prefab_resolutionSettingEntry = resolutionEntryObj != null ? resolutionEntryObj.GetComponent<UIResolutionToggle>() : null;
 
             _keyCodeToIconDict = new Dictionary<KeyCode, Sprite>()
             {
