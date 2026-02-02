@@ -27,10 +27,8 @@ namespace AcrealUI
     public class UIPanelControls : UIPanel
     {
         #region Variables
-        [SerializeField] private string _gameObjName_button_continue = null;
         [SerializeField] private string _gameObjName_button_default = null;
 
-        private UIButton _button_continue = null;
         private UIButton _button_default = null;
         #endregion
 
@@ -45,18 +43,6 @@ namespace AcrealUI
         public override void Initialize()
         {
             base.Initialize();
-
-            if (!string.IsNullOrEmpty(_gameObjName_button_continue))
-            {
-                Transform continueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_continue);
-                _button_continue = continueTform != null ? continueTform.GetComponent<UIButton>() : null;
-                if (_button_continue != null)
-                {
-                    _button_continue.Initialize();
-                    _button_continue.Event_OnClicked += (_) => { Event_OnButtonClicked_Continue?.Invoke(); };
-                }
-                else { Debug.LogError("[AcrealUI] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_continue + "\""); }
-            }
 
             if (!string.IsNullOrEmpty(_gameObjName_button_default))
             {

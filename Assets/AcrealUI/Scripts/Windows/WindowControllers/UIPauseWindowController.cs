@@ -387,13 +387,6 @@ namespace AcrealUI
                     {
                         _pauseWindowInstance.panelControlSettings.gameObject.SetActive(false);
 
-                        _pauseWindowInstance.panelControlSettings.Event_OnButtonClicked_Continue += () =>
-                        {
-                            saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClick();
-                            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Paused);
-                        };
-
                         _pauseWindowInstance.panelControlSettings.Event_OnButtonClicked_Default += () =>
                         {
                             UIUtilityFunctions.PlayButtonClick();
