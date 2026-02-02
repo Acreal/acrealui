@@ -32,7 +32,6 @@ namespace AcrealUI
         public UISlider prefab_slider = null;
         public UIToggle prefab_toggle = null;
         public UIScrollListGroup prefab_scrollListGroup = null;
-        //public UIColorPickerOptionsPanel prefab_colorPicker = null;
 
         public UIPauseWindow prefab_pauseWindow = null;
         public UIWindowSaveLoad prefab_saveLoadWindow = null;
@@ -122,7 +121,7 @@ namespace AcrealUI
             GameObject textTooltipObj = mod.GetAsset<GameObject>("Prefab_TextTooltip");
             prefab_textTooltip = textTooltipObj != null ? textTooltipObj.GetComponent<UITextTooltip>() : null;
 
-            GameObject iconTextTooltipObj = mod.GetAsset<GameObject>("Prefab_IconTextTooltip");
+            GameObject iconTextTooltipObj = mod.GetAsset<GameObject>("Prefab_TextIconTooltip");
             prefab_iconTextTooltip = iconTextTooltipObj != null ? iconTextTooltipObj.GetComponent<UITextIconTooltip>() : null;
 
             GameObject itemDetailsTooltipObj = mod.GetAsset<GameObject>("Prefab_ItemDetailsTooltip");
