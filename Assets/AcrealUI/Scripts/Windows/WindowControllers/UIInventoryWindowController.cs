@@ -71,25 +71,21 @@ namespace AcrealUI
                 {
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnItemFilterChanged += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         UpdatePlayerInventory(true);
                     };
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnSortItemsColumnChanged += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         UpdatePlayerInventory();
                     };
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnSortAscendingChanged += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         UpdatePlayerInventory();
                     };
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnToggled_InventoryTab_Player += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         localItems = playerEntity.Items;
                         usingWagon = false;
                         UpdatePlayerInventory(true);
@@ -98,7 +94,6 @@ namespace AcrealUI
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnToggled_InventoryTab_Wagon += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         localItems = playerEntity.WagonItems;
                         usingWagon = true;
                         UpdatePlayerInventory(true);
@@ -114,8 +109,6 @@ namespace AcrealUI
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnGoldButtonClicked += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         // Show message box
                         const int goldToDropTextId = 25;
                         DaggerfallInputMessageBox mb = new DaggerfallInputMessageBox(uiManager, this);
@@ -135,26 +128,21 @@ namespace AcrealUI
                 {
                     _inventoryWindowInstance.itemList_container.Event_OnItemFilterChanged += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         UpdateContainerInventory(true);
                     };
 
                     _inventoryWindowInstance.itemList_container.Event_OnSortItemsColumnChanged += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         UpdateContainerInventory();
                     };
 
                     _inventoryWindowInstance.itemList_container.Event_OnSortAscendingChanged += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         UpdateContainerInventory();
                     };
 
                     _inventoryWindowInstance.itemList_container.Event_OnToggled_InventoryTab_Wagon += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         lastRemoteItems = remoteItems;
                         lastRemoteTargetType = remoteTargetType;
                         remoteItems = PlayerEntity.WagonItems;

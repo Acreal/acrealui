@@ -44,13 +44,14 @@ namespace AcrealUI
     public static class UIUtilityFunctions
     {
         private static Vector3[] _worldCornerScratchArray = new Vector3[4];
+        private static float _prevButtonClickSfxTime = -1f;
 
         //TODO(Acreal): put this in an external text file
         private static Dictionary<string, string> _potionRecipeKeyToPowerFormatDict = new Dictionary<string, string>()
         {
             { "restorePower", "Restores {0} Magicka" },
         };
-
+       
 
         #region Transforms
         public static Transform FindDeepChild(Transform aParent, string aName)
@@ -1708,9 +1709,14 @@ namespace AcrealUI
 
 
         #region Sounds
-        public static void PlayButtonClick()
+        public static void PlayButtonClick(bool force = false)
         {
-            DaggerfallUI.Instance.PlayOneShot(SoundClips.ButtonClick);
+            float curTime = Time.unscaledTime;
+            if (force || (curTime - _prevButtonClickSfxTime) >= 0.1f)
+            {
+                _prevButtonClickSfxTime = curTime;
+                DaggerfallUI.Instance.PlayOneShot(SoundClips.ButtonClick);
+            }
         }
         #endregion
 

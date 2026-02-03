@@ -166,7 +166,6 @@ namespace AcrealUI
                     _showPanelButton.Initialize();
                     _showPanelButton.Event_OnClicked += (UIButton _) =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         Show();
                     };
                 }
@@ -181,7 +180,6 @@ namespace AcrealUI
                     _hidePanelButton.Initialize();
                     _hidePanelButton.Event_OnClicked += (UIButton _) =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         Hide();
                     };
                 }

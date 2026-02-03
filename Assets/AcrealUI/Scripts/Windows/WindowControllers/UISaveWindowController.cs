@@ -62,14 +62,11 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_CloseWindow += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         DaggerfallUI.Instance.PopToHUD();
                     };
 
                     _saveLoadGameWindow.Event_ButtonClick_PrevWindow += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         switch (_currentState)
                         {
                             case SaveWindowState.SelectCharacter:
@@ -92,8 +89,6 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_SaveGame += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         string characterName = GameManager.Instance.PlayerEntity.Name;
                         string saveName = _saveLoadGameWindow.inputFieldValue;
 
@@ -133,8 +128,6 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_LoadGame += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         UISaveGameData saveData = _saveLoadGameWindow.selectedSaveGameData;
                         if (saveData.saveKey >= 0)
                         {
@@ -145,8 +138,6 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_RenameSave += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         // Must have a save selected
                         if (_selectedSaveGameData.saveKey < 0)
                         {
@@ -163,8 +154,6 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_DeleteSave += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
-
                         // Must have a save selected
                         if (string.IsNullOrWhiteSpace(_selectedSaveGameData.saveName))
                         {
@@ -182,13 +171,11 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_ImportSave += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         SetState(SaveWindowState.ImportSave);
                     };
 
                     _saveLoadGameWindow.Event_ButtonClick_SelectCharacter += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         SetState(SaveWindowState.SelectCharacter);
                     };
 

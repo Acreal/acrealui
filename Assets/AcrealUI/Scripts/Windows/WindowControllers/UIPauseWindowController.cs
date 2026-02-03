@@ -73,7 +73,6 @@ namespace AcrealUI
 
                     _pauseWindowInstance.Event_ButtonClick_CloseWindow += () =>
                     {
-                        UIUtilityFunctions.PlayButtonClick();
                         CancelWindow();
                     };
 
@@ -86,31 +85,26 @@ namespace AcrealUI
 
                         _pauseWindowInstance.panelPaused.Event_OnButtonClicked_Continue += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             CancelWindow();
                         };
 
                         _pauseWindowInstance.panelPaused.Event_OnButtonClicked_SaveGame += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             uiManager.PushWindow(UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { uiManager, DaggerfallUnitySaveGameWindow.Modes.SaveGame, this, false }));
                         };
 
                         _pauseWindowInstance.panelPaused.Event_OnButtonClicked_LoadGame += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             uiManager.PushWindow(UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { uiManager, DaggerfallUnitySaveGameWindow.Modes.LoadGame, this, false }));
                         };
 
                         _pauseWindowInstance.panelPaused.Event_OnButtonClicked_Settings += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings);
                         };
 
                         _pauseWindowInstance.panelPaused.Event_OnButtonClicked_ExitGame += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Confirmation);
 
                             DaggerfallMessageBox confirmExitBox = new DaggerfallMessageBox(uiManager, DaggerfallMessageBox.CommonMessageBoxButtons.YesNo, strAreYouSure, this);
@@ -147,25 +141,21 @@ namespace AcrealUI
 
                         _pauseWindowInstance.panelSettings.Event_OnButtonClicked_GeneralSettings += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_General);
                         };
 
                         _pauseWindowInstance.panelSettings.Event_OnButtonClicked_VideoSettings += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_Video);
                         };
 
                         _pauseWindowInstance.panelSettings.Event_OnButtonClicked_AudioSettings += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_Audio);
                         };
 
                         _pauseWindowInstance.panelSettings.Event_OnButtonClicked_ControlSettings += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_Controls);
                         };
                     }
@@ -186,7 +176,6 @@ namespace AcrealUI
                         headbobToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClick();
                             DaggerfallUnity.Settings.HeadBobbing = toggle.isToggledOn;
                         };
                         #endregion
@@ -422,24 +411,24 @@ namespace AcrealUI
 
                         UISlider soundVolume = volumeGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         soundVolume.SetTextTitle("Sound"); // TODO(Acreal): localize this string
-                        soundVolume.SetSliderMinMax(0f, 1f, false);
+                        soundVolume.SetSliderMinMax(0f, 100f, true);
                         soundVolume.SetSliderValue(DaggerfallUnity.Settings.SoundVolume, true);
                         soundVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
-                            if(Mathf.Abs(DaggerfallUnity.Settings.SoundVolume - slider.GetSliderValue()) >= 1f) { UIUtilityFunctions.PlayButtonClick(); }
-                            DaggerfallUnity.Settings.SoundVolume = slider.GetSliderValue();
+                            UIUtilityFunctions.PlayButtonClick();
+                            DaggerfallUnity.Settings.SoundVolume = slider.GetSliderValue() * 0.1f;
                         };
 
                         UISlider musicVolume = volumeGroup.AddSlider(UIManager.referenceManager.prefab_slider);
                         musicVolume.SetTextTitle("Music"); // TODO(Acreal): localize this string
-                        musicVolume.SetSliderMinMax(0f, 1f, false);
+                        musicVolume.SetSliderMinMax(0f, 100f, true);
                         musicVolume.SetSliderValue(DaggerfallUnity.Settings.MusicVolume, true);
                         musicVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
-                            if (Mathf.Abs(DaggerfallUnity.Settings.MusicVolume - slider.GetSliderValue()) >= 0.05f) { UIUtilityFunctions.PlayButtonClick(); }
-                            DaggerfallUnity.Settings.MusicVolume = slider.GetSliderValue();
+                            UIUtilityFunctions.PlayButtonClick();
+                            DaggerfallUnity.Settings.MusicVolume = slider.GetSliderValue() * 0.1f;
                         };
                         #endregion
                     }
@@ -453,7 +442,6 @@ namespace AcrealUI
 
                         _pauseWindowInstance.panelControlSettings.Event_OnButtonClicked_Default += () =>
                         {
-                            UIUtilityFunctions.PlayButtonClick();
                             InputManager.Instance.ResetDefaults();
                             InputManager.Instance.SaveKeyBinds();
                             ControlsConfigManager.Instance.ResetUnsavedKeybinds();
@@ -507,7 +495,6 @@ namespace AcrealUI
                         invertLookToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClick();
                             DaggerfallUnity.Settings.InvertMouseVertical = toggle.isToggledOn;
                         };
 
@@ -517,7 +504,6 @@ namespace AcrealUI
                         movementAccelerationToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClick();
                             DaggerfallUnity.Settings.MovementAcceleration = toggle.isToggledOn;
                         };
 
@@ -527,7 +513,6 @@ namespace AcrealUI
                         bowsDrawAndRelease.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClick();
                             DaggerfallUnity.Settings.BowDrawback = toggle.isToggledOn;
                         };
 
@@ -537,7 +522,6 @@ namespace AcrealUI
                         sneakToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClick();
                             DaggerfallUnity.Settings.ToggleSneak = toggle.isToggledOn;
                         };
 
@@ -732,7 +716,6 @@ namespace AcrealUI
 
                             axisBindingEntry.Event_OnInvertChanged += (InputManager.AxisActions axisAction, bool invert) =>
                             {
-                                UIUtilityFunctions.PlayButtonClick();
                                 InputManager.Instance.SetAxisActionInversion(axisAction, invert);
                             };
                         }
@@ -914,8 +897,6 @@ namespace AcrealUI
         #region Pause Panel Callbacks/Delegates
         private void OnBackButtonClicked()
         {
-            UIUtilityFunctions.PlayButtonClick();
-
             switch (_pauseWindowInstance.currentState)
             {
                 case UIPauseWindow.PauseWindowState.Settings:
@@ -948,7 +929,6 @@ namespace AcrealUI
         private void Paused_OnFullScreenChanged(bool enableFullscreen)
         {
             saveSettings = true;
-            UIUtilityFunctions.PlayButtonClick();
             DaggerfallUnity.Settings.Fullscreen = !DaggerfallUnity.Settings.Fullscreen;
         }
         #endregion
@@ -957,7 +937,6 @@ namespace AcrealUI
         #region Controls Panel Callbacks/Delegates
         private void Controls_OnRebind(UIControlBindingEntry bindingEntry, bool isPrimaryBinding)
         {
-            UIUtilityFunctions.PlayButtonClick();
             InputManager.Instance.StartCoroutine(WaitForKeyPress(bindingEntry, isPrimaryBinding));
         }
 

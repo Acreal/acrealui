@@ -97,8 +97,6 @@ namespace AcrealUI
         #region UI Callbacks
         private void OnButtonClick_ExpandCollapse(UIToggle toggle)
         {
-            UIUtilityFunctions.PlayButtonClick();
-
             if (_parent_groupEntries != null)
             {
                 _parent_groupEntries.gameObject.SetActive(toggle.isToggledOn);
