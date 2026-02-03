@@ -483,17 +483,35 @@ namespace AcrealUI
                         case SaveWindowState.Save:
                         case SaveWindowState.Load:
                             _saveLoadGameWindow.SetInputFieldValue(null);
-                            _saveLoadGameWindow.SetHeaderActive(true);
+                            _saveLoadGameWindow.SetSaveInfoHeaderActive(true);
                             _saveLoadGameWindow.SetSaveDetailsActive(true);
                             _saveLoadGameWindow.SetImportButtonActive(_currentState == SaveWindowState.Load);
                             _saveLoadGameWindow.SetSelectCharacterButtonActive(_currentState == SaveWindowState.Load);
+
+                            if (_currentState == SaveWindowState.Save)
+                            {
+                                _saveLoadGameWindow.SetHeaderText("Save Game");
+                            }
+                            else
+                            {
+                                _saveLoadGameWindow.SetHeaderText("Load Game");
+                            }
                             break;
 
                         case SaveWindowState.ImportSave:
                         case SaveWindowState.SelectCharacter:
-                            _saveLoadGameWindow.SetHeaderActive(false);
+                            _saveLoadGameWindow.SetSaveInfoHeaderActive(false);
                             _saveLoadGameWindow.SetSaveDetailsActive(false);
                             _saveLoadGameWindow.SetImportButtonActive(false);
+
+                            if(_currentState == SaveWindowState.ImportSave)
+                            {
+                                _saveLoadGameWindow.SetHeaderText("Import Classic Save");
+                            }
+                            else
+                            {
+                                _saveLoadGameWindow.SetHeaderText("Select Character");
+                            }
                             break;
                     }
 

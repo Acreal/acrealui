@@ -328,7 +328,7 @@ namespace AcrealUI
             }
         }
 
-        public void SetHeaderActive(bool active)
+        public void SetSaveInfoHeaderActive(bool active)
         {
             if (_saveHeaderParent != null)
             {

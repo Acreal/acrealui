@@ -20,6 +20,7 @@ DEALINGS IN THE SOFTWARE.
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 namespace AcrealUI
 {
@@ -31,11 +32,13 @@ namespace AcrealUI
         [SerializeField] string _gameObjName_canvasGroup = null;
         [SerializeField] string _gameObjName_closeWindowButton = null;
         [SerializeField] string _gameObjName_backButton = null;
+        [SerializeField] string _gameObjName_headerText = null;
 
         protected Canvas _canvasComponent = null;
         protected CanvasGroup _canvasGroup = null;
         protected UIButton _closeWindowButton = null;
         protected UIButton _backButton = null;
+        protected TextMeshProUGUI _headerText = null;
 
         private bool _isOpen = false;
         #endregion
@@ -126,6 +129,12 @@ namespace AcrealUI
                     };
                 }
             }
+
+            if (!string.IsNullOrEmpty(_gameObjName_headerText))
+            {
+                Transform headerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_headerText);
+                _headerText = headerTform != null ? headerTform.GetComponent<TextMeshProUGUI>() : null;
+            }
         }
 
         public virtual void Cleanup()
@@ -135,7 +144,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Open/Close
+        #region Public API
         public void Show()
         {
             if (!_isOpen)
@@ -144,6 +153,25 @@ namespace AcrealUI
             }
         }
 
+        public void Hide()
+        {
+            if (_isOpen)
+            {
+                HideInternal();
+            }
+        }
+
+        public void SetHeaderText(string header)
+        {
+            if (_headerText != null)
+            {
+                _headerText.text = header;
+            }
+        }
+        #endregion
+
+
+        #region Open/Close
         protected virtual void ShowInternal()
         {
             _isOpen = true;
@@ -158,14 +186,6 @@ namespace AcrealUI
             if (_canvasGroup != null)
             {
                 StartCoroutine(TweenCanvasGroupAlphaRoutine(_canvasGroup, 0f, 0.2f, 0f, 1f));
-            }
-        }
-
-        public void Hide()
-        {
-            if (_isOpen)
-            {
-                HideInternal();
             }
         }
 

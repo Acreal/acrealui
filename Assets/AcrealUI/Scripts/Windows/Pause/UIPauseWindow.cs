@@ -54,7 +54,6 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_panelVideoSettings = null;
         [SerializeField] private string _gameObjName_panelControlSettings = null;
         [SerializeField] private string _gameObjName_panelExitGame = null;
-        [SerializeField] private string _gameObjName_headerText = null;
 
         private UIPausePanel _panelPaused = null;
         private UISettingsMenuPanel _panelSettings = null;
@@ -63,7 +62,6 @@ namespace AcrealUI
         private UIPanel _panelAudioSettings = null;
         private UIPanel _panelVideoSettings = null;
         private UIPanel _panelExitGame = null;
-        private TextMeshProUGUI _headerText = null;
 
         private PauseWindowState _currentState = PauseWindowState.None;
         private Vector2 _panelSizeOffset = Vector2.zero;
@@ -151,9 +149,6 @@ namespace AcrealUI
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_ExitGame script from GameObject \"" + (exitTform != null ? exitTform.gameObject.name : "NULL")); }
 
-            Transform headerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_headerText);
-            _headerText = headerTform != null ? headerTform.GetComponent<TextMeshProUGUI>() : null;
-
             _currentState = PauseWindowState.None;
         }
         #endregion
@@ -199,7 +194,7 @@ namespace AcrealUI
                         if (_headerText != null)
                         {
                             //TODO(Acreal): localize this string
-                            _headerText.text = "Settings";
+                            SetHeaderText("Settings");
                         }
                         break;
 
@@ -208,7 +203,7 @@ namespace AcrealUI
                         if (_headerText != null)
                         {
                             //TODO(Acreal): localize this string
-                            _headerText.text = "General";
+                            SetHeaderText("General");
                         }
                         break;
 
@@ -217,7 +212,7 @@ namespace AcrealUI
                         if (_headerText != null)
                         {
                             //TODO(Acreal): localize this string
-                            _headerText.text = "Video";
+                            SetHeaderText("Video");
                         }
                         break;
 
@@ -226,7 +221,7 @@ namespace AcrealUI
                         if (_headerText != null)
                         {
                             //TODO(Acreal): localize this string
-                            _headerText.text = "Audio";
+                            SetHeaderText("Audio");
                         }
                         break;
 
@@ -235,7 +230,7 @@ namespace AcrealUI
                         if (_headerText != null)
                         {
                             //TODO(Acreal): localize this string
-                            _headerText.text = "Controls";
+                            SetHeaderText("Controls");
                         }
                         break;
 
@@ -244,7 +239,7 @@ namespace AcrealUI
                         if (_headerText != null)
                         {
                             //TODO(Acreal): localize this string
-                            _headerText.text = "Paused";
+                            SetHeaderText("Paused");
                         }
                         break;
                 }
