@@ -32,30 +32,30 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_rawImage_saveScreenShot = null;
         [SerializeField] private string _gameObjName_inputField_saveName = null;
         [SerializeField] private string _gameObjName_parent_scrollGroup = null;
-        [SerializeField] private string _gameObjName_text_header = null;
         [SerializeField] private string _gameObjName_text_realTime = null;
         [SerializeField] private string _gameObjName_text_gameTime = null;
         [SerializeField] private string _gameObjName_text_version = null;
         [SerializeField] private string _gameObjName_text_saveOrLoad = null;
         [SerializeField] private string _gameObjName_text_importSave = null;
+        [SerializeField] private string _gameObjName_text_saveLoadPrompt = null;
         [SerializeField] private string _gameObjName_text_noSaves = null;
         [SerializeField] private string _gameObjName_button_switchChar = null;
         [SerializeField] private string _gameObjName_button_rename = null;
         [SerializeField] private string _gameObjName_button_delete = null;
         [SerializeField] private string _gameObjName_button_saveLoad = null;
         [SerializeField] private string _gameObjName_button_import = null;
-        [SerializeField] private string _gameObjName_saveTopControlsParent = null;
+        [SerializeField] private string _gameObjName_savePromptParent = null;
         [SerializeField] private string _gameObjName_saveDetailsParent = null;
         [SerializeField] private string _gameObjName_scrollListParent = null;
 
         private RawImage _saveScreenShotRawImage = null;
         private TMP_InputField _saveNameInputField = null;
-        private TextMeshProUGUI _headerText = null;
         private TextMeshProUGUI _realTimeText = null;
         private TextMeshProUGUI _gameTimeText = null;
         private TextMeshProUGUI _versionText = null;
         private TextMeshProUGUI _saveLoadText = null;
         private TextMeshProUGUI _importSaveText = null;
+        private TextMeshProUGUI _saveLoadPromptText = null;
         private TextMeshProUGUI _noSavesText = null;
         private UIButton _switchCharButton = null;
         private UIButton _renameButton = null;
@@ -63,14 +63,12 @@ namespace AcrealUI
         private UIButton _saveLoadButton = null;
         private UIButton _importButton = null;
         private UIToggleGroup _saveEntriesToggleGroup = null;
-        private GameObject _saveHeaderParent = null;
+        private GameObject _savePromptParent = null;
         private GameObject _saveDetailsParent = null;
         private GameObject _scrollListParent = null;
 
         private Dictionary<string, UISaveGameEntry> _idToSaveGameDataDict = null;
         private Transform _scrollGroupParent = null;
-        private UISaveGameData _selectedSaveGameData = new UISaveGameData();
-
         private bool _isSaving = false;
         #endregion
 
@@ -79,11 +77,6 @@ namespace AcrealUI
         public int numSaveEntries
         {
             get { return _idToSaveGameDataDict != null ? _idToSaveGameDataDict.Count : 0; }
-        }
-
-        public UISaveGameData selectedSaveGameData
-        {
-            get { return _selectedSaveGameData; }
         }
 
         public bool isSaving
@@ -142,11 +135,18 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_parent_scrollGroup + "\""); }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_saveTopControlsParent))
+            if (!string.IsNullOrEmpty(_gameObjName_savePromptParent))
             {
-                Transform saveHeaderParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_saveTopControlsParent);
-                if (saveHeaderParentTform != null) { _saveHeaderParent = saveHeaderParentTform.gameObject; }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_saveTopControlsParent + "\""); }
+                Transform promptParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_savePromptParent);
+                if (promptParentTform != null) { _savePromptParent = promptParentTform.gameObject; }
+                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_savePromptParent + "\""); }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_text_saveLoadPrompt))
+            {
+                Transform promptTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_saveLoadPrompt);
+                if (promptTextTform != null) { _saveLoadPromptText = promptTextTform.GetComponent<TextMeshProUGUI>(); }
+                if (_saveLoadPromptText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_saveLoadPrompt + "\""); }
             }
 
             if (!string.IsNullOrEmpty(_gameObjName_saveDetailsParent))
@@ -294,22 +294,6 @@ namespace AcrealUI
                 if (_importSaveText != null) { _importSaveText.text = UIUtilityFunctions.GetLocalizedText("classicSave"); }
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_importSave + "\""); }
             }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_header))
-            {
-                Transform headerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_header);
-                if (headerTform != null) { _headerText = headerTform.GetComponent<TextMeshProUGUI>(); }
-                if (_headerText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_header + "\""); }
-            }
-        }
-        #endregion
-
-
-        #region Show/Hide
-        protected override void HideInternal()
-        {
-            ClearSelectedSaveData();
-            base.HideInternal();
         }
         #endregion
 
@@ -330,9 +314,9 @@ namespace AcrealUI
 
         public void SetSaveInfoHeaderActive(bool active)
         {
-            if (_saveHeaderParent != null)
+            if (_savePromptParent != null)
             {
-                _saveHeaderParent.SetActive(active);
+                _savePromptParent.SetActive(active);
             }
         }
 
@@ -391,25 +375,65 @@ namespace AcrealUI
             }
         }
 
-        public void SelectMostRecentSaveGameData()
+        public void SetSaveLoadPromptText(string promptText)
         {
-            SetSelectedSaveGameData(UIUtilityFunctions.GetMostRecentSaveGameData());
+            if (_saveLoadPromptText != null)
+            {
+                _saveLoadPromptText.text = promptText;
+            }
         }
 
-        public void ClearSelectedSaveData()
+        public void SetTimestampText(string realTimestampString, string gameTimestampString)
         {
-            string characterName = UIUtilityFunctions.GetPlayerName();
-            SetSelectedSaveGameData(new UISaveGameData());
+            if (_realTimeText != null)
+            {
+                _realTimeText.text = realTimestampString;
+            }
+
+            if (_gameTimeText != null)
+            {
+                _gameTimeText.text = gameTimestampString;
+            }
         }
 
-        public void SetSelectedSaveGameData(UISaveGameData saveGameData)
+        public void SetVersionText(string versionString)
         {
-            _selectedSaveGameData = saveGameData;
-            UpdateHeader();
-            UpdateVersion();
-            UpdateTimestamps();
-            UpdateScreenshotImage();
-            UpdateButtonText();
+            if (_versionText != null)
+            {
+                _versionText.text = versionString;
+            }
+        }
+
+        public void SetScreenshotTexture(Texture2D screenshot)
+        {
+            if (_saveScreenShotRawImage != null)
+            {
+                _saveScreenShotRawImage.texture = screenshot;
+                _saveScreenShotRawImage.enabled = screenshot != null;
+
+                float aspect = screenshot != null ? (screenshot.width / (float)screenshot.height) : (16f / 9f);
+
+                RectTransform rt = _saveScreenShotRawImage.transform.parent as RectTransform;
+                LayoutElement layoutElem = rt != null ? rt.GetComponent<LayoutElement>() : null;
+                if (layoutElem != null)
+                {
+                    layoutElem.minHeight = layoutElem.minWidth / aspect;
+                }
+                else if (rt != null)
+                {
+                    Vector2 size = rt.sizeDelta;
+                    size.y = size.x / aspect;
+                    rt.sizeDelta = size;
+                }
+            }
+        }
+
+        public void SetSaveLoadButtonText(string buttonText)
+        {
+            if (_saveLoadText != null)
+            {
+                _saveLoadText.text = buttonText;
+            }
         }
 
         public bool HasSaveEntry(string entryId)
@@ -447,22 +471,6 @@ namespace AcrealUI
                     {
                         _saveEntriesToggleGroup.AddToggle(entry);
                     }
-
-                    entry.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                    {
-                        UISaveGameEntry saveEntry = toggle as UISaveGameEntry;
-                        if (saveEntry != null)
-                        {
-                            if (saveEntry.isToggledOn)
-                            {
-                                SetSelectedSaveGameData(saveEntry.GetSaveData());
-                            }
-                            else if(_selectedSaveGameData.saveKey == saveEntry.GetSaveData().saveKey)
-                            {
-                                ClearSelectedSaveData();
-                            }
-                        }
-                    };
 
                     _idToSaveGameDataDict[name] = entry;
                 }
@@ -509,88 +517,6 @@ namespace AcrealUI
                 {
                     RemoveSaveEntry(destroyList[i]);
                 }
-            }
-        }
-        #endregion
-
-
-        #region UI Element Updates
-        private void UpdateHeader()
-        {
-            if (_headerText != null)
-            {
-                string promptKey = _isSaving ? "savePrompt" : "loadPrompt";
-                string promptText = UIUtilityFunctions.GetLocalizedText(promptKey);
-                _headerText.text = string.Format(UIUtilityFunctions.GetLocalizedText("saveLoadPromptFormat"), promptText, _selectedSaveGameData.characterName);
-            }
-        }
-
-        private void UpdateTimestamps()
-        {
-            if (_selectedSaveGameData.isValid)
-            {
-                if (_realTimeText != null)
-                {
-                    _realTimeText.text = _selectedSaveGameData.realTimestampString;
-                }
-
-                if (_gameTimeText != null)
-                {
-                    _gameTimeText.text = _selectedSaveGameData.gameTimestampString;
-                }
-            }
-            else
-            {
-                if (_realTimeText != null)
-                {
-                    _realTimeText.text = null;
-                }
-
-                if (_gameTimeText != null)
-                {
-                    _gameTimeText.text = null;
-                }
-            }
-        }
-
-        private void UpdateVersion()
-        {
-            if (_versionText != null)
-            {
-                _versionText.text = _selectedSaveGameData.isValid ? _selectedSaveGameData.gameVersion : null;
-            }
-        }
-
-        private void UpdateScreenshotImage()
-        {
-            if (_saveScreenShotRawImage != null)
-            {
-                _saveScreenShotRawImage.texture = _selectedSaveGameData.screenshot;
-                _saveScreenShotRawImage.enabled = _selectedSaveGameData.screenshot != null;
-
-                float aspect = _selectedSaveGameData.screenshot != null ? (_selectedSaveGameData.screenshot.width / (float)_selectedSaveGameData.screenshot.height) : (16f / 9f);
-
-                RectTransform rt = _saveScreenShotRawImage.transform.parent as RectTransform;
-                LayoutElement layoutElem = rt != null ? rt.GetComponent<LayoutElement>() : null;
-                if (layoutElem != null)
-                {
-                    layoutElem.minHeight = layoutElem.minWidth / aspect;
-                }
-                else if (rt != null)
-                {
-                    Vector2 size = rt.sizeDelta;
-                    size.y = size.x / aspect;
-                    rt.sizeDelta = size;
-                }
-            }
-        }
-
-        private void UpdateButtonText()
-        {
-            if (_saveLoadText != null)
-            {
-                string locKey = _isSaving ? "saveButton" : "loadButton";
-                _saveLoadText.text = UIUtilityFunctions.GetLocalizedText(locKey);
             }
         }
         #endregion

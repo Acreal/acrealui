@@ -29,6 +29,11 @@ namespace AcrealUI
         #endregion
 
 
+        #region Events
+        public event System.Action<UISaveGameData> Event_SaveGameSelected = null;
+        #endregion
+
+
         #region Public API
         public UISaveGameData GetSaveData()
         {

@@ -62,7 +62,14 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_CloseWindow += () =>
                     {
-                        DaggerfallUI.Instance.PopToHUD();
+                        if (PreviousWindow != null)
+                        {
+                            DaggerfallUI.Instance.PopToHUD();
+                        }
+                        else
+                        {
+                            CancelWindow();
+                        }
                     };
 
                     _saveLoadGameWindow.Event_ButtonClick_PrevWindow += () =>
@@ -128,10 +135,9 @@ namespace AcrealUI
 
                     _saveLoadGameWindow.Event_ButtonClick_LoadGame += () =>
                     {
-                        UISaveGameData saveData = _saveLoadGameWindow.selectedSaveGameData;
-                        if (saveData.saveKey >= 0)
+                        if (_selectedSaveGameData.saveKey >= 0)
                         {
-                            GameManager.Instance.SaveLoadManager.Load(saveData.saveKey);
+                            GameManager.Instance.SaveLoadManager.Load(_selectedSaveGameData.saveKey);
                             DaggerfallUI.Instance.PopToHUD();
                         }
                     };
@@ -197,7 +203,10 @@ namespace AcrealUI
                         }
                         else
                         {
-                            _saveLoadGameWindow.ClearSelectedSaveData();
+                            _saveLoadGameWindow.SetScreenshotTexture(null);
+                            _saveLoadGameWindow.SetTimestampText(null, null);
+                            _saveLoadGameWindow.SetVersionText(null);
+
                             _saveLoadGameWindow.toggleGroup.SetActiveToggle(null);
                             _saveLoadGameWindow.SetSaveOrLoadButtonEnabled(mode == Modes.SaveGame);
                         }
@@ -297,6 +306,13 @@ namespace AcrealUI
                                     saveEntry.Event_OnToggledOn += (UIToggle toggle) =>
                                     {
                                         _saveLoadGameWindow.SetInputFieldValue(toggle.displayName, false);
+
+                                        UISaveGameEntry gameEntry = toggle as UISaveGameEntry;
+                                        UISaveGameData data = gameEntry.GetSaveData();
+                                        _selectedSaveGameData = data;
+                                        _saveLoadGameWindow.SetScreenshotTexture(data.screenshot);
+                                        _saveLoadGameWindow.SetTimestampText(data.realTimestampString, data.gameTimestampString);
+                                        _saveLoadGameWindow.SetVersionText(data.gameVersion);
                                     };
                                 }
                             }
@@ -342,10 +358,10 @@ namespace AcrealUI
                                     UISaveGameEntry entry = toggle as UISaveGameEntry;
                                     if (entry != null)
                                     {
-                                        currentPlayerName = entry.GetSaveData().characterName;
-
-                                        _saveLoadGameWindow.SetSelectedSaveGameData(UIUtilityFunctions.GetMostRecentSaveGameData(currentPlayerName));
-
+                                        UISaveGameData data = entry.GetSaveData();
+                                        currentPlayerName = data.characterName;
+                                        _selectedSaveGameData = UIUtilityFunctions.GetMostRecentSaveGameData(currentPlayerName);
+                                        
                                         if (mode == Modes.SaveGame)
                                         {
                                             SetState(SaveWindowState.Save);
@@ -380,7 +396,6 @@ namespace AcrealUI
             GameManager.Instance.SaveLoadManager.Rename(key, saveName);
             _selectedSaveGameData.saveName = saveName;
             UpdateSavesEntries();
-            _saveLoadGameWindow.SetSelectedSaveGameData(_selectedSaveGameData);
         }
 
         protected override void ConfirmDelete_OnButtonClick(DaggerfallMessageBox sender, DaggerfallMessageBox.MessageBoxButtons messageBoxButton)
@@ -407,8 +422,10 @@ namespace AcrealUI
                 else
                 {
                     _selectedSaveGameData = new UISaveGameData();
-                    _saveLoadGameWindow.ClearSelectedSaveData();
                     _saveLoadGameWindow.SetNoSavesTextActive(_saveLoadGameWindow.numSaveEntries == 0);
+                    _saveLoadGameWindow.SetScreenshotTexture(null);
+                    _saveLoadGameWindow.SetTimestampText(null, null);
+                    _saveLoadGameWindow.SetVersionText(null);
                 }
             }
 
@@ -488,14 +505,29 @@ namespace AcrealUI
                             _saveLoadGameWindow.SetImportButtonActive(_currentState == SaveWindowState.Load);
                             _saveLoadGameWindow.SetSelectCharacterButtonActive(_currentState == SaveWindowState.Load);
 
+                            string promptText = null;
+                            string buttonText = null;
                             if (_currentState == SaveWindowState.Save)
                             {
-                                _saveLoadGameWindow.SetHeaderText("Save Game");
+                                string saveText = UIUtilityFunctions.GetLocalizedText("saveButton");
+                                _saveLoadGameWindow.SetHeaderText(saveText);
+                                buttonText = saveText;
+
+                                promptText = UIUtilityFunctions.GetLocalizedText("savePrompt");
+                                promptText = string.Format(UIUtilityFunctions.GetLocalizedText("saveLoadPromptFormat"), promptText, _selectedSaveGameData.characterName);
+                                _saveLoadGameWindow.SetSaveLoadPromptText(promptText);
                             }
                             else
                             {
-                                _saveLoadGameWindow.SetHeaderText("Load Game");
+                                string loadText = UIUtilityFunctions.GetLocalizedText("loadButton");
+                                _saveLoadGameWindow.SetHeaderText(loadText);
+                                buttonText = loadText;
+
+                                promptText = UIUtilityFunctions.GetLocalizedText("loadPrompt");
+                                promptText = string.Format(UIUtilityFunctions.GetLocalizedText("saveLoadPromptFormat"), promptText, _selectedSaveGameData.characterName);
+                                _saveLoadGameWindow.SetSaveLoadPromptText(promptText);
                             }
+                            _saveLoadGameWindow.SetSaveLoadButtonText(buttonText);
                             break;
 
                         case SaveWindowState.ImportSave:
@@ -506,10 +538,12 @@ namespace AcrealUI
 
                             if(_currentState == SaveWindowState.ImportSave)
                             {
+                                //TODO(Acreal): localize this string
                                 _saveLoadGameWindow.SetHeaderText("Import Classic Save");
                             }
                             else
                             {
+                                //TODO(Acreal): localize this string
                                 _saveLoadGameWindow.SetHeaderText("Select Character");
                             }
                             break;

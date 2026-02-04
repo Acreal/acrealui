@@ -19,7 +19,6 @@ DEALINGS IN THE SOFTWARE.
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 

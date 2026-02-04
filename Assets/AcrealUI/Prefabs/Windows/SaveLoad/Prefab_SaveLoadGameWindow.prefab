@@ -2490,7 +2490,7 @@ GameObject:
   - component: {fileID: 5697248210200175397}
   - component: {fileID: 5684951116483991302}
   m_Layer: 5
-  m_Name: Text_ContextHeader
+  m_Name: Text_Prompt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3652,19 +3652,19 @@ MonoBehaviour:
   _gameObjName_rawImage_saveScreenShot: RawImage_ScreenShot
   _gameObjName_inputField_saveName: InputField_SaveName
   _gameObjName_parent_scrollGroup: ToggleGroup_Content
-  _gameObjName_text_header: Text_ContextHeader
   _gameObjName_text_realTime: Text_RealTime
   _gameObjName_text_gameTime: Text_GameTime
   _gameObjName_text_version: Text_Version
   _gameObjName_text_saveOrLoad: Text_SaveLoad
   _gameObjName_text_importSave: Text_Import
+  _gameObjName_text_saveLoadPrompt: Text_Prompt
   _gameObjName_text_noSaves: Text_NoSaves
   _gameObjName_button_switchChar: UIButton_SwitchChar
   _gameObjName_button_rename: UIButton_Rename
   _gameObjName_button_delete: UIButton_Delete
   _gameObjName_button_saveLoad: UIButton_SaveLoad
   _gameObjName_button_import: UIButton_Import
-  _gameObjName_saveTopControlsParent: VerticalLayout_TopControls
+  _gameObjName_savePromptParent: VerticalLayout_TopControls
   _gameObjName_saveDetailsParent: VerticalLayout_SaveInfo
   _gameObjName_scrollListParent: Parent_ScrollView
 --- !u!114 &1318786740342296044
