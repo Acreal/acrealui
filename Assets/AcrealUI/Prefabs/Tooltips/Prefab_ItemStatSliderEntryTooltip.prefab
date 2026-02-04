@@ -367,8 +367,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameObjName_image_icon: 
   _gameObjName_text_title: Text_Title
-  _gameObjName_text_description: 
-  _gameObjName_slider_condition: Text_ConditionValue
+  _gameObjName_text_description: Text_ConditionValue
+  _gameObjName_slider_condition: Slider_ItemCondition
 --- !u!1 &881769733862990750
 GameObject:
   m_ObjectHideFlags: 0

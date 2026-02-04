@@ -401,7 +401,7 @@ MonoBehaviour:
   anchorToMouse: 0
   _gameObjName_text_body: Text_Body
   _gameObjName_iconImage: Image_Icon
-  _gameObjName_iconLayoutElement: Image_Icon
+  _gameObjName_iconLayoutElement: 
 --- !u!1 &1785048918469265594
 GameObject:
   m_ObjectHideFlags: 0
