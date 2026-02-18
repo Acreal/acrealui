@@ -32,15 +32,18 @@ namespace AcrealUI
         public UISlider prefab_slider = null;
         public UIToggle prefab_toggle = null;
         public UIScrollListGroup prefab_scrollListGroup = null;
+        public UIScrollListRow prefab_scrollListRow = null;
 
         public UIPauseWindow prefab_pauseWindow = null;
         public UIWindowSaveLoad prefab_saveLoadWindow = null;
 
+        public UIConfirmationWindow prefab_confirmationWindow = null;
+
         public UISaveGameEntry prefab_saveEntry = null;
        
-        public UIResolutionToggle prefab_resolutionSettingEntry = null;
+        public UIToggle prefab_resolutionSettingEntry = null;
 
-        public UIWindowInventory prefab_inventoryWindow = null;
+        public UIInventoryWindow prefab_inventoryWindow = null;
         public UIInventoryWindow_ItemEntry itemEntryPrefab = null;
         public UIPlayerStatEntry prefab_playerStatEntry = null;
         public UIPlayerSkillEntry prefab_playerSkillEntry = null;
@@ -71,40 +74,43 @@ namespace AcrealUI
         #region Initalization/Cleanup
         public void Initialize(Mod mod)
         {
-            GameObject buttonObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Button", false);
+            GameObject buttonObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Button");
             prefab_button = buttonObj != null ? buttonObj.GetComponent<UIButton>() : null;
 
-            GameObject sliderObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Slider", false);
+            GameObject sliderObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Slider");
             prefab_slider = sliderObj != null ? sliderObj.GetComponent<UISlider>() : null;
 
-            GameObject toggleObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Toggle", false);
+            GameObject toggleObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Toggle");
             prefab_toggle = toggleObj != null ? toggleObj.GetComponent<UIToggle>() : null;
 
-            GameObject scrolLGroupObj = mod.GetAsset<GameObject>("Prefab_StandardElement_ScrollGroup", false);
+            GameObject scrolLGroupObj = mod.GetAsset<GameObject>("Prefab_StandardElement_ScrollGroup");
             prefab_scrollListGroup = scrolLGroupObj != null ? scrolLGroupObj.GetComponent<UIScrollListGroup>() : null;
 
-            GameObject pauseWindowObj = mod.GetAsset<GameObject>("Prefab_PauseWindow", false);
+            GameObject scrollRowObj = mod.GetAsset<GameObject>("Prefab_StandardElement_ScrollListRow");
+            prefab_scrollListRow = scrollRowObj != null ? scrollRowObj.GetComponent<UIScrollListRow>() : null;
+
+            GameObject pauseWindowObj = mod.GetAsset<GameObject>("Prefab_PauseWindow");
             prefab_pauseWindow = pauseWindowObj != null ? pauseWindowObj.GetComponent<UIPauseWindow>() : null;
 
-            GameObject saveWindowObj = mod.GetAsset<GameObject>("Prefab_SaveLoadGameWindow", false);
+            GameObject saveWindowObj = mod.GetAsset<GameObject>("Prefab_SaveLoadGameWindow");
             prefab_saveLoadWindow = saveWindowObj != null ? saveWindowObj.GetComponent<UIWindowSaveLoad>() : null;
 
-            GameObject saveEntryObj = mod.GetAsset<GameObject>("Prefab_SaveGameEntry", false);
+            GameObject saveEntryObj = mod.GetAsset<GameObject>("Prefab_SaveGameEntry");
             prefab_saveEntry = saveEntryObj != null ? saveEntryObj.GetComponent<UISaveGameEntry>() : null;
 
-            GameObject keyCodeBindObj = mod.GetAsset<GameObject>("Prefab_KeyCodeControlBindingEntry", false);
+            GameObject keyCodeBindObj = mod.GetAsset<GameObject>("Prefab_KeyCodeControlBindingEntry");
             prefab_keyCodeBindEntry = keyCodeBindObj != null ? keyCodeBindObj.GetComponent<UIKeyCodeBindingEntry>() : null;
 
-            GameObject axisBindObj = mod.GetAsset<GameObject>("Prefab_AxisControlBindingEntry", false);
+            GameObject axisBindObj = mod.GetAsset<GameObject>("Prefab_AxisControlBindingEntry");
             prefab_axisBindEntry = axisBindObj != null ? axisBindObj.GetComponent<UIAxisBindingEntry>() : null;
 
-            GameObject joystickBindObj = mod.GetAsset<GameObject>("Prefab_JoystickControlBindingEntry", false);
+            GameObject joystickBindObj = mod.GetAsset<GameObject>("Prefab_JoystickControlBindingEntry");
             prefab_joystickBindEntry = joystickBindObj != null ? joystickBindObj.GetComponent<UIJoystickKeyBindingEntry>() : null;
 
             prefab_hud = mod.GetAsset<GameObject>("Prefab_HUD");
 
-            GameObject inventoryWindowObj = mod.GetAsset<GameObject>("Prefab_InventoryWindow", false);
-            prefab_inventoryWindow = inventoryWindowObj != null ? inventoryWindowObj.GetComponent<UIWindowInventory>() : null;
+            GameObject inventoryWindowObj = mod.GetAsset<GameObject>("Prefab_InventoryWindow");
+            prefab_inventoryWindow = inventoryWindowObj != null ? inventoryWindowObj.GetComponent<UIInventoryWindow>() : null;
 
             GameObject itemEntryObj = mod.GetAsset<GameObject>("Prefab_InventoryItemEntry");
             itemEntryPrefab = itemEntryObj != null ? itemEntryObj.GetComponent<UIInventoryWindow_ItemEntry>() : null;
@@ -137,7 +143,10 @@ namespace AcrealUI
             prefab_tooltip_itemStatSliderEntry = statSliderEntryTooltipObj != null ? statSliderEntryTooltipObj.GetComponent<UIItemStatSliderTooltipEntry>() : null;
 
             GameObject resolutionEntryObj = mod.GetAsset<GameObject>("Prefab_ResolutionSettingEntry");
-            prefab_resolutionSettingEntry = resolutionEntryObj != null ? resolutionEntryObj.GetComponent<UIResolutionToggle>() : null;
+            prefab_resolutionSettingEntry = resolutionEntryObj != null ? resolutionEntryObj.GetComponent<UIToggle>() : null;
+
+            GameObject confirmationObj = mod.GetAsset<GameObject>("Prefab_ConfirmationWindow");
+            prefab_confirmationWindow = confirmationObj != null ? confirmationObj.GetComponent<UIConfirmationWindow>() : null;
 
             _keyCodeToIconDict = new Dictionary<KeyCode, Sprite>()
             {

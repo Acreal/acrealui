@@ -20,6 +20,7 @@ DEALINGS IN THE SOFTWARE.
 using UnityEngine;
 using TMPro;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using UnityEngine.EventSystems;
 
 namespace AcrealUI
 {
@@ -46,6 +47,7 @@ namespace AcrealUI
 
         #region Events/Callbacks
         public event System.Action<UIControlBindingEntry, bool> Event_OnRebind = null;
+        public event System.Action<UIControlBindingEntry, bool> Event_OnClearBinding = null;
         #endregion
 
 
@@ -67,11 +69,16 @@ namespace AcrealUI
         #endregion
 
 
+        #region Data Sources
+        public UIDelegates.DataSourceDelegate_String DataSource_PrimaryKeybindDisplayValue = null;
+        public UIDelegates.DataSourceDelegate_String DataSource_SecondaryKeybindDisplayValue = null;
+        #endregion
+
+
         #region Initialization/Cleanup
         public override void Initialize()
         {
-            //dont call base.Initialize() here, because secondary UIInteractiveElement scripts
-            //will control the feedback elements
+            base.Initialize();
 
             _text_bindingName = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingName).GetComponent<TextMeshProUGUI>();
             _text_bindingValue_primary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_primary).GetComponent<TextMeshProUGUI>();
@@ -89,25 +96,48 @@ namespace AcrealUI
 
 
         #region UI Callbacks
-        private void OnClick_PrimaryBinding(UIButton button)
+        private void OnClick_PrimaryBinding(UIButton button, PointerEventData pointerData)
         {
-            if(Event_OnRebind != null)
+            if (pointerData.button == PointerEventData.InputButton.Right)
             {
-                Event_OnRebind(this, true);
+                Event_OnClearBinding?.Invoke(this, true);
+            }
+            else if (pointerData.button == PointerEventData.InputButton.Left)
+            {
+                Event_OnRebind?.Invoke(this, true);
             }
         }
 
-        private void OnClick_SecondaryBinding(UIButton button)
+        private void OnClick_SecondaryBinding(UIButton button, PointerEventData pointerData)
         {
-            if (Event_OnRebind != null)
+            if (pointerData.button == PointerEventData.InputButton.Right)
             {
-                Event_OnRebind(this, false);
+                Event_OnClearBinding?.Invoke(this, false);
+            }
+            else if (pointerData.button == PointerEventData.InputButton.Left)
+            {
+                Event_OnRebind?.Invoke(this, false);
             }
         }
         #endregion
 
 
         #region Public API
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            if(DataSource_PrimaryKeybindDisplayValue != null)
+            {
+                SetPrimaryBindingValue(DataSource_PrimaryKeybindDisplayValue.Invoke(gameObject));
+            }
+
+            if(DataSource_SecondaryKeybindDisplayValue != null)
+            {
+                SetSecondaryBindingValue(DataSource_SecondaryKeybindDisplayValue.Invoke(gameObject));
+            }
+        }
+
         public void SetActionEnumString(string actionEnumString)
         {
             _actionEnumAsString = actionEnumString;

@@ -36,7 +36,7 @@ namespace AcrealUI
         #region Variables
         private const float _TOOLTIP_X_OFFSET = 20f;
 
-        private UIWindowInventory _inventoryWindowInstance = null;
+        private UIInventoryWindow _inventoryWindowInstance = null;
         private List<MobileTypes> _enemyTypesForStatCalc = null;
         private MobileTypes _currentEnemyTypeForStatCalc = MobileTypes.None;
         #endregion

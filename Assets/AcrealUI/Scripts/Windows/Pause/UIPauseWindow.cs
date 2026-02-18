@@ -90,7 +90,6 @@ namespace AcrealUI
             if (_panelPaused)
             { 
                 _panelPaused.Initialize();
-                _panelPaused.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPausePanel script from GameObject \"" + (pauseTform != null ? pauseTform.gameObject.name : "NULL")); }
 
@@ -99,7 +98,6 @@ namespace AcrealUI
             if (_panelSettings) 
             { 
                 _panelSettings.Initialize();
-                _panelSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UISettingsMenuPanel script from GameObject \"" + (settingsTform != null ? settingsTform.gameObject.name : "NULL")); }
 
@@ -108,7 +106,6 @@ namespace AcrealUI
             if (_panelGeneralSettings) 
             {
                 _panelGeneralSettings.Initialize();
-                _panelGeneralSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_GeneralSettings script from GameObject \"" + (generalTform != null ? generalTform.gameObject.name : "NULL")); }
 
@@ -117,7 +114,6 @@ namespace AcrealUI
             if (_panelAudioSettings) 
             {
                 _panelAudioSettings.Initialize();
-                _panelAudioSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_AudioSettings script from GameObject \"" + (audioTform != null ? audioTform.gameObject.name : "NULL")); }
 
@@ -126,7 +122,6 @@ namespace AcrealUI
             if (_panelVideoSettings) 
             { 
                 _panelVideoSettings.Initialize();
-                _panelVideoSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_VideoSettings script from GameObject \"" + (videoTform != null ? videoTform.gameObject.name : "NULL")); }
 
@@ -135,7 +130,6 @@ namespace AcrealUI
             if (_panelControlSettings)
             {
                 _panelControlSettings.Initialize();
-                _panelControlSettings.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIControlOptionsPanel script from GameObject \"" + (controlTform != null ? controlTform.gameObject.name : "NULL")); }
 
@@ -144,7 +138,6 @@ namespace AcrealUI
             if (_panelExitGame)
             {
                 _panelExitGame.Initialize();
-                _panelExitGame.Event_OnPanelSizeChanged += OnActivePanelSizeChanged;
             }
             else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_ExitGame script from GameObject \"" + (exitTform != null ? exitTform.gameObject.name : "NULL")); }
 
@@ -153,23 +146,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Open/Close
-        protected override void ShowInternal()
-        {
-            gameObject.SetActive(true);
-            SetState(PauseWindowState.Paused);
-            base.ShowInternal();
-        }
-
-        protected override void OnFinishedClosing()
-        {
-            SetState(PauseWindowState.None);
-            base.OnFinishedClosing();
-        }
-        #endregion
-
-
-        #region State Management
+        #region Public API
         public void SetState(PauseWindowState stateToSet)
         {
             if (_currentState != stateToSet)
@@ -245,29 +222,23 @@ namespace AcrealUI
 
                 if (_activePanel != null)
                 {
-                    _activePanel.gameObject.SetActive(true);
                     _activePanel.Show();
-                }
-            }
-        }
 
-        private void OnActivePanelSizeChanged(Vector2 panelSize)
-        {
-            if (_canvasGroup != null)
-            {
-                RectTransform rt = _canvasGroup != null ? _canvasGroup.transform as RectTransform : transform as RectTransform;
-                StartCoroutine(TweenSizeRoutine(rt.sizeDelta, panelSize + _panelSizeOffset, 0.1f));
+                    if (_canvasGroup != null)
+                    {
+                        RectTransform rt = _canvasGroup.transform as RectTransform;
+                        StartCoroutine(TweenSizeRoutine(rt.sizeDelta, _activePanel.panelSize + _panelSizeOffset, 0.1f));
+                    }
+                }
             }
         }
         #endregion
 
 
-        #region Coroutines
+        #region Panel Size
         private IEnumerator<float> TweenSizeRoutine(Vector2 from, Vector2 to, float duration)
         {
-            Transform tForm = _canvasGroup != null ? _canvasGroup.transform as RectTransform : transform as RectTransform;
-            LayoutElement layoutElem = tForm.GetComponent<LayoutElement>();
-
+            LayoutElement layoutElem = _canvasGroup.GetComponent<LayoutElement>();
             if (layoutElem != null)
             {
                 layoutElem.minWidth = from.x;

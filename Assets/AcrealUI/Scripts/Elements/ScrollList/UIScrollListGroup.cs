@@ -33,10 +33,9 @@ namespace AcrealUI
         [SerializeField] private string _text_groupTitleGameObjName = null;
         [SerializeField] private string _toggle_expandCollapseGameObjName = null;
 
-        public ReadOnlyCollection<UIInteractiveElement> uiElementsRO = null;
-
-        protected List<UIInteractiveElement> _uiElements = null;
-        protected Transform _parent_groupEntries = null;
+        private List<UIScrollListRow> _scrollRows = null;
+        private List<UIElement> _uiElements = null;
+        private Transform _parent_groupEntries = null;
         private TextMeshProUGUI _text_groupTitle = null;
         private UIToggle _toggle_expandCollapse = null;
         #endregion
@@ -47,65 +46,70 @@ namespace AcrealUI
         {
             get { return _parent_groupEntries; }
         }
+
+        public ReadOnlyCollection<UIScrollListRow> scrollRowsRO { get; private set; }
+        public ReadOnlyCollection<UIElement> uiElementsRO { get; private set; }
         #endregion
 
 
         #region Initialize
         public virtual void Initialize()
         {
-            _uiElements = new List<UIInteractiveElement>();
-            uiElementsRO = _uiElements.AsReadOnly();
+            _scrollRows = new List<UIScrollListRow>();
+            scrollRowsRO = _scrollRows.AsReadOnly();
 
-            _toggle_expandCollapse = UIUtilityFunctions.FindDeepChild(transform, _toggle_expandCollapseGameObjName).GetComponent<UIToggle>();
-            _toggle_expandCollapse.Initialize();
-            _toggle_expandCollapse.Event_OnToggledOnOrOff += OnButtonClick_ExpandCollapse;
-            _toggle_expandCollapse.isToggledOn = true;
+            _uiElements = new List<UIElement>();
+            uiElementsRO = _uiElements.AsReadOnly();
 
             _parent_groupEntries = UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
             _parent_groupEntries.gameObject.SetActive(true);
 
             _text_groupTitle = UIUtilityFunctions.FindDeepChild(transform, _text_groupTitleGameObjName).GetComponent<TextMeshProUGUI>();
-        }
-        #endregion
 
-
-        #region Standard UI Elements
-        public UISlider AddSlider(UISlider sliderPrefab)
-        {
-            if (sliderPrefab == null) { return null; }
-
-            UISlider slider = Instantiate(sliderPrefab, _parent_groupEntries);
-            slider.Initialize();
-            slider.transform.localScale = Vector3.one;
-            _uiElements.Add(slider);
-            return slider;
-        }
-
-        public UIToggle AddToggle(UIToggle togglePrefab)
-        {
-            if (togglePrefab == null) { return null; }
-
-            UIToggle toggle = Instantiate(togglePrefab, _parent_groupEntries);
-            toggle.Initialize();
-            toggle.transform.localScale = Vector3.one;
-            _uiElements.Add(toggle);
-            return toggle;
-        }
-        #endregion
-
-
-        #region UI Callbacks
-        private void OnButtonClick_ExpandCollapse(UIToggle toggle)
-        {
-            if (_parent_groupEntries != null)
+            _toggle_expandCollapse = UIUtilityFunctions.FindDeepChild(transform, _toggle_expandCollapseGameObjName).GetComponent<UIToggle>();
+            _toggle_expandCollapse.Initialize();
+            _toggle_expandCollapse.Event_OnToggledOnOrOff += (UIToggle toggle) =>
             {
-                _parent_groupEntries.gameObject.SetActive(toggle.isToggledOn);
-            }
+                if (_parent_groupEntries != null && toggle != null)
+                {
+                    _parent_groupEntries.gameObject.SetActive(toggle.isToggledOn);
+                }
+            };
+            _toggle_expandCollapse.isToggledOn = true;
         }
         #endregion
 
 
         #region Public API
+        public void Expand()
+        {
+            _toggle_expandCollapse.isToggledOn = true;
+        }
+
+        public void Collapse()
+        {
+            _toggle_expandCollapse.isToggledOn = false;
+        }
+
+        public void Refresh()
+        {
+            if (_scrollRows != null)
+            {
+                foreach (UIScrollListRow row in _scrollRows)
+                {
+                    row.Refresh();
+                }
+            }
+
+            if (_uiElements != null)
+            {
+                foreach (UIElement element in _uiElements)
+                {
+                    element.Refresh();
+                }
+            }
+        }
+
         public void SetTextTitle(string text)
         {
             if(_text_groupTitle != null)
@@ -115,29 +119,30 @@ namespace AcrealUI
             }
         }
 
-        public UIControlBindingEntry AddBindingEntry(UIControlBindingEntry bindingEntryPrefab, string actionAsString)
+        public UIScrollListRow AddRow()
         {
-            if (bindingEntryPrefab == null) { return null; }
-
-            UIControlBindingEntry bindingEntry = PopBindingEntryFromPool(bindingEntryPrefab);
-            if (bindingEntry != null)
+            if(UIManager.referenceManager.prefab_scrollListRow != null)
             {
-                _uiElements.Add(bindingEntry);
-
-                bindingEntry.transform.SetParent(_parent_groupEntries);
-                bindingEntry.transform.localScale = Vector3.one;
+                UIScrollListRow scrollRow = Instantiate(UIManager.referenceManager.prefab_scrollListRow, _parent_groupEntries);
+                if(scrollRow != null)
+                {
+                    scrollRow.Initialize();
+                    _scrollRows.Add(scrollRow);
+                    return scrollRow;
+                }
             }
-            return bindingEntry;
+            return null;
         }
 
-        private UIControlBindingEntry PopBindingEntryFromPool(UIControlBindingEntry bindingEntryPrefab)
+        public UIElement AddElement(UIElement elementPrefab)
         {
-            if (bindingEntryPrefab == null) { return null; }
+            if (elementPrefab == null) { return null; }
 
-            //TODO(Acreal): add pooling
-            UIControlBindingEntry entry = Object.Instantiate(bindingEntryPrefab, _parent_groupEntries);
-            entry.transform.localScale = Vector3.one;
-            return entry;
+            UIElement elem = Instantiate(elementPrefab, _parent_groupEntries);
+            elem.Initialize();
+            elem.transform.localScale = Vector3.one;
+            _uiElements.Add(elem);
+            return elem;
         }
         #endregion
     }

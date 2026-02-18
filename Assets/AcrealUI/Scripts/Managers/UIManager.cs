@@ -44,30 +44,46 @@ NOTES(Acreal):
             -excludes 'DaggerfallWorkshop.Game.Utility.ModSupport' which is needed by [ImportedComponent]
 */
 
-using UnityEngine;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using DaggerfallWorkshop;
+using System.Collections.Generic;
+using UnityEngine;
+using Wenzil.Console;
 
 namespace AcrealUI
 {
     public class UIManager : MonoBehaviour
     {
+        #region Variables
         public static Mod mod = null;
 
+        private static UIManager _instance = null;
+        private static UIConfirmationWindowController _confirmationWindowController = null;
+        #endregion
+
+
+        #region Properties
         public static UIReferenceManager referenceManager { get; private set; }
         public static UITooltipManager tooltipManager { get; private set; }
+        #endregion
 
+
+        #region Initialization
         [Invoke(StateManager.StateTypes.Start)]
         public static void Init(InitParams initParams)
         {
             mod = initParams.Mod;
 
-            GameObject go = new GameObject("UIManager");
-            go.AddComponent<UIManager>();
+            if (_instance == null)
+            {
+                _instance = new GameObject("UIManager").AddComponent<UIManager>();
+            }
         }
+        #endregion
 
+
+        #region MonoBehaviour
         private void Awake()
         {
             UISpriteManager.Initialize();
@@ -84,13 +100,28 @@ namespace AcrealUI
                 tooltipManager.Initialize();
             }
 
-            
+            if(_confirmationWindowController == null)
+            {
+                _confirmationWindowController = new UIConfirmationWindowController();
+            }
+
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveWindowController));
 
+            ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset All Keybinds to Defaults", string.Empty, (_) =>
+            {
+                try
+                {
+                    UIUtilityFunctions.SetDefaultKeybinds();
+                    return "Successfully reset all keybinds to default values!";
+                }
+                catch
+                {
+                    return "Something went terribly wrong resetting the keybinds. :(";
+                }
+            });
 
-            
 
             mod.IsReady = true;
         }
@@ -192,5 +223,60 @@ namespace AcrealUI
 
             UISpriteManager.Shutdown();
         }
+        #endregion
+
+
+        #region Public API
+        public static void ExecuteDelayed(float delay, System.Action funcToExecute)
+        {
+            if(_instance != null && funcToExecute != null)
+            {
+                _instance.StartCoroutine(ExecuteDelayedRoutine(delay, funcToExecute));
+            }
+        }
+
+        public static void ShowConfirmationWindow(string title, string message, System.Action onConfirm, System.Action onCancel)
+        {
+            if(_confirmationWindowController != null)
+            {
+                _confirmationWindowController.SetText(title, message);
+                _confirmationWindowController.Event_OnConfirm += onConfirm;
+                _confirmationWindowController.Event_OnCancel += onCancel;
+                _confirmationWindowController.UpdateButtons();
+                _confirmationWindowController.ShowWindow();
+            }
+        }
+
+        public static void HideConfirmationWindow()
+        {
+            if(_confirmationWindowController != null)
+            {
+                _confirmationWindowController.HideWindow();
+                _confirmationWindowController.ResetEvents();
+            }
+        }
+        #endregion
+
+
+        #region Coroutines
+        private static IEnumerator<float> ExecuteDelayedRoutine(float delay, System.Action funcToExecute)
+        {
+            float t = delay;
+            while(t > 0f)
+            {
+                t -= Time.unscaledDeltaTime;
+                yield return 0;
+            }
+
+            try
+            {
+                funcToExecute();
+            }
+            catch(System.Exception e)
+            {
+                Debug.LogError("[AcrealUI] Unable to execute function in UIManager.ExecuteDelayedRoutine! Reason: " + e.Message);
+            }
+        }
+        #endregion
     }
 }

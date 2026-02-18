@@ -51,7 +51,7 @@ namespace AcrealUI
         {
             { "restorePower", "Restores {0} Magicka" },
         };
-       
+
 
         #region Transforms
         public static Transform FindDeepChild(Transform aParent, string aName)
@@ -72,7 +72,7 @@ namespace AcrealUI
                     queue.Enqueue(t);
                 }
             }
-            Debug.LogError("Failed to Return DeepChild by Name: " + aName);
+            Debug.LogError("[AcrealUI] Failed to Return DeepChild by Name: " + aName);
             return null;
         }
         #endregion
@@ -151,7 +151,7 @@ namespace AcrealUI
         public static float GetPlayerBaseHitChancePercent(DaggerfallUnityItem weapon, int enemyID = -1)
         {
             PlayerEntity player = GameManager.Instance.PlayerEntity;
-            if(player == null)
+            if (player == null)
             {
                 return 0f;
             }
@@ -171,7 +171,7 @@ namespace AcrealUI
             ToHitAndDamageMods racialMods = CalculateRacialModifiers(player, weapon, player);
             chanceToHit += racialMods.toHitMod;
 
-            if(skillID != (short)DFCareer.Skills.HandToHand)
+            if (skillID != (short)DFCareer.Skills.HandToHand)
             {
                 // Apply weapon material modifier.
                 chanceToHit += CalculateWeaponToHit(weapon);
@@ -1637,7 +1637,7 @@ namespace AcrealUI
             }
             else
             {
-                Debug.LogError("Sorting by Column with Value \"" + column.ToString() + "\" is either not supported or not intended.");
+                Debug.LogError("[AcrealUI] Sorting by Column with Value \"" + column.ToString() + "\" is either not supported or not intended.");
             }
         }
         #endregion
@@ -1650,7 +1650,7 @@ namespace AcrealUI
 
             PlayerEntity playerEntity = GameManager.Instance.PlayerEntity;
             GameObject playerObject = GameManager.Instance.PlayerObject;
-            if(playerEntity == null || playerObject == null)
+            if (playerEntity == null || playerObject == null)
             {
                 return enemyTypeList;
             }
@@ -1665,9 +1665,9 @@ namespace AcrealUI
                     //this may be good enough, considering how rarely it gets called
                     //and the fact that it's 100% accurate to whatever is spawned
                     SetupDemoEnemy[] allEnemySetup = dungeon.GetComponentsInChildren<SetupDemoEnemy>(true);
-                    if(allEnemySetup != null)
+                    if (allEnemySetup != null)
                     {
-                        for(int i = 0; i < allEnemySetup.Length; i++)
+                        for (int i = 0; i < allEnemySetup.Length; i++)
                         {
                             if (allEnemySetup[i] != null && !enemyTypeList.Contains(allEnemySetup[i].EnemyType))
                             {
@@ -1709,7 +1709,7 @@ namespace AcrealUI
 
 
         #region Sounds
-        public static void PlayButtonClick(bool force = false)
+        public static void PlayButtonClickSound(bool force = false)
         {
             float curTime = Time.unscaledTime;
             if (force || (curTime - _prevButtonClickSfxTime) >= 0.1f)
@@ -1775,7 +1775,7 @@ namespace AcrealUI
 
         public static List<UISaveGameData> GetAllCharacterSaveGameData(string characterName)
         {
-            if(string.IsNullOrWhiteSpace(characterName))
+            if (string.IsNullOrWhiteSpace(characterName))
             {
                 return null;
             }
@@ -1800,7 +1800,7 @@ namespace AcrealUI
 
         public static string[] GetAllSavedCharacterNames()
         {
-            return GameManager.Instance != null ?  GameManager.Instance.SaveLoadManager.GetCharacterNames() : null;
+            return GameManager.Instance != null ? GameManager.Instance.SaveLoadManager.GetCharacterNames() : null;
         }
 
         public static int FindSaveFolderByNames(string characterName, string saveName)
@@ -1840,17 +1840,17 @@ namespace AcrealUI
                 if (prevLetterVal != ' ')
                 {
                     bool shouldSplit = prevLetterVal == '.';
-                    
+
                     if (!shouldSplit)
                     {
                         int letterVal = text[i];
                         if (letterVal >= 'A' && letterVal <= 'Z')
                         {
-                            shouldSplit = true;   
+                            shouldSplit = true;
                         }
                     }
 
-                    if(shouldSplit)
+                    if (shouldSplit)
                     {
                         int nextIdx = i + 1;
                         if (nextIdx < text.Length - 1)
@@ -1876,14 +1876,14 @@ namespace AcrealUI
 
         public static Sprite GetWagonContainerIcon()
         {
-            if(DaggerfallUnity.Instance == null) { return null; }
+            if (DaggerfallUnity.Instance == null) { return null; }
             ImageData imgData = DaggerfallUnity.Instance.ItemHelper.GetContainerImage(InventoryContainerImages.Wagon);
             return UISpriteManager.GetOrCreateSprite(imgData);
         }
 
         public static Sprite GetLootContainerIcon(DaggerfallLoot lootTarget)
         {
-            if(lootTarget != null)
+            if (lootTarget != null)
             {
                 int dropIconArchive = lootTarget.TextureArchive;
                 int dropIconTexture = -1;
@@ -1947,7 +1947,7 @@ namespace AcrealUI
         /// <param name="rt"></param>
         public static void ClampToScreen(RectTransform rt, float edgePadding = 10f)
         {
-            if(rt != null)
+            if (rt != null)
             {
                 int screenWidth = Screen.width;
                 int screenHeight = Screen.height;
@@ -1987,13 +1987,13 @@ namespace AcrealUI
         public static SkillRank SkillToSkillRank(DFCareer.Skills skill)
         {
             PlayerEntity playerEntity = GameManager.Instance.PlayerEntity;
-            if(playerEntity != null)
+            if (playerEntity != null)
             {
-                if(playerEntity.GetPrimarySkills().Contains(skill))
+                if (playerEntity.GetPrimarySkills().Contains(skill))
                 {
                     return SkillRank.Primary;
                 }
-                else if(playerEntity.GetMajorSkills().Contains(skill))
+                else if (playerEntity.GetMajorSkills().Contains(skill))
                 {
                     return SkillRank.Major;
                 }
@@ -2003,6 +2003,16 @@ namespace AcrealUI
                 }
             }
             return SkillRank.None;
+        }
+        #endregion
+
+
+        #region Keybinding
+        public static void SetDefaultKeybinds()
+        {
+            InputManager.Instance.ResetDefaults();
+            InputManager.Instance.SaveKeyBinds();
+            ControlsConfigManager.Instance.ResetUnsavedKeybinds();
         }
         #endregion
     }

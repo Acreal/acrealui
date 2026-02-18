@@ -164,7 +164,7 @@ namespace AcrealUI
                 if (_showPanelButton != null)
                 {
                     _showPanelButton.Initialize();
-                    _showPanelButton.Event_OnClicked += (UIButton _) =>
+                    _showPanelButton.Event_OnClicked += (_, _1) =>
                     {
                         Show();
                     };
@@ -178,7 +178,7 @@ namespace AcrealUI
                 if (_hidePanelButton != null)
                 {
                     _hidePanelButton.Initialize();
-                    _hidePanelButton.Event_OnClicked += (UIButton _) =>
+                    _hidePanelButton.Event_OnClicked += (_, _1) =>
                     {
                         Hide();
                     };
@@ -500,7 +500,7 @@ namespace AcrealUI
 
         public void AddStats(string scrollGroupName, List<UIStatData> statDataList)
         {
-            UIScrollListGroup scrollGroup = GetScrollListGroup(scrollGroupName);
+            UIScrollListGroup scrollGroup = GetOrAddScrollListGroup(scrollGroupName);
 
             for (int i = 0; i < statDataList.Count; i++)
             {
@@ -523,7 +523,7 @@ namespace AcrealUI
 
         public void AddSkills(string scrollGroupName, List<UISkillData> skillDataList)
         {
-            UIScrollListGroup scrollGroup = GetScrollListGroup(scrollGroupName);
+            UIScrollListGroup scrollGroup = GetOrAddScrollListGroup(scrollGroupName);
 
             for (int i = 0; i < skillDataList.Count; i++)
             {
@@ -533,7 +533,7 @@ namespace AcrealUI
 
         public void AddSkill(string scrollGroupName, UISkillData skillData)
         {
-            UIScrollListGroup scrollGroup = GetScrollListGroup(scrollGroupName);
+            UIScrollListGroup scrollGroup = GetOrAddScrollListGroup(scrollGroupName);
             AddSkill(scrollGroup, skillData);
         }
 
@@ -541,7 +541,7 @@ namespace AcrealUI
         {
             if(scrollGroup == null)
             {
-                Debug.LogError("Unable to add a skill without a valid UIScrollListGroup to attach it to!");
+                Debug.LogError("[AcrealUI] Unable to add a skill without a valid UIScrollListGroup to attach it to!");
                 return;
             }
 

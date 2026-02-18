@@ -105,11 +105,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 8322709113030723273}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90b51fb965a2d58498a79d241d3073bf, type: 3}
+  m_Script: {fileID: 11500000, guid: e2b2e551cbce1fe42b7321f7c15c20cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _gameObjName_canvasComponent: 
-  _gameObjName_canvasGroup: MainPivot
+  _gameObjName_canvasGroup: CanvasGroup_MainPivot
+  _gameObjName_closeWindowButton: 
+  _gameObjName_backButton: 
+  _gameObjName_headerText: 
   _gameObjName_panel_playerStats: Panel_PlayerStats
   _gameObjName_itemList_playerInventory: ItemList_Inventory
   _gameObjName_itemList_container: ItemList_Container
@@ -130,7 +133,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 1
+  m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -187,7 +190,7 @@ GameObject:
   - component: {fileID: 4985038150611210833}
   - component: {fileID: 8367514199107795903}
   m_Layer: 5
-  m_Name: MainPivot
+  m_Name: CanvasGroup_MainPivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

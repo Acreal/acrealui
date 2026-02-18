@@ -18,62 +18,62 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using TMPro;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIResolutionToggle : UIToggle
+    public class UIScrollListRow : MonoBehaviour
     {
         #region Variables
-        [SerializeField] private string _gameObjName_resolutionText = null;
-        [SerializeField] private string _gameObjName_refreshRateText = null;
+        [SerializeField] private string _parent_groupEntriesGameObjName = null;
 
-        private TextMeshProUGUI _resolutionText = null;
-        private TextMeshProUGUI _refreshRateText = null;
+        private List<UIElement> _uiElements = null;
+        private Transform _parent_groupEntries = null;
         #endregion
 
 
         #region Properties
-        public Resolution resolution { get; set; }
+        public ReadOnlyCollection<UIElement> uiElementsRO { get; private set; }
         #endregion
 
 
         #region Initialization
-        public override void Initialize()
+        public void Initialize()
         {
-            base.Initialize();
+            _uiElements = new List<UIElement>();
+            uiElementsRO = _uiElements.AsReadOnly();
 
-            if (!string.IsNullOrEmpty(_gameObjName_resolutionText))
-            {
-                Transform resolutionTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_resolutionText);
-                _resolutionText = resolutionTform != null ? resolutionTform.GetComponent<TextMeshProUGUI>() : null;
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_refreshRateText))
-            {
-                Transform refreshTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_refreshRateText);
-                _refreshRateText = refreshTform != null ? refreshTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+            _parent_groupEntries = string.IsNullOrWhiteSpace(_parent_groupEntriesGameObjName) ? transform : UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
         }
         #endregion
 
 
         #region Public API
-        public void SetResolutionText(string resolution)
+        public UIElement AddElement(UIElement elementPrefab)
         {
-            if(_resolutionText != null)
-            {
-                _resolutionText.text = resolution;
-            }
+            if (elementPrefab == null) { return null; }
+
+            UIElement elem = Instantiate(elementPrefab, _parent_groupEntries);
+            elem.Initialize();
+            elem.transform.localScale = Vector3.one;
+            _uiElements.Add(elem);
+            return elem;
         }
 
-        public void SetRefreshRateText(string refreshRate)
+        public void Refresh()
         {
-            if (_refreshRateText != null)
+            if (_uiElements != null)
             {
-                _refreshRateText.text = refreshRate;
+                foreach (UIElement element in _uiElements)
+                {
+                    if (element != null)
+                    {
+                        element.Refresh();
+                    }
+                }
             }
         }
         #endregion

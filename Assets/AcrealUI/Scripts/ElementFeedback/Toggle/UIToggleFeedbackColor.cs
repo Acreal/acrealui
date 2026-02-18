@@ -53,27 +53,30 @@ namespace AcrealUI
 
 
         #region Update
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
-            base.UpdateDisplay();
+            base.Refresh();
 
             if (_graphic != null)
             {
-                if (_isDisabled)
+                if (_interactiveElement.isDisabled)
                 {
                     _graphic.color = _colorOnDisable;
                 }
-                else if (_isToggledOn)
+                else if (toggle != null)
                 {
-                    if (_isPressed) { _graphic.color = _colorWhenOnAndPressed; }
-                    else if (_isHighlighted) { _graphic.color = _colorWhenOnAndHighlighted; }
-                    else { _graphic.color = _colorWhenOn; }
-                }
-                else
-                {
-                    if (_isPressed) { _graphic.color = _colorWhenOffAndPressed; }
-                    else if (_isHighlighted) { _graphic.color = _colorWhenOffAndHighlighted; }
-                    else { _graphic.color = _colorWhenOff; }
+                    if (toggle.isToggledOn)
+                    {
+                        if (_interactiveElement.isPressed) { _graphic.color = _colorWhenOnAndPressed; }
+                        else if (_interactiveElement.isHighlighted) { _graphic.color = _colorWhenOnAndHighlighted; }
+                        else { _graphic.color = _colorWhenOn; }
+                    }
+                    else
+                    {
+                        if (_interactiveElement.isPressed) { _graphic.color = _colorWhenOffAndPressed; }
+                        else if (_interactiveElement.isHighlighted) { _graphic.color = _colorWhenOffAndHighlighted; }
+                        else { _graphic.color = _colorWhenOff; }
+                    }
                 }
             }
         }

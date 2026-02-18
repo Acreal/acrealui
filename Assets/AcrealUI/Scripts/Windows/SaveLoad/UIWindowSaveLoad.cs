@@ -194,7 +194,7 @@ namespace AcrealUI
                 if (_switchCharButton != null)
                 {
                     _switchCharButton.Initialize();
-                    _switchCharButton.Event_OnClicked += (_) => { Event_ButtonClick_SelectCharacter?.Invoke(); };
+                    _switchCharButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_SelectCharacter?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_switchChar + "\""); }
             }
@@ -206,7 +206,7 @@ namespace AcrealUI
                 if (_renameButton != null)
                 {
                     _renameButton.Initialize();
-                    _renameButton.Event_OnClicked += (_) => { Event_ButtonClick_RenameSave?.Invoke(); };
+                    _renameButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_RenameSave?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_rename + "\""); }
             }
@@ -218,7 +218,7 @@ namespace AcrealUI
                 if (_deleteButton != null)
                 {
                     _deleteButton.Initialize();
-                    _deleteButton.Event_OnClicked += (_) => { Event_ButtonClick_DeleteSave?.Invoke(); };
+                    _deleteButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_DeleteSave?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_delete + "\""); }
             }
@@ -230,7 +230,7 @@ namespace AcrealUI
                 if (_saveLoadButton != null)
                 {
                     _saveLoadButton.Initialize();
-                    _saveLoadButton.Event_OnClicked += (_) =>
+                    _saveLoadButton.Event_OnClicked += (_, _1) =>
                     {
                         if (_isSaving) { Event_ButtonClick_SaveGame?.Invoke(); }
                         else { Event_ButtonClick_LoadGame?.Invoke(); }
@@ -253,7 +253,7 @@ namespace AcrealUI
                 if (_importButton != null)
                 {
                     _importButton.Initialize();
-                    _importButton.Event_OnClicked += (_) => { Event_ButtonClick_ImportSave?.Invoke(); };
+                    _importButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_ImportSave?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_import + "\""); }
             }

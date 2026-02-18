@@ -19,57 +19,14 @@ DEALINGS IN THE SOFTWARE.
 
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using UnityEngine;
 
 namespace AcrealUI
 {
     [ImportedComponent]
     public class UIAxisBindingEntry : UIControlBindingEntry
     {
-        #region Variables
-        protected UIToggle _toggle_invert = null;
-        #endregion
-
-
         #region Properties
-        public InputManager.AxisActions boundAction { get; private set; }
-        #endregion
-
-
-        #region Events
-        public event System.Action<InputManager.AxisActions, bool> Event_OnInvertChanged = null;
-        #endregion
-
-
-        #region Initialization
-        public override void Initialize()
-        {
-            base.Initialize();
-
-            if (_toggle_invert == null)
-            {
-                Transform invertTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_toggle_invert);
-                _toggle_invert = invertTform != null ? invertTform.GetComponent<UIToggle>() : null;
-                if (_toggle_invert != null) { _toggle_invert.Initialize(); }
-            }
-        }
-        #endregion
-
-
-        #region Public API
-        public void SetActionEnum(InputManager.AxisActions action)
-        {
-            boundAction = action;
-        }
-
-        public void SetInvert(bool invert)
-        {
-            if (_toggle_invert != null)
-            {
-                _toggle_invert.isToggledOn = invert;
-                Event_OnInvertChanged?.Invoke(boundAction, invert);
-            }
-        }
+        public InputManager.AxisActions boundAction { get; set; }
         #endregion
     }
 }

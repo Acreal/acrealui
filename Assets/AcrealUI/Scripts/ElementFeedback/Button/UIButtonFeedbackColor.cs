@@ -50,19 +50,19 @@ namespace AcrealUI
 
 
         #region Graphic Color
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
             if (_graphic == null) { return; }
 
-            if (_isDisabled)
+            if (_interactiveElement.isDisabled)
             {
                 _graphic.color = _disabledColor;
             }
-            else if (_isPressed)
+            else if (_interactiveElement.isPressed)
             {
                 _graphic.color = _pressedColor;
             }
-            else if (_isHighlighted)
+            else if (_interactiveElement.isHighlighted)
             {
                 _graphic.color = _highlightedColor;
             }

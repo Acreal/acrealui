@@ -26,7 +26,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIWindowInventory : UIWindow
+    public class UIInventoryWindow : UIWindow
     {
         #region Variables
         private const float _PLAYER_INVENTORY_SIZE = 400f;
@@ -76,7 +76,7 @@ namespace AcrealUI
                 {
                     _itemList_playerInventory.Initialize();
                 }
-                else { Debug.LogError("[ACREALUI] Failed to Find PlayerInventory ItemList!"); }
+                else { Debug.LogError("[AcrealUI] Failed to Find PlayerInventory ItemList!"); }
             }
 
             if (!string.IsNullOrEmpty(_gameObjName_itemList_container))
@@ -87,7 +87,7 @@ namespace AcrealUI
                 {
                     _itemList_container.Initialize();
                 }
-                else { Debug.LogError("[ACREALUI] Failed to Find Container ItemList!"); }
+                else { Debug.LogError("[AcrealUI] Failed to Find Container ItemList!"); }
             }
         }
         #endregion

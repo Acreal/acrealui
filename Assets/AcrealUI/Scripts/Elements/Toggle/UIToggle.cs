@@ -81,6 +81,11 @@ namespace AcrealUI
         #endregion
 
 
+        #region Data Sources
+        public UIDelegates.DataSourceDelegate_Bool DataSource_IsToggledOn = null;
+        #endregion
+
+
         #region Events
         public event System.Action<UIToggle> Event_OnToggledOn = null;
         public event System.Action<UIToggle> Event_OnToggledOff = null;
@@ -108,6 +113,19 @@ namespace AcrealUI
 
 
         #region Public API
+        public void SetToggledWithoutNotify(bool toggled)
+        {
+            _isToggledOn = toggled;
+
+            if (_elementFeedbackArray != null)
+            {
+                foreach (UIInteractiveElementFeedback element in _elementFeedbackArray)
+                {
+                    element.Refresh();
+                }
+            }
+        }
+
         public void SetDisplayName(string toggleDisplayName)
         {
             _displayName = toggleDisplayName;
@@ -117,20 +135,30 @@ namespace AcrealUI
                 _displayNameText.text = _displayName;
             }
         }
+
+        public override void Refresh()
+        {
+            if (DataSource_IsToggledOn != null)
+            {
+                _isToggledOn = DataSource_IsToggledOn(gameObject);
+            }
+
+            base.Refresh();
+        }
         #endregion
 
 
         #region Mouse Input
+        public override void OnPointerDown(PointerEventData eventData)
+        {
+            base.OnPointerDown(eventData);
+            UIUtilityFunctions.PlayButtonClickSound();
+        }
+
         public override void OnPointerClick(PointerEventData pointerData)
         {
             if (isDisabled || (isToggledOn && !canBeToggledOff)) { return; }
-
             base.OnPointerClick(pointerData);
-
-            #if LOG_UI_INPUT
-            Debug.Log(gameObject.name + ".Toggle.OnPointerClick()");
-            #endif
-
             isToggledOn = !_isToggledOn;
         }
         #endregion

@@ -28,11 +28,11 @@ namespace AcrealUI
     public abstract class UIWindow : MonoBehaviour
     {
         #region Variables
-        [SerializeField] string _gameObjName_canvasComponent = null;
-        [SerializeField] string _gameObjName_canvasGroup = null;
-        [SerializeField] string _gameObjName_closeWindowButton = null;
-        [SerializeField] string _gameObjName_backButton = null;
-        [SerializeField] string _gameObjName_headerText = null;
+        [SerializeField] private string _gameObjName_canvasComponent = null;
+        [SerializeField] private string _gameObjName_canvasGroup = null;
+        [SerializeField] private string _gameObjName_closeWindowButton = null;
+        [SerializeField] private string _gameObjName_backButton = null;
+        [SerializeField] private string _gameObjName_headerText = null;
 
         protected Canvas _canvasComponent = null;
         protected CanvasGroup _canvasGroup = null;
@@ -41,6 +41,11 @@ namespace AcrealUI
         protected TextMeshProUGUI _headerText = null;
 
         private bool _isOpen = false;
+        #endregion
+
+
+        #region Properties
+        public bool isOpen { get { return _isOpen; } }
         #endregion
 
 
@@ -108,7 +113,7 @@ namespace AcrealUI
                 if(_closeWindowButton != null)
                 {
                     _closeWindowButton.Initialize();
-                    _closeWindowButton.Event_OnClicked += (_) =>
+                    _closeWindowButton.Event_OnClicked += (_, _1) =>
                     {
                         Event_ButtonClick_CloseWindow?.Invoke();
                     };
@@ -123,7 +128,7 @@ namespace AcrealUI
                 if (_backButton != null)
                 {
                     _backButton.Initialize();
-                    _backButton.Event_OnClicked += (_) =>
+                    _backButton.Event_OnClicked += (_, _1) =>
                     {
                         Event_ButtonClick_PrevWindow?.Invoke();
                     };
@@ -137,9 +142,38 @@ namespace AcrealUI
             }
         }
 
+        /// <summary>
+        /// Resets window state and sets all events to null - call when finished using a window
+        /// </summary>
+        public virtual void ResetWindow()
+        {
+            Event_ButtonClick_PrevWindow = null;
+            Event_ButtonClick_CloseWindow = null;
+
+            if (_headerText != null)
+            {
+                _headerText.text = null;
+            }
+
+            if(_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
+            }
+        }
+
+        /// <summary>
+        /// Resets window state, sets all events AND variables to null, and releases any temporary assets/memory
+        /// </summary>
         public virtual void Cleanup()
         {
+            Hide();
+            ResetWindow();
 
+            _canvasComponent = null;
+            _canvasGroup = null;
+            _closeWindowButton = null;
+            _backButton = null;
+            _headerText = null;
         }
         #endregion
 

@@ -26,42 +26,28 @@ namespace AcrealUI
     public class UIInteractiveElementFeedback : MonoBehaviour
     {
         #region Variables
-        protected bool _isDisabled = false;
-        protected bool _isPressed = false;
-        protected bool _isHighlighted = false;
-        #endregion
-
-
-        #region MonoBehaviour
-        protected virtual void OnDisable()
-        {
-            _isDisabled = true;
-            _isPressed = false;
-            _isHighlighted = false;
-        }
-
-        private void OnEnable()
-        {
-            _isDisabled = false;
-            UpdateDisplay();
-        }
+        protected UIInteractiveElement _interactiveElement = null;
         #endregion
 
 
         #region Initialization
         public virtual void Initialize(UIInteractiveElement uiElement)
         {
-            uiElement.Event_OnDisabledChanged += (bool disabled) =>
+            _interactiveElement = uiElement;
+
+            if (_interactiveElement != null)
             {
-                _isDisabled = disabled;
-                UpdateDisplay();
-            };
+                _interactiveElement.Event_OnDisabledChanged += (bool disabled) =>
+                {
+                    Refresh();
+                };
+            }
         }
         #endregion
 
 
         #region Update
-        protected virtual void UpdateDisplay()
+        public virtual void Refresh()
         {
 
         }
@@ -71,26 +57,22 @@ namespace AcrealUI
         #region IPointer
         public virtual void OnPointerEnter()
         {
-            _isHighlighted = true;
-            UpdateDisplay();
+            Refresh();
         }
 
         public virtual void OnPointerExit()
         {
-            _isHighlighted = false;
-            UpdateDisplay();
+            Refresh();
         }
 
         public virtual void OnPointerDown()
         {
-            _isPressed = true;
-            UpdateDisplay();
+            Refresh();
         }
 
         public virtual void OnPointerUp()
         {
-            _isPressed = false;
-            UpdateDisplay();
+            Refresh();
         }
 
         public virtual void OnPointerClick()

@@ -44,11 +44,15 @@ namespace AcrealUI
         #endregion
 
 
+        #region Data Sources
+        public UIDelegates.DataSourceDelegate_Float DataSource_SliderValue = null;
+        public UIDelegates.DataSourceDelegate_String DataSource_SliderValueString = null;
+        #endregion
+
+
         #region Initialization/Cleanup
         public override void Initialize()
         {
-            base.Initialize();
-
             if (!string.IsNullOrEmpty(_gameObjName_text_sliderTitle))
             {
                 Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_sliderTitle);
@@ -73,8 +77,33 @@ namespace AcrealUI
                         {
                             Event_OnSliderValueChanged(this);
                         }
+
+                        if (DataSource_SliderValueString != null)
+                        {
+                            SetTextValue(DataSource_SliderValueString(gameObject));
+                        }
                     });
                 }
+            }
+
+            base.Initialize();
+        }
+        #endregion
+
+
+        #region Updates
+        public override void Refresh()
+        {
+            base.Refresh();
+            
+            if (DataSource_SliderValue != null)
+            {
+                _slider.SetValueWithoutNotify(DataSource_SliderValue(gameObject));
+            }
+
+            if(DataSource_SliderValueString != null)
+            {
+                _text_sliderValue.text = DataSource_SliderValueString(gameObject);
             }
         }
         #endregion
@@ -95,7 +124,15 @@ namespace AcrealUI
         {
             if(_slider != null)
             {
-                if (setWithoutNotify) { _slider.SetValueWithoutNotify(value); }
+                if (setWithoutNotify)
+                {
+                    _slider.SetValueWithoutNotify(value);
+
+                    if (DataSource_SliderValueString != null)
+                    {
+                        SetTextValue(DataSource_SliderValueString(gameObject));
+                    }
+                }
                 else { _slider.value = value; }
             }
         }
@@ -117,7 +154,7 @@ namespace AcrealUI
                 _text_sliderName.text = text;
             }
         }
-
+        
         public void SetTextValue(string text)
         {
             if(_text_sliderValue != null)

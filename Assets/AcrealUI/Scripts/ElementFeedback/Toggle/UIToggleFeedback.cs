@@ -24,24 +24,20 @@ namespace AcrealUI
     [ImportedComponent]
     public class UIToggleFeedback : UIInteractiveElementFeedback
     {
-        #region Variables
-        protected bool _isToggledOn = false;
+        #region Properties
+        protected UIToggle toggle { get { return _interactiveElement as UIToggle; } }
         #endregion
-
 
         #region Initialization
         public override void Initialize(UIInteractiveElement uiElement)
         {
             base.Initialize(uiElement);
 
-            if (uiElement is UIToggle)
+            if (toggle != null)
             {
-                UIToggle toggle = (UIToggle)uiElement;
-
                 toggle.Event_OnToggledOnOrOff += (UIToggle t) =>
                 {
-                    _isToggledOn = t.isToggledOn;
-                    UpdateDisplay();
+                    Refresh();
                 };
             }
         }

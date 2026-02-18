@@ -26,7 +26,7 @@ namespace AcrealUI
     public class UIButton : UIInteractiveElement
     {
         #region Events
-        public event System.Action<UIButton> Event_OnClicked = null;
+        public event System.Action<UIButton, PointerEventData> Event_OnClicked = null;
         #endregion
 
 
@@ -34,14 +34,14 @@ namespace AcrealUI
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
-            UIUtilityFunctions.PlayButtonClick();
+            UIUtilityFunctions.PlayButtonClickSound();
         }
 
         public override void OnPointerClick(PointerEventData pointerData)
         {
             if (isDisabled) { return; }
             base.OnPointerClick(pointerData);
-            Event_OnClicked?.Invoke(this);
+            Event_OnClicked?.Invoke(this, pointerData);
         }
         #endregion
     }

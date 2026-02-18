@@ -64,29 +64,36 @@ namespace AcrealUI
 
 
         #region Update
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
-            base.UpdateDisplay();
+            base.Refresh();
 
             if (_image != null)
             {
                 Sprite sprite = null;
 
-                if (_isDisabled)
+                if (_interactiveElement.isDisabled)
                 {
                     sprite = _disabledSprite;
                 }
-                else if (_isToggledOn)
+                else if(toggle != null)
                 {
-                    if (_isPressed) { sprite = _toggledOnAndPressedSprite; }
-                    else if (_isHighlighted) { sprite = _toggledOnAndHighlightedSprite; }
-                    else { sprite = _toggledOnSprite; }
+                    if (toggle.isToggledOn)
+                    {
+                        if (_interactiveElement.isPressed) { sprite = _toggledOnAndPressedSprite; }
+                        else if (_interactiveElement.isHighlighted) { sprite = _toggledOnAndHighlightedSprite; }
+                        else { sprite = _toggledOnSprite; }
+                    }
+                    else
+                    {
+                        if (_interactiveElement.isPressed) { sprite = _toggledOffAndPressedSprite; }
+                        else if (_interactiveElement.isHighlighted) { sprite = _toggledOffAndHighlightedSprite; }
+                        else { sprite = _toggledOffSprite; }
+                    }
                 }
                 else
                 {
-                    if (_isPressed) { sprite = _toggledOffAndPressedSprite; }
-                    else if (_isHighlighted) { sprite = _toggledOffAndHighlightedSprite; }
-                    else { sprite = _toggledOffSprite; }
+                    sprite = _toggledOffSprite;
                 }
 
                 if (_image.sprite != sprite)

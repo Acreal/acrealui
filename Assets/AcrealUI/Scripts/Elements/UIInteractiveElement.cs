@@ -18,19 +18,19 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace AcrealUI
 {
     [ImportedComponent]
-    public abstract class UIInteractiveElement : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+    public abstract class UIInteractiveElement : UIElement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         #region Variables
-        [SerializeField] protected bool _initializeOnAwake = false;
-
         protected bool _isDisabled = false;
         protected UIInteractiveElementFeedback[] _elementFeedbackArray = null;
+
+        private bool _isHighlighted = false;
+        private bool _isPressed = false;
         #endregion
 
 
@@ -43,9 +43,26 @@ namespace AcrealUI
                 if (_isDisabled != value)
                 {
                     _isDisabled = value;
+
+                    if(_isDisabled)
+                    {
+                        _isHighlighted = false;
+                        _isPressed = false;
+                    }
+
                     Event_OnDisabledChanged?.Invoke(_isDisabled);
                 }
             }
+        }
+
+        public bool isHighlighted
+        {
+            get { return  _isHighlighted; }
+        }
+
+        public bool isPressed
+        {
+            get { return _isPressed; }
         }
         #endregion
 
@@ -55,19 +72,8 @@ namespace AcrealUI
         #endregion
 
 
-        #region MonoBehaviour
-        protected virtual void Awake()
-        {
-            if(_initializeOnAwake)
-            {
-                Initialize();
-            }
-        }
-        #endregion
-
-
         #region Initialization
-        public virtual void Initialize()
+        public override void Initialize()
         {
             if(_elementFeedbackArray == null)
             {
@@ -80,12 +86,30 @@ namespace AcrealUI
                     }
                 }
             }
+
+            base.Initialize();
+        }
+        #endregion
+
+
+        #region Public API
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            if (_elementFeedbackArray != null)
+            {
+                foreach (UIInteractiveElementFeedback feedbackElement in _elementFeedbackArray)
+                {
+                    feedbackElement.Refresh();
+                }
+            }
         }
         #endregion
 
 
         #region Pointer Functions
-        public virtual void OnPointerClick(PointerEventData eventData)
+        public override void OnPointerClick(PointerEventData eventData)
         {
             if (_isDisabled) { return; }
 
@@ -98,9 +122,11 @@ namespace AcrealUI
             }
         }
 
-        public virtual void OnPointerEnter(PointerEventData eventData)
+        public override void OnPointerEnter(PointerEventData eventData)
         {
             if (_isDisabled) { return; }
+
+            _isHighlighted = true;
 
             if (_elementFeedbackArray != null)
             {
@@ -111,9 +137,11 @@ namespace AcrealUI
             }
         }
 
-        public virtual void OnPointerExit(PointerEventData eventData)
+        public override void OnPointerExit(PointerEventData eventData)
         {
             if (_isDisabled) { return; }
+
+            _isHighlighted = false;
 
             if (_elementFeedbackArray != null)
             {
@@ -124,9 +152,11 @@ namespace AcrealUI
             }
         }
 
-        public virtual void OnPointerDown(PointerEventData eventData)
+        public override void OnPointerDown(PointerEventData eventData)
         {
             if (_isDisabled) { return; }
+
+            _isPressed = true;
 
             if (_elementFeedbackArray != null)
             {
@@ -137,9 +167,11 @@ namespace AcrealUI
             }
         }
 
-        public virtual void OnPointerUp(PointerEventData eventData)
+        public override void OnPointerUp(PointerEventData eventData)
         {
             if (_isDisabled) { return; }
+
+            _isPressed = false;
 
             if (_elementFeedbackArray != null)
             {

@@ -34,17 +34,17 @@ namespace AcrealUI
 
 
         #region Graphic Color
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
-            if (_isDisabled)
+            if (_interactiveElement.isDisabled)
             {
                 transform.localScale = Vector3.one * _disabledScale;
             }
-            else if (_isPressed)
+            else if (_interactiveElement.isPressed)
             {
                 transform.localScale = Vector3.one * _pressedScale;
             }
-            else if (_isHighlighted)
+            else if (_interactiveElement.isHighlighted)
             {
                 transform.localScale = Vector3.one * _highlightedScale;
             }

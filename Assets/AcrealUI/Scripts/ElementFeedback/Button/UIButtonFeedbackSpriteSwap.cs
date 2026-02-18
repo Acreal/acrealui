@@ -60,21 +60,21 @@ namespace AcrealUI
 
 
         #region Update
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
             if (_image == null) { return; }
 
             Sprite sprite = null;
 
-            if (_isDisabled)
+            if (_interactiveElement.isDisabled)
             {
                 sprite = _disabledSprite;
             }
-            else if (_isPressed)
+            else if (_interactiveElement.isPressed)
             {
                 sprite = _pressedSprite;
             }
-            else if (_isHighlighted)
+            else if (_interactiveElement.isHighlighted)
             {
                 sprite = _highlightedSprite;
             }

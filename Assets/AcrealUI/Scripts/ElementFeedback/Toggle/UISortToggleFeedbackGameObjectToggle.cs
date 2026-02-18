@@ -33,8 +33,11 @@ namespace AcrealUI
         [SerializeField] private bool _activateObjWhenSortDescending = false;
         [SerializeField] private bool _activateObjWhenDescendingAndPressed = false;
         [SerializeField] private bool _activateObjWhenDescendingAndHighlighted = false;
+        #endregion
 
-        private UISortToggle _sortToggle = null;
+
+        #region Properties
+        private UISortToggle sortToggle { get { return toggle as  UISortToggle; } }
         #endregion
 
 
@@ -43,52 +46,47 @@ namespace AcrealUI
         {
             base.Initialize(uiElement);
 
-            _sortToggle = uiElement as UISortToggle;
-            if(_sortToggle != null)
+            if(sortToggle != null)
             {
-                _sortToggle.Event_OnSortAscendingChanged += (_) => { UpdateDisplay(); };
+                sortToggle.Event_OnSortAscendingChanged += (_) => { Refresh(); };
             }
         }
         #endregion
 
 
-        #region Update Display
-        protected override void UpdateDisplay()
+        #region Updates
+        public override void Refresh()
         {
-            if (_isDisabled)
+            if(_gameObjToToggle == null)
+            {
+                return;
+            }
+
+            if (_interactiveElement.isDisabled)
             {
                 _gameObjToToggle.SetActive(_activateObjOnDisable);
             }
-            if (_sortToggle != null)
+            else if (sortToggle != null)
             {
-                if (_isToggledOn)
+                if (sortToggle.isToggledOn)
                 {
-                    if (_sortToggle != null)
+                    if (sortToggle.sortByAscending)
                     {
-                        if (_sortToggle.sortByAscending)
-                        {
-                            if (_isPressed) { _gameObjToToggle.SetActive(_activateObjWhenAscendingAndPressed); }
-                            else if (_isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenAscendingAndHighlighted); }
-                            else { _gameObjToToggle.SetActive(_activateObjWhenSortAscending); }
-                        }
-                        else
-                        {
-                            if (_isPressed) { _gameObjToToggle.SetActive(_activateObjWhenDescendingAndPressed); }
-                            else if (_isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenDescendingAndHighlighted); }
-                            else { _gameObjToToggle.SetActive(_activateObjWhenSortDescending); }
-                        }
+                        if (_interactiveElement.isPressed) { _gameObjToToggle.SetActive(_activateObjWhenAscendingAndPressed); }
+                        else if (_interactiveElement.isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenAscendingAndHighlighted); }
+                        else { _gameObjToToggle.SetActive(_activateObjWhenSortAscending); }
                     }
                     else
                     {
-                        if (_isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOnAndPressed); }
-                        else if (_isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOnAndHighlighted); }
-                        else { _gameObjToToggle.SetActive(_activateObjWhenOn); }
+                        if (_interactiveElement.isPressed) { _gameObjToToggle.SetActive(_activateObjWhenDescendingAndPressed); }
+                        else if (_interactiveElement.isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenDescendingAndHighlighted); }
+                        else { _gameObjToToggle.SetActive(_activateObjWhenSortDescending); }
                     }
                 }
                 else
                 {
-                    if (_isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOffAndPressed); }
-                    else if (_isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOffAndHighlighted); }
+                    if (_interactiveElement.isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOffAndPressed); }
+                    else if (_interactiveElement.isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOffAndHighlighted); }
                     else { _gameObjToToggle.SetActive(_activateObjWhenOff); }
                 }
             }

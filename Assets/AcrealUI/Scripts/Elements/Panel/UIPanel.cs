@@ -46,22 +46,10 @@ namespace AcrealUI
         public Vector2 panelSize
         {
             get { return _panelSize; }
-            protected set
-            {
-                if (Vector2.SqrMagnitude(_panelSize - value) > 0f)
-                {
-                    _panelSize = value;
-                    Event_OnPanelSizeChanged?.Invoke(panelSize);
-                }
-            }
+            protected set { _panelSize = value; }
         }
 
         public LayoutElement layoutElement { get { return _layoutElement; } }
-        #endregion
-
-
-        #region Events
-        public event System.Action<Vector2> Event_OnPanelSizeChanged = null;
         #endregion
 
 
@@ -90,6 +78,14 @@ namespace AcrealUI
             {
                 _layoutElement = GetComponent<LayoutElement>();
             }
+        }
+        #endregion
+
+
+        #region Show/Hide
+        public virtual void Show()
+        {
+            gameObject.SetActive(true);
 
             if (_layoutElement != null && (_layoutElement.minHeight > 0 || _layoutElement.minHeight > 0 || _layoutElement.preferredWidth > 0 || _layoutElement.preferredHeight > 0))
             {
@@ -104,15 +100,6 @@ namespace AcrealUI
                 panelSize = new Vector2(panelSize.x, panelSize.y + _panelVerticalSizeOffset);
             }
         }
-        #endregion
-
-
-        #region Show/Hide
-        public virtual void Show()
-        {
-            gameObject.SetActive(true);
-            Event_OnPanelSizeChanged?.Invoke(panelSize);
-        }
 
         public virtual void Hide()
         {
@@ -122,7 +109,18 @@ namespace AcrealUI
 
 
         #region Public API
-        public virtual UIScrollListGroup GetScrollListGroup(string bindingGroupName)
+        public void Refresh()
+        {
+            if (_scrollListGroupDict != null)
+            {
+                foreach (UIScrollListGroup scrollGroup in _scrollListGroupDict.Values)
+                {
+                    scrollGroup.Refresh();
+                }
+            }
+        }
+
+        public virtual UIScrollListGroup GetOrAddScrollListGroup(string bindingGroupName)
         {
             UIScrollListGroup scrollGroup = null;
             if (bindingGroupName != null)

@@ -21,6 +21,7 @@ using DaggerfallWorkshop.Game.Items;
 using TMPro;
 using UnityEngine;
 
+[System.Obsolete]
 public class UIInventoryWindow_ItemDetailsPanel : MonoBehaviour
 {
     [SerializeField] private GameObject displayParent_playerInfo = null;

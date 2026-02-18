@@ -37,25 +37,32 @@ namespace AcrealUI
 
 
         #region Update
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
-            base.UpdateDisplay();
+            base.Refresh();
 
-            if (_isDisabled)
+            if (_interactiveElement.isDisabled)
             {
                 transform.localScale = Vector3.one * _scaleWhenDisabled;
             }
-            else if (_isToggledOn)
+            else if (toggle != null)
             {
-                if (_isPressed) { transform.localScale = Vector3.one * _scaleWhenOnAndPressed; }
-                else if (_isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOnAndHighlighted; }
-                else { transform.localScale = Vector3.one * _scaleWhenOn; }
+                if (toggle.isToggledOn)
+                {
+                    if (_interactiveElement.isPressed) { transform.localScale = Vector3.one * _scaleWhenOnAndPressed; }
+                    else if (_interactiveElement.isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOnAndHighlighted; }
+                    else { transform.localScale = Vector3.one * _scaleWhenOn; }
+                }
+                else
+                {
+                    if (_interactiveElement.isPressed) { transform.localScale = Vector3.one * _scaleWhenOffAndPressed; }
+                    else if (_interactiveElement.isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOffAndHighlighted; }
+                    else { transform.localScale = Vector3.one * _scaleWhenOff; }
+                }
             }
             else
             {
-                if (_isPressed) { transform.localScale = Vector3.one * _scaleWhenOffAndPressed; }
-                else if (_isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOffAndHighlighted; }
-                else { transform.localScale = Vector3.one * _scaleWhenOff; }
+                transform.localScale = Vector3.one * _scaleWhenOff;
             }
         }
         #endregion

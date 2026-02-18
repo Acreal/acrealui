@@ -35,7 +35,6 @@ namespace AcrealUI
 
         #region Events
         public event System.Action Event_OnButtonClicked_Default = null;
-        public event System.Action Event_OnButtonClicked_Continue = null;
         #endregion
 
 
@@ -51,7 +50,7 @@ namespace AcrealUI
                 if (_button_default != null)
                 {
                     _button_default.Initialize();
-                    _button_default.Event_OnClicked += (_) => { Event_OnButtonClicked_Default?.Invoke(); };
+                    _button_default.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Default?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_default + "\""); }
             }
@@ -64,7 +63,7 @@ namespace AcrealUI
         {
             foreach (UIScrollListGroup scrollGroup in _scrollListGroupDict.Values)
             {
-                foreach (UIInteractiveElement element in scrollGroup.uiElementsRO)
+                foreach (UIElement element in scrollGroup.uiElementsRO)
                 {
                     UIControlBindingEntry binding = element as UIControlBindingEntry;
                     if (binding != null)

@@ -297,7 +297,7 @@ namespace AcrealUI
                 if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
                 if(_goldButton != null)
                 {
-                    _goldButton.Event_OnClicked += (_) =>
+                    _goldButton.Event_OnClicked += (_, _1) =>
                     {
                         Event_OnGoldButtonClicked?.Invoke();
                     };

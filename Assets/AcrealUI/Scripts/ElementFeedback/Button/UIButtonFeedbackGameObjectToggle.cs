@@ -36,19 +36,6 @@ namespace AcrealUI
         #endregion
 
 
-        #region MonoBehaviour
-        protected override void OnDisable()
-        {
-            base.OnDisable();
-
-            if(_objectToToggle != null)
-            {
-                _objectToToggle.SetActive(_activateObjOnDisable);
-            }
-        }
-        #endregion
-
-
         #region Initialization
         public override void Initialize(UIInteractiveElement uiElement)
         {
@@ -60,31 +47,31 @@ namespace AcrealUI
                 _objectToToggle = tform != null ? tform.gameObject : null;
             }
 
-            UpdateDisplay();
+            Refresh();
         }
         #endregion
 
 
         #region Update
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
             if (_objectToToggle == null) { return; }
 
-            if (_isDisabled)
+            if (_interactiveElement.isDisabled)
             {
                 if (_objectToToggle.activeSelf != _activateObjOnDisable)
                 {
                     _objectToToggle.SetActive(_activateObjOnDisable);
                 }
             }
-            else if (_isPressed)
+            else if (_interactiveElement.isPressed)
             {
                 if (_objectToToggle.activeSelf != _activateObjOnPress)
                 {
                     _objectToToggle.SetActive(_activateObjOnPress);
                 }
             }
-            else if (_isHighlighted)
+            else if (_interactiveElement.isHighlighted)
             {
                 if (_objectToToggle.activeSelf != _activateObjOnHighlight)
                 {

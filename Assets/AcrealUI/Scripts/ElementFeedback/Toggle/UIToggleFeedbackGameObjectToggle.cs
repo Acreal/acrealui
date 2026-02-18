@@ -56,34 +56,37 @@ namespace AcrealUI
                     _gameObjToToggle = gameObject;
                 }
             }
-
-            UpdateDisplay();
         }
         #endregion
 
 
         #region Update
-        protected override void UpdateDisplay()
+        public override void Refresh()
         {
-            base.UpdateDisplay();
-
             if (_gameObjToToggle != null)
             {
-                if(_isDisabled)
+                if (_interactiveElement.isDisabled)
                 {
                     _gameObjToToggle.SetActive(_activateObjOnDisable);
                 }
-                else if (_isToggledOn)
+                else if (toggle != null)
                 {
-                    if (_isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOnAndPressed); }
-                    else if (_isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOnAndHighlighted); }
-                    else { _gameObjToToggle.SetActive(_activateObjWhenOn); }
+                    if (toggle.isToggledOn)
+                    {
+                        if (_interactiveElement.isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOnAndPressed); }
+                        else if (_interactiveElement.isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOnAndHighlighted); }
+                        else { _gameObjToToggle.SetActive(_activateObjWhenOn); }
+                    }
+                    else
+                    {
+                        if (_interactiveElement.isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOffAndPressed); }
+                        else if (_interactiveElement.isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOffAndHighlighted); }
+                        else { _gameObjToToggle.SetActive(_activateObjWhenOff); }
+                    }
                 }
                 else
                 {
-                    if (_isPressed) { _gameObjToToggle.SetActive(_activateObjWhenOffAndPressed); }
-                    else if (_isHighlighted) { _gameObjToToggle.SetActive(_activateObjWhenOffAndHighlighted); }
-                    else { _gameObjToToggle.SetActive(_activateObjWhenOff); }
+                    _gameObjToToggle.SetActive(false);
                 }
             }
         }
