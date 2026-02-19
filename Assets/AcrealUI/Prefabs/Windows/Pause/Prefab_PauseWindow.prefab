@@ -2207,7 +2207,7 @@ PrefabInstance:
     - target: {fileID: 160715066001452826, guid: 206ceac5d8f66654b8d71f93369f78eb,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -140
+      value: -398
       objectReference: {fileID: 0}
     - target: {fileID: 160715066001452826, guid: 206ceac5d8f66654b8d71f93369f78eb,
         type: 3}
@@ -2248,11 +2248,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: UIPanel_Pause
-      objectReference: {fileID: 0}
-    - target: {fileID: 1082271050567404984, guid: e98b96c26d06c4541af411aa60482f13,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1082271050567404991, guid: e98b96c26d06c4541af411aa60482f13,
         type: 3}

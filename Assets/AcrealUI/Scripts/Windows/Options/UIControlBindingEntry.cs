@@ -31,7 +31,6 @@ namespace AcrealUI
         [SerializeField] protected string _gameObjName_text_bindingName = null;
         [SerializeField] protected string _gameObjName_text_bindingValue_primary = null;
         [SerializeField] protected string _gameObjName_text_bindingValue_secondary = null;
-        [SerializeField] protected string _gameObjName_toggle_invert = null;
         [SerializeField] protected string _gameObjName_button_bindPrimary = null;
         [SerializeField] protected string _gameObjName_button_bindSecondary = null;
 
@@ -80,17 +79,40 @@ namespace AcrealUI
         {
             base.Initialize();
 
-            _text_bindingName = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingName).GetComponent<TextMeshProUGUI>();
-            _text_bindingValue_primary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_primary).GetComponent<TextMeshProUGUI>();
-            _text_bindingValue_secondary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_secondary).GetComponent<TextMeshProUGUI>();
+            if (!string.IsNullOrWhiteSpace(_gameObjName_text_bindingName))
+            {
+                _text_bindingName = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingName).GetComponent<TextMeshProUGUI>();
+            }
 
-            _button_bindPrimary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindPrimary).GetComponent<UIButton>();
-            _button_bindPrimary.Initialize();
-            _button_bindPrimary.Event_OnClicked += OnClick_PrimaryBinding;
+            if (!string.IsNullOrWhiteSpace(_gameObjName_text_bindingValue_primary))
+            {
+                _text_bindingValue_primary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_primary).GetComponent<TextMeshProUGUI>();
+            }
 
-            _button_bindSecondary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindSecondary).GetComponent<UIButton>();
-            _button_bindSecondary.Initialize();
-            _button_bindSecondary.Event_OnClicked += OnClick_SecondaryBinding;
+            if (!string.IsNullOrWhiteSpace(_gameObjName_text_bindingValue_secondary))
+            {
+                _text_bindingValue_secondary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_secondary).GetComponent<TextMeshProUGUI>();
+            }
+
+            if (!string.IsNullOrWhiteSpace(_gameObjName_button_bindPrimary))
+            {
+                _button_bindPrimary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindPrimary).GetComponent<UIButton>();
+                if (_button_bindPrimary != null)
+                {
+                    _button_bindPrimary.Initialize();
+                    _button_bindPrimary.Event_OnClicked += OnClick_PrimaryBinding;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(_gameObjName_button_bindSecondary))
+            {
+                _button_bindSecondary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindSecondary).GetComponent<UIButton>();
+                if (_button_bindSecondary != null)
+                {
+                    _button_bindSecondary.Initialize();
+                    _button_bindSecondary.Event_OnClicked += OnClick_SecondaryBinding;
+                }
+            }
         }
         #endregion
 

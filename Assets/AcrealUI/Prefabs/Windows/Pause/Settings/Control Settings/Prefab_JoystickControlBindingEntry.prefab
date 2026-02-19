@@ -198,7 +198,6 @@ MonoBehaviour:
   _gameObjName_text_bindingName: Text_Name
   _gameObjName_text_bindingValue_primary: Text_KeyValue_Primary
   _gameObjName_text_bindingValue_secondary: Text_KeyValue_Secondary
-  _gameObjName_toggle_invert: 
   _gameObjName_button_bindPrimary: Button_KeyValue_Primary
   _gameObjName_button_bindSecondary: Button_KeyValue_Secondary
 --- !u!1 &1859231220341860931
@@ -602,8 +601,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: keyCode
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 2e9a0bfb439ddec4384028e09365e95b, type: 2}
+  m_sharedMaterial: {fileID: 866853051545086650, guid: 2e9a0bfb439ddec4384028e09365e95b,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -627,8 +627,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -760,8 +760,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -925,8 +925,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: bindingName
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 3b6fa07c5a448254b901f5f9b2b407e7, type: 2}
-  m_sharedMaterial: {fileID: 21093754094448720, guid: 3b6fa07c5a448254b901f5f9b2b407e7,
+  m_fontAsset: {fileID: 11400000, guid: 2e9a0bfb439ddec4384028e09365e95b, type: 2}
+  m_sharedMaterial: {fileID: 866853051545086650, guid: 2e9a0bfb439ddec4384028e09365e95b,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -951,8 +951,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

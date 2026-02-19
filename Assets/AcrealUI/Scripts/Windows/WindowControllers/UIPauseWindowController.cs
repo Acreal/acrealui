@@ -38,10 +38,11 @@ namespace AcrealUI
         private Dictionary<string, InputManager.AxisActions> _stringToAxisActionEnumDict = null;
         private Dictionary<string, InputManager.JoystickUIActions> _stringToJoystickActionEnumDict = null;
         private Dictionary<int, Resolution> _instanceIdToResolutionDict = null;
-        private Dictionary<int, int> _instanceIdToRefreshRateDict = null;
         private Dictionary<int, string> _toggleIdToActionStringDict = null;
         private string[] _localizedStrings_weaponSwingModes = null;
         private string[] _localizedStrings_shadowResolutionModes = null;
+        private string[] _localizedStrings_retroModes = null;
+        private int _maxFramerate = 30;
         #endregion
 
 
@@ -56,11 +57,16 @@ namespace AcrealUI
             _stringToJoystickActionEnumDict = new Dictionary<string, InputManager.JoystickUIActions>(4);
 
             _instanceIdToResolutionDict = new Dictionary<int, Resolution>();
-            _instanceIdToRefreshRateDict = new Dictionary<int, int>();
             _toggleIdToActionStringDict = new Dictionary<int, string>();
 
             _localizedStrings_weaponSwingModes = TextManager.Instance.GetLocalizedTextList("weaponSwingModes", TextCollections.TextSettings);
             _localizedStrings_shadowResolutionModes = TextManager.Instance.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
+            _localizedStrings_retroModes = new string[3]
+            {
+                TextManager.Instance.GetLocalizedText("retroModeOff"),
+                TextManager.Instance.GetLocalizedText("retroMode320x200"),
+                TextManager.Instance.GetLocalizedText("retroMode640x400"),
+            };
 
             ResetKeybindDict();
             InitializePauseWindow();
@@ -188,63 +194,10 @@ namespace AcrealUI
                     {
                         _pauseWindowInstance.panelVideoSettings.gameObject.SetActive(false);
 
-                        #region Window
-                        UIScrollListGroup windowGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Window"); // TODO(Acreal): localize this string
-                        windowGroup.Collapse();
-
-                        UIToggle fullScreenToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        fullScreenToggle.SetDisplayName("Fullscreen");  // TODO(Acreal): localize this string
-                        fullScreenToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.Fullscreen; };
-                        fullScreenToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.Fullscreen = toggle.isToggledOn;
-                        };
-
-                        UIToggle exclusiveToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        exclusiveToggle.SetDisplayName("Exclusive Fullscreen");  // TODO(Acreal): localize this string
-                        exclusiveToggle.isDisabled = !DaggerfallUnity.Settings.Fullscreen;
-                        exclusiveToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ExclusiveFullscreen; };
-                        exclusiveToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.ExclusiveFullscreen = toggle.isToggledOn;
-                        };
-
-                        UIToggle vsyncToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        vsyncToggle.SetDisplayName("Vsync");  // TODO(Acreal): localize this string
-                        vsyncToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VSync; };
-                        vsyncToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.VSync = toggle.isToggledOn;
-                        };
-                        #endregion
-
-                        #region Resolution/Refresh Rate Settings
-                        Resolution[] allResolutions = Screen.resolutions;
-                        
-                        UIScrollListGroup resolutionGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Resolution"); // TODO(Acreal): localize this string
-                        resolutionGroup.Collapse();
-
-                        UIToggleGroup resolutionToggleGroup = resolutionGroup.groupParent.gameObject.AddComponent<UIToggleGroup>();
-                        resolutionToggleGroup.canBeToggledOff = false;
-                        resolutionToggleGroup.Initialize();
-
-                        UIScrollListGroup refreshRateGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Refresh Rate"); // TODO(Acreal): localize this string
-                        refreshRateGroup.Collapse();
-
-                        UIToggleGroup refreshRateToggleGroup = refreshRateGroup.groupParent.gameObject.AddComponent<UIToggleGroup>();
-                        refreshRateToggleGroup.canBeToggledOff = false;
-                        refreshRateToggleGroup.Initialize();
-
                         #region Find All Valid Resolutions and Refresh Rates
+                        Resolution[] allResolutions = Screen.resolutions;
                         List<Resolution> resolutions = new List<Resolution>();
                         UIToggle selectedResolutionEntry = null;
-
-                        List<int> refreshRates = new List<int>();
-                        UIToggle selectedRefreshRateEntry = null;
-                        int maxRefreshRate = 0;
 
                         for (int i = 0; i < allResolutions.Length; i++)
                         {
@@ -269,39 +222,81 @@ namespace AcrealUI
                             #endregion
 
                             #region Refresh Rates
-                            if(allResolutions[i].refreshRate < 30) { continue; }
-
-                            bool foundRefreshRate = false;
-                            foreach (int refreshRate in refreshRates)
+                            if(allResolutions[i].refreshRate < 30)
                             {
-                                if (refreshRate == allResolutions[i].refreshRate)
-                                {
-                                    foundRefreshRate = true;
-                                    break;
-                                }
+                                continue;
                             }
-
-                            if (!foundRefreshRate)
+                            else if (allResolutions[i].refreshRate > _maxFramerate)
                             {
-                                refreshRates.Add(allResolutions[i].refreshRate);
-                                if(allResolutions[i].refreshRate > maxRefreshRate)
-                                {
-                                    maxRefreshRate = allResolutions[i].refreshRate;
-                                }
+                                _maxFramerate = allResolutions[i].refreshRate;
                             }
                             #endregion
                         }
 
-                        if(refreshRates.Count == 0)
-                        {
-                            refreshRates.Add(30);
-                            maxRefreshRate = 30;
-                        }
-
                         resolutions.Reverse();
-                        refreshRates.Sort((x, y) => { return y.CompareTo(x); });
                         #endregion
-                        
+
+                        #region Window
+                        UIScrollListGroup windowGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Window"); // TODO(Acreal): localize this string
+                        windowGroup.Collapse();
+
+                        UIToggle fullScreenToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        fullScreenToggle.SetDisplayName("Fullscreen");  // TODO(Acreal): localize this string
+                        fullScreenToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.Fullscreen; };
+                        fullScreenToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.Fullscreen = toggle.isToggledOn;
+                            ApplyResolution(Screen.currentResolution);
+                        };
+
+                        UIToggle exclusiveToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        exclusiveToggle.SetDisplayName("Exclusive Fullscreen");  // TODO(Acreal): localize this string
+                        exclusiveToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ExclusiveFullscreen; };
+                        exclusiveToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.ExclusiveFullscreen = toggle.isToggledOn;
+                            ApplyResolution(Screen.currentResolution);
+                        };
+
+                        UIToggle vsyncToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        vsyncToggle.SetDisplayName("Vsync");  // TODO(Acreal): localize this string
+                        vsyncToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VSync; };
+                        vsyncToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.VSync = toggle.isToggledOn;
+                            QualitySettings.vSyncCount = toggle.isToggledOn ? 1 : 0;
+                        };
+
+                        UISlider framerateSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        framerateSlider.SetTextTitle("Max Framerate"); // TODO(Acreal): localize this string
+                        framerateSlider.SetSliderMinMax(30f, _maxFramerate + 1, true);
+                        framerateSlider.SetSliderValue(DaggerfallUnity.Settings.TargetFrameRate == 0 ? _maxFramerate + 1 : DaggerfallUnity.Settings.TargetFrameRate, true);
+                        framerateSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? _maxFramerate + 1 : DaggerfallUnity.Settings.TargetFrameRate; };
+                        framerateSlider.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? "Unlimited" : DaggerfallUnity.Settings.TargetFrameRate.ToString("N0"); }; // TODO(Acreal): localize this string
+                        framerateSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+
+                            int val = slider.GetSliderValueAsInt();
+                            if (val == _maxFramerate + 1)
+                            {
+                                val = 0;
+                            }
+                            DaggerfallUnity.Settings.TargetFrameRate = Application.targetFrameRate = val;
+                        };
+                        #endregion
+
+                        #region Resolution/Refresh Rate Settings
+                        UIScrollListGroup resolutionGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Resolution"); // TODO(Acreal): localize this string
+                        resolutionGroup.Collapse();
+
+                        UIToggleGroup resolutionToggleGroup = resolutionGroup.groupParent.gameObject.AddComponent<UIToggleGroup>();
+                        resolutionToggleGroup.canBeToggledOff = false;
+                        resolutionToggleGroup.Initialize();
+
                         #region Add Resolution Entries
                         for (int i = 0; i < resolutions.Count; i++)
                         {
@@ -352,11 +347,12 @@ namespace AcrealUI
                         #endregion
 
                         #region Add Refresh Rate Entries
+                        /*
                         for (int i = 0; i < refreshRates.Count; i++)
                         {
                             UIToggle refreshRateEntry = refreshRateGroup.AddElement(UIManager.referenceManager.prefab_resolutionSettingEntry) as UIToggle;
                             refreshRateToggleGroup.AddToggle(refreshRateEntry);
-                            _instanceIdToRefreshRateDict[refreshRateEntry.GetInstanceID()] = refreshRates[i];
+                            _refreshRateToggleIdToRefreshRateValueDict[refreshRateEntry.GetInstanceID()] = refreshRates[i];
                             refreshRateEntry.SetDisplayName(refreshRates[i].ToString("N0"));
 
                             if (selectedRefreshRateEntry == null && refreshRates[i] == Screen.currentResolution.refreshRate)
@@ -367,8 +363,9 @@ namespace AcrealUI
                             refreshRateEntry.DataSource_IsToggledOn = (GameObject sender) => 
                             {
                                 UIToggle toggle = sender != null ? sender.GetComponent<UIToggle>() : null;
-                                if (toggle != null && _instanceIdToRefreshRateDict.TryGetValue(toggle.GetInstanceID(), out int refreshRate))
+                                if (toggle != null && _refreshRateToggleIdToRefreshRateValueDict.TryGetValue(toggle.GetInstanceID(), out int refreshRate))
                                 {
+                                    Debug.LogError(sender.name + "." + toggle.GetInstanceID() + ".DataSource_IsToggledOn = " + (refreshRate == Screen.currentResolution.refreshRate) + "(Entry Rate: " + refreshRate + ", Screen Rate: " + Screen.currentResolution.refreshRate + ")");
                                     return refreshRate == Screen.currentResolution.refreshRate;
                                 }
                                 return false;
@@ -379,8 +376,8 @@ namespace AcrealUI
                                 saveSettings = true;
 
                                 int refreshRate = 0;
-                                _instanceIdToRefreshRateDict.TryGetValue(toggle.GetInstanceID(), out refreshRate);
-                                if (refreshRate < 30) { refreshRate = maxRefreshRate; }
+                                _refreshRateToggleIdToRefreshRateValueDict.TryGetValue(toggle.GetInstanceID(), out refreshRate);
+                                if (refreshRate < 30) { refreshRate = _maxFramerate; }
 
                                 Resolution res = Screen.currentResolution;
                                 res.refreshRate = refreshRate;
@@ -392,7 +389,38 @@ namespace AcrealUI
                         {
                             refreshRateToggleGroup.SetActiveToggle(selectedRefreshRateEntry);
                         }
+                        */
                         #endregion
+                        #endregion
+
+                        #region Rendering Settings
+                        UISlider qualitySlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        qualitySlider.SetTextTitle("Render Quality"); // TODO(Acreal): localize this string
+                        qualitySlider.SetSliderMinMax(0, QualitySettings.names.Length - 1, true);
+                        qualitySlider.SetSliderValue(DaggerfallUnity.Settings.QualityLevel, true);
+                        qualitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.QualityLevel; };
+                        qualitySlider.DataSource_SliderValueString = (_) => { return QualitySettings.names[DaggerfallUnity.Settings.QualityLevel]; }; // TODO(Acreal): localize quality level names?
+                        qualitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            int val = slider.GetSliderValueAsInt();
+                            DaggerfallUnity.Settings.QualityLevel = val;
+                            QualitySettings.SetQualityLevel(val);
+                            GameManager.UpdateShadowDistance();
+                            GameManager.UpdateShadowResolution();
+                        };
+
+                        UISlider retroSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        retroSlider.SetTextTitle("Retro Mode"); // TODO(Acreal): localize this string
+                        retroSlider.SetSliderMinMax(0, 2, true);
+                        retroSlider.SetSliderValue(DaggerfallUnity.Settings.RetroRenderingMode, true);
+                        retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroRenderingMode; };
+                        retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroModes[DaggerfallUnity.Settings.RetroRenderingMode]; }; // TODO(Acreal): localize quality level names?
+                        retroSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.RetroRenderingMode = slider.GetSliderValueAsInt();
+                        };
                         #endregion
 
                         #region Camera Settings
@@ -520,12 +548,8 @@ namespace AcrealUI
                         #endregion
 
                         // TODO(Acreal): finish adding video options
-                        // SLIDER: fullscreen mode
-                        // SLIDER: retro rendering mode
                         // SLIDER: main filter mode
-                        // SLIDER: quality level
                         // TOGGLE: random dungeon textures
-                        // TOGGLE: vsync
                         // TOGGLE: ambient lit interiors
                         // TOGGLE: texture array
                     }
@@ -552,7 +576,6 @@ namespace AcrealUI
                         soundVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.SoundVolume = slider.GetSliderValue() * 0.01f;
                         };
 
@@ -568,7 +591,6 @@ namespace AcrealUI
                         musicVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.MusicVolume = slider.GetSliderValue() * 0.01f;
                         };
                         #endregion
@@ -624,6 +646,12 @@ namespace AcrealUI
                         {
                             saveSettings = true;
                             DaggerfallUnity.Settings.MovementAcceleration = toggle.isToggledOn;
+
+                            // the InputManager only sets its 'movementAcceleration' bool in its
+                            // Start function, so we need to force it to call that function again
+                            // Note: this will also refresh some of its internal containers, but
+                            // none of those have side effects beyond taking up cycles
+                            InputManager.Instance.SendMessage("Start");
                         };
 
                         UIToggle bowsDrawAndRelease = movementGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
@@ -642,6 +670,7 @@ namespace AcrealUI
                         {
                             saveSettings = true;
                             DaggerfallUnity.Settings.ToggleSneak = toggle.isToggledOn;
+                            GameManager.Instance.SpeedChanger.ToggleSneak = toggle.isToggledOn;
                         };
 
                         List<InputManager.Actions> moveActions = new List<InputManager.Actions>()
@@ -692,7 +721,6 @@ namespace AcrealUI
 
                         slider_weaponSwingMode.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.WeaponSwingMode = (int)slider.GetSliderValue();
                         };
 
@@ -930,7 +958,6 @@ namespace AcrealUI
                         slider_lookSensitivity.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.JoystickLookSensitivity.ToString("F2"); };
                         slider_lookSensitivity.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.JoystickLookSensitivity = slider.GetSliderValue();
                         };
 
@@ -941,7 +968,6 @@ namespace AcrealUI
                         slider_uiMouseSensitivity.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.MouseLookSensitivity.ToString("F2"); };
                         slider_uiMouseSensitivity.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.MouseLookSensitivity = slider.GetSliderValue();
                         };
 
@@ -952,7 +978,6 @@ namespace AcrealUI
                         slider_uiMouseSmoothing.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.MouseLookSmoothingFactor.ToString("F2"); };
                         slider_uiMouseSmoothing.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.MouseLookSmoothingFactor = slider.GetSliderValue();
                         };
 
@@ -963,7 +988,6 @@ namespace AcrealUI
                         slider_maxMovementThreshold.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.JoystickMovementThreshold.ToString("F2"); };
                         slider_maxMovementThreshold.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.JoystickMovementThreshold = slider.GetSliderValue();
                         };
 
@@ -974,7 +998,6 @@ namespace AcrealUI
                         slider_deadzone.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.JoystickDeadzone.ToString("F2"); };
                         slider_deadzone.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
-                            UIUtilityFunctions.PlayButtonClickSound();
                             DaggerfallUnity.Settings.JoystickDeadzone = slider.GetSliderValue();
                         };
 
@@ -1127,21 +1150,6 @@ namespace AcrealUI
                     break;
             }
         }
-
-        //private void Paused_OnDetailChanged(float detailVal)
-        //{
-        //    saveSettings = true;
-        //    UIUtilityFunctions.PlayButtonClickSound();
-        //    QualitySettings.SetQualityLevel(DaggerfallUnity.Settings.QualityLevel = Mathf.FloorToInt(detailVal));
-        //    GameManager.UpdateShadowDistance();
-        //    GameManager.UpdateShadowResolution();
-        //}
-
-        //private void Paused_OnFullScreenChanged(bool enableFullscreen)
-        //{
-        //    saveSettings = true;
-        //    DaggerfallUnity.Settings.Fullscreen = !DaggerfallUnity.Settings.Fullscreen;
-        //}
         #endregion
 
 
@@ -1244,11 +1252,11 @@ namespace AcrealUI
         {
             if (DaggerfallUnity.Settings.Fullscreen && DaggerfallUnity.Settings.ExclusiveFullscreen)
             {
-                Screen.SetResolution(resolution.width, resolution.height, FullScreenMode.ExclusiveFullScreen, resolution.refreshRate);
+                Screen.SetResolution(resolution.width, resolution.height, FullScreenMode.ExclusiveFullScreen);
             }
             else
             {
-                Screen.SetResolution(resolution.width, resolution.height, DaggerfallUnity.Settings.Fullscreen, resolution.refreshRate);
+                Screen.SetResolution(resolution.width, resolution.height, DaggerfallUnity.Settings.Fullscreen);
             }
         }
         #endregion
@@ -1324,8 +1332,8 @@ namespace AcrealUI
         {
             GameManager.Instance.PlayerMouseLook.enabled = false;
             InputManager.Instance.CursorVisible = false;
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            UnityEngine.Cursor.visible = false;
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
 
             ControlsConfigManager.Instance.UsingPrimary = isPrimaryBinding;
             AllowCancel = false;
@@ -1442,8 +1450,8 @@ namespace AcrealUI
             AllowCancel = true;
             GameManager.Instance.PlayerMouseLook.enabled = true;
             InputManager.Instance.CursorVisible = true;
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            UnityEngine.Cursor.visible = true;
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
         }
         #endregion
     }
