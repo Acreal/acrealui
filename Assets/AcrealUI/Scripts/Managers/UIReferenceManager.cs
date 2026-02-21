@@ -32,6 +32,7 @@ namespace AcrealUI
         public UISlider prefab_slider = null;
         public UIToggle prefab_toggle = null;
         public UIScrollListGroup prefab_scrollListGroup = null;
+        public UIScrollListGroup prefab_subScrollListGroup = null;
         public UIScrollListRow prefab_scrollListRow = null;
 
         public UIPauseWindow prefab_pauseWindow = null;
@@ -85,6 +86,9 @@ namespace AcrealUI
 
             GameObject scrolLGroupObj = mod.GetAsset<GameObject>("Prefab_StandardElement_ScrollGroup");
             prefab_scrollListGroup = scrolLGroupObj != null ? scrolLGroupObj.GetComponent<UIScrollListGroup>() : null;
+
+            GameObject subScrolLGroupObj = mod.GetAsset<GameObject>("Prefab_StandardElement_SubScrollGroup");
+            prefab_subScrollListGroup = subScrolLGroupObj != null ? subScrolLGroupObj.GetComponent<UIScrollListGroup>() : null;
 
             GameObject scrollRowObj = mod.GetAsset<GameObject>("Prefab_StandardElement_ScrollListRow");
             prefab_scrollListRow = scrollRowObj != null ? scrollRowObj.GetComponent<UIScrollListRow>() : null;

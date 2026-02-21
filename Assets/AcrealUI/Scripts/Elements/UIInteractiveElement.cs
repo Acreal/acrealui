@@ -35,7 +35,7 @@ namespace AcrealUI
 
 
         #region Properties
-        public bool isDisabled
+        public virtual bool isDisabled
         {
             get { return _isDisabled; }
             set
@@ -64,6 +64,11 @@ namespace AcrealUI
         {
             get { return _isPressed; }
         }
+        #endregion
+
+
+        #region Data Sources
+        public UIDelegates.DataSourceDelegate_Bool DataSource_IsDisabled = null;
         #endregion
 
 
@@ -96,6 +101,8 @@ namespace AcrealUI
         public override void Refresh()
         {
             base.Refresh();
+
+            _isDisabled = DataSource_IsDisabled != null ? DataSource_IsDisabled(gameObject) : false;
 
             if (_elementFeedbackArray != null)
             {

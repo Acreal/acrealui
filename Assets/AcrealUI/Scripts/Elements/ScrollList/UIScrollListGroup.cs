@@ -33,6 +33,7 @@ namespace AcrealUI
         [SerializeField] private string _text_groupTitleGameObjName = null;
         [SerializeField] private string _toggle_expandCollapseGameObjName = null;
 
+        private Dictionary<string, UIScrollListGroup> _subScrollListGroupDict = null;
         private List<UIScrollListRow> _scrollRows = null;
         private List<UIElement> _uiElements = null;
         private Transform _parent_groupEntries = null;
@@ -42,11 +43,7 @@ namespace AcrealUI
 
 
         #region Properties
-        public Transform groupParent
-        {
-            get { return _parent_groupEntries; }
-        }
-
+        public Transform groupParent { get { return _parent_groupEntries; } }
         public ReadOnlyCollection<UIScrollListRow> scrollRowsRO { get; private set; }
         public ReadOnlyCollection<UIElement> uiElementsRO { get; private set; }
         #endregion
@@ -55,6 +52,8 @@ namespace AcrealUI
         #region Initialize
         public virtual void Initialize()
         {
+            _subScrollListGroupDict = new Dictionary<string, UIScrollListGroup>();
+
             _scrollRows = new List<UIScrollListRow>();
             scrollRowsRO = _scrollRows.AsReadOnly();
 
@@ -93,6 +92,14 @@ namespace AcrealUI
 
         public void Refresh()
         {
+            if (_subScrollListGroupDict != null)
+            {
+                foreach (UIScrollListGroup group in _subScrollListGroupDict.Values)
+                {
+                    group.Refresh();
+                }
+            }
+
             if (_scrollRows != null)
             {
                 foreach (UIScrollListRow row in _scrollRows)
@@ -119,6 +126,26 @@ namespace AcrealUI
             }
         }
 
+        public virtual UIScrollListGroup GetOrAddSubScrollListGroup(string bindingGroupName)
+        {
+            UIScrollListGroup scrollGroup = null;
+            if (bindingGroupName != null)
+            {
+                if (!_subScrollListGroupDict.TryGetValue(bindingGroupName, out scrollGroup))
+                {
+                    scrollGroup = PopScrollListGroupFromPool(UIManager.referenceManager.prefab_subScrollListGroup, groupParent);
+                    if (scrollGroup != null)
+                    {
+                        scrollGroup.Initialize();
+                        scrollGroup.SetTextTitle(bindingGroupName);
+                    }
+
+                    _subScrollListGroupDict.Add(bindingGroupName, scrollGroup);
+                }
+            }
+            return scrollGroup;
+        }
+
         public UIScrollListRow AddRow()
         {
             if(UIManager.referenceManager.prefab_scrollListRow != null)
@@ -143,6 +170,17 @@ namespace AcrealUI
             elem.transform.localScale = Vector3.one;
             _uiElements.Add(elem);
             return elem;
+        }
+        #endregion
+
+
+        #region ScrollListGroup Management
+        private UIScrollListGroup PopScrollListGroupFromPool(UIScrollListGroup scrollListGroupPrefab, Transform parent)
+        {
+            //TODO(Acreal): add (global?) pooling
+            UIScrollListGroup group = Instantiate(scrollListGroupPrefab, parent);
+            group.transform.localScale = Vector3.one;
+            return group;
         }
         #endregion
     }

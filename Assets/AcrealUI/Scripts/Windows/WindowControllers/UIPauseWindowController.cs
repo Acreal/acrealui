@@ -21,6 +21,7 @@ using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
+using DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,7 +43,13 @@ namespace AcrealUI
         private string[] _localizedStrings_weaponSwingModes = null;
         private string[] _localizedStrings_shadowResolutionModes = null;
         private string[] _localizedStrings_retroModes = null;
+        private string[] _localizedStrings_filterModes = null;
+        private string[] _localizedStrings_textureModes = null;
+        private string[] _localizedStrings_antiAliasingMethods = null;
+        private string[] _localizedStrings_smaaQualitySettings = null;
+        private string[] _localizedStrings_motionBlurQualitySettings = null;
         private int _maxFramerate = 30;
+        private bool _refreshPostFx = false;
         #endregion
 
 
@@ -61,11 +68,32 @@ namespace AcrealUI
 
             _localizedStrings_weaponSwingModes = TextManager.Instance.GetLocalizedTextList("weaponSwingModes", TextCollections.TextSettings);
             _localizedStrings_shadowResolutionModes = TextManager.Instance.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
+            _localizedStrings_filterModes = TextManager.Instance.GetLocalizedTextList("filterModes", TextCollections.TextSettings);
+            _localizedStrings_textureModes = TextManager.Instance.GetLocalizedTextList("dungeonTextureModes", TextCollections.TextSettings);
+
+            //we can reuse the shadow resolution settings here
+            _localizedStrings_motionBlurQualitySettings = TextManager.Instance.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
+
             _localizedStrings_retroModes = new string[3]
             {
                 TextManager.Instance.GetLocalizedText("retroModeOff"),
                 TextManager.Instance.GetLocalizedText("retroMode320x200"),
                 TextManager.Instance.GetLocalizedText("retroMode640x400"),
+            };
+
+            _localizedStrings_antiAliasingMethods = new string[]
+            {
+                TextManager.Instance.GetLocalizedText("none"),
+                TextManager.Instance.GetLocalizedText("fxaa"),
+                TextManager.Instance.GetLocalizedText("smaa"),
+                TextManager.Instance.GetLocalizedText("taa")
+            };
+
+            _localizedStrings_smaaQualitySettings = new string[]
+            {
+                TextManager.Instance.GetLocalizedText("low"),
+                TextManager.Instance.GetLocalizedText("medium"),
+                TextManager.Instance.GetLocalizedText("high")
             };
 
             ResetKeybindDict();
@@ -236,61 +264,12 @@ namespace AcrealUI
                         resolutions.Reverse();
                         #endregion
 
-                        #region Window
+                        #region Window Settings
                         UIScrollListGroup windowGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Window"); // TODO(Acreal): localize this string
                         windowGroup.Collapse();
 
-                        UIToggle fullScreenToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        fullScreenToggle.SetDisplayName("Fullscreen");  // TODO(Acreal): localize this string
-                        fullScreenToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.Fullscreen; };
-                        fullScreenToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.Fullscreen = toggle.isToggledOn;
-                            ApplyResolution(Screen.currentResolution);
-                        };
-
-                        UIToggle exclusiveToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        exclusiveToggle.SetDisplayName("Exclusive Fullscreen");  // TODO(Acreal): localize this string
-                        exclusiveToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ExclusiveFullscreen; };
-                        exclusiveToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.ExclusiveFullscreen = toggle.isToggledOn;
-                            ApplyResolution(Screen.currentResolution);
-                        };
-
-                        UIToggle vsyncToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        vsyncToggle.SetDisplayName("Vsync");  // TODO(Acreal): localize this string
-                        vsyncToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VSync; };
-                        vsyncToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.VSync = toggle.isToggledOn;
-                            QualitySettings.vSyncCount = toggle.isToggledOn ? 1 : 0;
-                        };
-
-                        UISlider framerateSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        framerateSlider.SetTextTitle("Max Framerate"); // TODO(Acreal): localize this string
-                        framerateSlider.SetSliderMinMax(30f, _maxFramerate + 1, true);
-                        framerateSlider.SetSliderValue(DaggerfallUnity.Settings.TargetFrameRate == 0 ? _maxFramerate + 1 : DaggerfallUnity.Settings.TargetFrameRate, true);
-                        framerateSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? _maxFramerate + 1 : DaggerfallUnity.Settings.TargetFrameRate; };
-                        framerateSlider.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? "Unlimited" : DaggerfallUnity.Settings.TargetFrameRate.ToString("N0"); }; // TODO(Acreal): localize this string
-                        framerateSlider.Event_OnSliderValueChanged += (UISlider slider) =>
-                        {
-                            saveSettings = true;
-
-                            int val = slider.GetSliderValueAsInt();
-                            if (val == _maxFramerate + 1)
-                            {
-                                val = 0;
-                            }
-                            DaggerfallUnity.Settings.TargetFrameRate = Application.targetFrameRate = val;
-                        };
-                        #endregion
-
-                        #region Resolution/Refresh Rate Settings
-                        UIScrollListGroup resolutionGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Resolution"); // TODO(Acreal): localize this string
+                        #region Resolution Settings
+                        UIScrollListGroup resolutionGroup = windowGroup.GetOrAddSubScrollListGroup("Resolution"); // TODO(Acreal): localize this string
                         resolutionGroup.Collapse();
 
                         UIToggleGroup resolutionToggleGroup = resolutionGroup.groupParent.gameObject.AddComponent<UIToggleGroup>();
@@ -346,7 +325,7 @@ namespace AcrealUI
                         }
                         #endregion
 
-                        #region Add Refresh Rate Entries
+                        #region Add Refresh Rate Entries **DISABLED**
                         /*
                         for (int i = 0; i < refreshRates.Count; i++)
                         {
@@ -393,11 +372,61 @@ namespace AcrealUI
                         #endregion
                         #endregion
 
+                        UIToggle fullScreenToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        fullScreenToggle.SetDisplayName("Fullscreen");  // TODO(Acreal): localize this string
+                        fullScreenToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.Fullscreen; };
+                        fullScreenToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.Fullscreen = toggle.isToggledOn;
+                            ApplyResolution(Screen.currentResolution);
+                        };
+
+                        UIToggle exclusiveToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        exclusiveToggle.SetDisplayName("Exclusive Fullscreen");  // TODO(Acreal): localize this string
+                        exclusiveToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ExclusiveFullscreen; };
+                        exclusiveToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.ExclusiveFullscreen = toggle.isToggledOn;
+                            ApplyResolution(Screen.currentResolution);
+                        };
+
+                        UIToggle vsyncToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        vsyncToggle.SetDisplayName("Vsync");  // TODO(Acreal): localize this string
+                        vsyncToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VSync; };
+                        vsyncToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.VSync = toggle.isToggledOn;
+                            QualitySettings.vSyncCount = toggle.isToggledOn ? 1 : 0;
+                        };
+
+                        UISlider framerateSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        framerateSlider.SetTextTitle("Max Framerate"); // TODO(Acreal): localize this string
+                        framerateSlider.SetSliderMinMax(30f, _maxFramerate + 1, true);
+                        framerateSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? _maxFramerate + 1 : DaggerfallUnity.Settings.TargetFrameRate; };
+                        framerateSlider.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? "Unlimited" : DaggerfallUnity.Settings.TargetFrameRate.ToString("N0"); }; // TODO(Acreal): localize this string
+                        framerateSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+
+                            int val = slider.GetSliderValueAsInt();
+                            if (val == _maxFramerate + 1)
+                            {
+                                val = 0;
+                            }
+                            DaggerfallUnity.Settings.TargetFrameRate = Application.targetFrameRate = val;
+                        };
+                        #endregion
+
                         #region Rendering Settings
-                        UISlider qualitySlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        UIScrollListGroup renderGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Rendering"); // TODO(Acreal): localize this string
+                        renderGroup.Collapse();
+
+                        UISlider qualitySlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         qualitySlider.SetTextTitle("Render Quality"); // TODO(Acreal): localize this string
                         qualitySlider.SetSliderMinMax(0, QualitySettings.names.Length - 1, true);
-                        qualitySlider.SetSliderValue(DaggerfallUnity.Settings.QualityLevel, true);
                         qualitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.QualityLevel; };
                         qualitySlider.DataSource_SliderValueString = (_) => { return QualitySettings.names[DaggerfallUnity.Settings.QualityLevel]; }; // TODO(Acreal): localize quality level names?
                         qualitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -410,17 +439,416 @@ namespace AcrealUI
                             GameManager.UpdateShadowResolution();
                         };
 
-                        UISlider retroSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        UISlider retroSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         retroSlider.SetTextTitle("Retro Mode"); // TODO(Acreal): localize this string
                         retroSlider.SetSliderMinMax(0, 2, true);
-                        retroSlider.SetSliderValue(DaggerfallUnity.Settings.RetroRenderingMode, true);
                         retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroRenderingMode; };
                         retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroModes[DaggerfallUnity.Settings.RetroRenderingMode]; }; // TODO(Acreal): localize quality level names?
                         retroSlider.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
                             DaggerfallUnity.Settings.RetroRenderingMode = slider.GetSliderValueAsInt();
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.RetroMode);
+                            }
                         };
+
+                        UISlider mainFilterSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        mainFilterSlider.SetTextTitle("Main Filter"); // TODO(Acreal): localize this string
+                        mainFilterSlider.SetSliderMinMax(0, 2, true);
+                        mainFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MainFilterMode; };
+                        mainFilterSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_filterModes[DaggerfallUnity.Settings.MainFilterMode]; };
+                        mainFilterSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.MainFilterMode = slider.GetSliderValueAsInt();
+                        };
+
+                        UISlider guiFilterSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        guiFilterSlider.SetTextTitle("GUI Filter"); // TODO(Acreal): localize this string
+                        guiFilterSlider.SetSliderMinMax(0, 2, true);
+                        guiFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.GUIFilterMode; };
+                        guiFilterSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_filterModes[DaggerfallUnity.Settings.GUIFilterMode]; };
+                        guiFilterSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.GUIFilterMode = slider.GetSliderValueAsInt();
+                        };
+
+                        UISlider videoFilterSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        videoFilterSlider.SetTextTitle("Video Filter"); // TODO(Acreal): localize this string
+                        videoFilterSlider.SetSliderMinMax(0, 2, true);
+                        videoFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.VideoFilterMode; };
+                        videoFilterSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_filterModes[DaggerfallUnity.Settings.VideoFilterMode]; };
+                        videoFilterSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.VideoFilterMode = slider.GetSliderValueAsInt();
+                        };
+
+                        UISlider dungeonTexSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        dungeonTexSlider.SetTextTitle("Dungeon Texture Mode"); // TODO(Acreal): localize this string
+                        dungeonTexSlider.SetSliderMinMax(0, 2, true);
+                        dungeonTexSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RandomDungeonTextures; };
+                        dungeonTexSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_textureModes[DaggerfallUnity.Settings.RandomDungeonTextures]; };
+                        dungeonTexSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.RandomDungeonTextures = slider.GetSliderValueAsInt();
+                        };
+
+                        UISlider aaModeSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        aaModeSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("antialiasing") + " " + TextManager.Instance.GetLocalizedText("method"));
+                        //aaModeSlider.SetTooltip(TextManager.Instance.GetLocalizedText("antialiasingTip"));
+                        aaModeSlider.SetSliderMinMax(0, 3, true);
+                        aaModeSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod; };
+                        aaModeSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_antiAliasingMethods[DaggerfallUnity.Settings.AntialiasingMethod]; };
+                        aaModeSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.AntialiasingMethod = slider.GetSliderValueAsInt();
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
+                            }
+
+                            _pauseWindowInstance.panelVideoSettings.Refresh();
+                        };
+
+                        UISlider taaSharpnessSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        taaSharpnessSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("taaSharpness"));
+                        taaSharpnessSlider.SetSliderMinMax(0.0f, 3.0f, false);
+                        taaSharpnessSlider.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.TAA; };
+                        taaSharpnessSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingTAASharpness; };
+                        taaSharpnessSlider.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.AntialiasingTAASharpness.ToString("F2"); };
+                        taaSharpnessSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            _refreshPostFx = true;
+                            DaggerfallUnity.Settings.AntialiasingTAASharpness = slider.GetSliderValue();
+                        };
+
+                        UISlider smaaQualitySlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        smaaQualitySlider.SetTextTitle(TextManager.Instance.GetLocalizedText("smaaQuality"));
+                        smaaQualitySlider.SetSliderMinMax(0, 2, true);
+                        smaaQualitySlider.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.SMAA; };
+                        smaaQualitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingSMAAQuality; };
+                        smaaQualitySlider.DataSource_SliderValueString = (_) => { return _localizedStrings_smaaQualitySettings[DaggerfallUnity.Settings.AntialiasingSMAAQuality]; };
+                        smaaQualitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.AntialiasingSMAAQuality = slider.GetSliderValueAsInt();
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
+                            }
+                        };
+
+                        UIToggle fastFxaaToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        fastFxaaToggle.SetDisplayName(TextManager.Instance.GetLocalizedText("fxaaFastMode"));
+                        fastFxaaToggle.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.FXAA; };
+                        fastFxaaToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.AntialiasingFXAAFastMode; };
+                        fastFxaaToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.AntialiasingFXAAFastMode = toggle.isToggledOn;
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
+                            }
+                        };
+
+                        UIToggle texArrayToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        texArrayToggle.SetDisplayName("Enable Texture Arrays");  // TODO(Acreal): localize this string
+                        texArrayToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.EnableTextureArrays; };
+                        texArrayToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.EnableTextureArrays = toggle.isToggledOn;
+                        };
+
+                        UIToggle ambientLitToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        ambientLitToggle.SetDisplayName("Ambient Lit Interiors");  // TODO(Acreal): localize this string
+                        ambientLitToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.AmbientLitInteriors; };
+                        ambientLitToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.AmbientLitInteriors = toggle.isToggledOn;
+                        };
+                        #endregion
+
+                        #region PostFX Settings
+                        UIScrollListGroup postFxGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Post Processing"); // TODO(Acreal): localize this string
+                        renderGroup.Collapse();
+
+                        #region Depth of Field
+                        UIScrollListGroup dofGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("depthOfField"));
+                        dofGroup.Collapse();
+
+                        UIToggle dofToggle = dofGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        dofToggle.SetDisplayName(TextManager.Instance.GetLocalizedText("enable"));
+                        dofToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.DepthOfFieldEnable; };
+                        dofToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.DepthOfFieldEnable = toggle.isToggledOn;
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
+                            }
+                        };
+                        #endregion
+
+                        #region Bloom
+                        UIScrollListGroup bloomGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("bloom"));
+                        bloomGroup.Collapse();
+
+                        UISlider bloomSlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        bloomSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity"));
+                        bloomSlider.SetSliderMinMax(0f, 1f, false);
+                        bloomSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.BloomEnable ? Mathf.InverseLerp(0f, 50f, DaggerfallUnity.Settings.BloomIntensity) : 0f; };
+
+                        bloomSlider.DataSource_SliderValueString = (_) =>
+                        {
+                            if (DaggerfallUnity.Settings.BloomEnable)
+                            {
+                                return (Mathf.InverseLerp(0f, 50f, DaggerfallUnity.Settings.BloomIntensity) * 100f).ToString("N0") + "%";
+                            }
+                            else
+                            {
+                                return "Off"; // TODO(Acreal): localize this string
+                            }
+                        };
+
+                        bloomSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            _refreshPostFx = true;
+                            float val = slider.GetSliderValue();
+                            DaggerfallUnity.Settings.BloomEnable = val > float.Epsilon;
+                            DaggerfallUnity.Settings.BloomIntensity = Mathf.Lerp(0f, 50f, val);
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                            }
+                        };
+                        #endregion
+
+                        #region Ambient Occlusion
+                        UIScrollListGroup aoGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("ambientOcclusion"));
+                        aoGroup.Collapse();
+
+                        UISlider aoSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        aoSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity"));
+                        aoSlider.SetSliderMinMax(0f, 1f, false);
+
+                        aoSlider.DataSource_SliderValue = (_) =>
+                        {
+                            return DaggerfallUnity.Settings.AmbientOcclusionEnable ? Mathf.InverseLerp(0f, 4f, DaggerfallUnity.Settings.AmbientOcclusionIntensity) : 0f;
+                        };
+
+                        aoSlider.DataSource_SliderValueString = (_) =>
+                        {
+                            if (DaggerfallUnity.Settings.AmbientOcclusionEnable)
+                            {
+                                return (Mathf.InverseLerp(0f, 4f, DaggerfallUnity.Settings.AmbientOcclusionIntensity) * 100f).ToString("N0") + "%";
+                            }
+                            else
+                            {
+                                return "Off"; // TODO(Acreal): localize this string
+                            }
+                        };
+
+                        aoSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            _refreshPostFx = true;
+                            float val = slider.GetSliderValue();
+                            DaggerfallUnity.Settings.AmbientOcclusionEnable = val > float.Epsilon;
+                            DaggerfallUnity.Settings.AmbientOcclusionIntensity = Mathf.Lerp(0f, 4f, val);
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
+                            }
+                        };
+                        #endregion
+
+                        #region Motion Blur
+                        UIScrollListGroup motionBlurGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("motionBlur"));
+                        motionBlurGroup.Collapse();
+
+                        UISlider motionBlurSlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        motionBlurSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("quality"));
+                        motionBlurSlider.SetSliderMinMax(0, 4, true);
+
+                        motionBlurSlider.DataSource_SliderValue = (_) =>
+                        {
+                            int idx = 0;
+                            if (DaggerfallUnity.Settings.MotionBlurEnable)
+                            {
+                                switch (DaggerfallUnity.Settings.MotionBlurSampleCount)
+                                {
+                                    case 4: idx = 1; break;
+                                    case 8: idx = 2; break;
+                                    case 16: idx = 3; break;
+                                    case 32: idx = 4; break;
+                                }
+                            }
+                            return idx;
+                        };
+
+                        motionBlurSlider.DataSource_SliderValueString = (_) =>
+                        {
+                            if (DaggerfallUnity.Settings.MotionBlurEnable)
+                            {
+                                int idx = 0;
+                                switch(DaggerfallUnity.Settings.MotionBlurSampleCount)
+                                {
+                                    case 4: idx = 1; break;
+                                    case 8: idx = 2; break;
+                                    case 16: idx = 3; break;
+                                    case 32: idx = 4; break;
+                                }
+                                return _localizedStrings_motionBlurQualitySettings[idx-1];
+                            }
+                            else
+                            {
+                                return "Off"; // TODO(Acreal): localize this string
+                            }
+                        };
+
+                        motionBlurSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            _refreshPostFx = true;
+                            int val = slider.GetSliderValueAsInt();
+                            DaggerfallUnity.Settings.MotionBlurEnable = val > 0;
+                            switch (val)
+                            {
+                                case 1:
+                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 4;
+                                    break;
+                                case 2:
+                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 8;
+                                    break;
+                                case 3:
+                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 16;
+                                    break;
+                                case 4:
+                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 32;
+                                    break;
+                            }
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.MotionBlur);
+                            }
+                        };
+                        #endregion
+
+                        #region Vignette
+                        UIScrollListGroup vignetteGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("vignette"));
+                        vignetteGroup.Collapse();
+
+                        UISlider vignetteSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        vignetteSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity")); // TODO(Acreal): localize this string
+                        vignetteSlider.SetSliderMinMax(0f, 1f, false);
+
+                        vignetteSlider.DataSource_SliderValue = (_) =>
+                        { 
+                            return DaggerfallUnity.Settings.VignetteEnable ? DaggerfallUnity.Settings.VignetteIntensity : 0f; 
+                        };
+
+                        vignetteSlider.DataSource_SliderValueString = (_) =>
+                        {
+                            if (DaggerfallUnity.Settings.VignetteEnable)
+                            {
+                                return (DaggerfallUnity.Settings.VignetteIntensity * 100f).ToString("N0") + "%";
+                            }
+                            else
+                            {
+                                return "Off"; // TODO(Acreal): localize this string
+                            }
+                        };
+
+                        vignetteSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            _refreshPostFx = true;
+                            float val = slider.GetSliderValue();
+                            DaggerfallUnity.Settings.VignetteEnable = val > float.Epsilon;
+                            DaggerfallUnity.Settings.VignetteIntensity = val;
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                            }
+                        };
+                        #endregion
+
+                        #region Color Boost
+                        UIScrollListGroup colorBoostGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("colorBoost"));
+                        colorBoostGroup.Collapse();
+
+                        UISlider colorBoostSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        colorBoostSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity"));
+                        colorBoostSlider.SetSliderMinMax(0f, 1f, false);
+
+                        colorBoostSlider.DataSource_SliderValue = (_) =>
+                        {
+                            return DaggerfallUnity.Settings.ColorBoostEnable ? DaggerfallUnity.Settings.ColorBoostIntensity : 0f;
+                        };
+
+                        colorBoostSlider.DataSource_SliderValueString = (_) =>
+                        {
+                            if (DaggerfallUnity.Settings.ColorBoostEnable)
+                            {
+                                return (DaggerfallUnity.Settings.ColorBoostIntensity * 100f).ToString("N0") + "%";
+                            }
+                            else
+                            {
+                                return "Off"; // TODO(Acreal): localize this string
+                            }
+                        };
+
+                        colorBoostSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                        {
+                            saveSettings = true;
+                            _refreshPostFx = true;
+                            float val = slider.GetSliderValue();
+                            DaggerfallUnity.Settings.ColorBoostEnable = val > float.Epsilon;
+                            DaggerfallUnity.Settings.ColorBoostIntensity = val;
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                            }
+                        };
+                        #endregion
+
+                        #region Dithering
+                        UIToggle ditherToggle = postFxGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        ditherToggle.SetDisplayName(TextManager.Instance.GetLocalizedText("dither"));
+                        ditherToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.DitherEnable; };
+                        ditherToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.DitherEnable = toggle.isToggledOn;
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Dither);
+                            }
+                        };
+                        #endregion
                         #endregion
 
                         #region Camera Settings
@@ -546,12 +974,6 @@ namespace AcrealUI
                             DaggerfallUnity.Settings.NatureBillboardShadows = toggle.isToggledOn;
                         };
                         #endregion
-
-                        // TODO(Acreal): finish adding video options
-                        // SLIDER: main filter mode
-                        // TOGGLE: random dungeon textures
-                        // TOGGLE: ambient lit interiors
-                        // TOGGLE: texture array
                     }
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -570,7 +992,6 @@ namespace AcrealUI
                         soundVolume.DataSource_SliderValue = (_) => { return Mathf.RoundToInt(DaggerfallUnity.Settings.SoundVolume * 100f); };
                         soundVolume.DataSource_SliderValueString = (_) =>
                         {
-                            Debug.Log("Sound Volume: " + DaggerfallUnity.Settings.SoundVolume);
                             return ((int)(DaggerfallUnity.Settings.SoundVolume * 100f)).ToString("N0") + "%";
                         };
                         soundVolume.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -585,7 +1006,6 @@ namespace AcrealUI
                         musicVolume.DataSource_SliderValue = (_) => { return Mathf.RoundToInt(DaggerfallUnity.Settings.MusicVolume * 100f); };
                         musicVolume.DataSource_SliderValueString = (_) =>
                         {
-                            Debug.Log("Music Volume: " + DaggerfallUnity.Settings.MusicVolume);
                             return ((int)(DaggerfallUnity.Settings.MusicVolume * 100f)).ToString("N0") + "%";
                         };
                         musicVolume.Event_OnSliderValueChanged += (UISlider slider) =>
@@ -1068,6 +1488,16 @@ namespace AcrealUI
             {
                 DaggerfallUnity.Settings.SaveSettings();
                 saveSettings = false;
+            }
+            
+            if(_refreshPostFx)
+            {
+                if (GameManager.Instance.StartGameBehaviour != null)
+                {
+                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Everything);
+                }
+
+                _refreshPostFx = false;
             }
 
             HideWindow();

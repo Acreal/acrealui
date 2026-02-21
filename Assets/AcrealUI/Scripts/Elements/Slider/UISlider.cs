@@ -95,7 +95,12 @@ namespace AcrealUI
         public override void Refresh()
         {
             base.Refresh();
-            
+
+            if (_slider != null)
+            {
+                _slider.interactable = !isDisabled;
+            }
+
             if (DataSource_SliderValue != null)
             {
                 _slider.SetValueWithoutNotify(DataSource_SliderValue(gameObject));

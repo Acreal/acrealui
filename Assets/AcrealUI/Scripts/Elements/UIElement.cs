@@ -10,6 +10,11 @@ namespace AcrealUI
         #endregion
 
 
+        #region Data Sources
+        public UIDelegates.DataSourceDelegate_Bool DataSource_GameObjectActive = null;
+        #endregion
+
+
         #region MonoBehaviour
         protected virtual void Awake()
         {
@@ -32,7 +37,18 @@ namespace AcrealUI
         #region Updating
         public virtual void Refresh()
         {
-            
+            if(DataSource_GameObjectActive != null)
+            {
+                bool active = DataSource_GameObjectActive(gameObject);
+                if(gameObject.activeSelf != active)
+                {
+                    gameObject.SetActive(active);
+                }
+            }
+            else if(!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+            }
         }
         #endregion
 
