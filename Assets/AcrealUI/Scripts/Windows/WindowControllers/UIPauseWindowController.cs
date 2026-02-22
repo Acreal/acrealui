@@ -954,7 +954,7 @@ namespace AcrealUI
 
                                 if (GameManager.Instance.StartGameBehaviour != null)
                                 {
-                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
                                 }
                             };
                         }
