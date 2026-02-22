@@ -107,7 +107,7 @@ namespace AcrealUI
 
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveWindowController));
+            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
 
             ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset All Keybinds to Defaults", string.Empty, (_) =>
             {
@@ -140,7 +140,7 @@ namespace AcrealUI
             /////////////////////////////////////////////////////////////////////////////////////////////////
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveWindowController));
+            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************[WINDOWS THAT NEED TO BE REPLACED]*********************************//

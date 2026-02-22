@@ -32,6 +32,7 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_rawImage_saveScreenShot = null;
         [SerializeField] private string _gameObjName_inputField_saveName = null;
         [SerializeField] private string _gameObjName_parent_scrollGroup = null;
+        [SerializeField] private string _gameObjName_parent_renameDeleteButtons = null;
         [SerializeField] private string _gameObjName_text_realTime = null;
         [SerializeField] private string _gameObjName_text_gameTime = null;
         [SerializeField] private string _gameObjName_text_version = null;
@@ -66,6 +67,7 @@ namespace AcrealUI
         private GameObject _savePromptParent = null;
         private GameObject _saveDetailsParent = null;
         private GameObject _scrollListParent = null;
+        private GameObject _renameDeleteButtonsParent = null;
 
         private Dictionary<string, UISaveGameEntry> _idToSaveGameDataDict = null;
         private Transform _scrollGroupParent = null;
@@ -161,6 +163,13 @@ namespace AcrealUI
                 Transform scrollListTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_scrollListParent);
                 if (scrollListTForm != null) { _scrollListParent = scrollListTForm.gameObject; }
                 else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_scrollListParent + "\""); }
+            }
+
+            if (!string.IsNullOrEmpty(_gameObjName_parent_renameDeleteButtons))
+            {
+                Transform buttonsTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_parent_renameDeleteButtons);
+                if (buttonsTForm != null) { _renameDeleteButtonsParent = buttonsTForm.gameObject; }
+                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_parent_renameDeleteButtons + "\""); }
             }
 
             if (!string.IsNullOrEmpty(_gameObjName_inputField_saveName))
@@ -357,6 +366,14 @@ namespace AcrealUI
             if (_switchCharButton != null)
             {
                 _switchCharButton.gameObject.SetActive(active);
+            }
+        }
+
+        public void SetRenameDeleteButtonsActive(bool active)
+        {
+            if (_renameDeleteButtonsParent != null)
+            {
+                _renameDeleteButtonsParent.SetActive(active);
             }
         }
 

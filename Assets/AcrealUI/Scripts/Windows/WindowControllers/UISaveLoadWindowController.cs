@@ -25,7 +25,7 @@ using UnityEngine;
 
 namespace AcrealUI
 {
-    public class UISaveWindowController : DaggerfallUnitySaveGameWindow, IWindowController
+    public class UISaveLoadWindowController : DaggerfallUnitySaveGameWindow, IWindowController
     {
         #region Definitions
         public enum SaveWindowState
@@ -47,7 +47,7 @@ namespace AcrealUI
 
 
         #region Constructor
-        public UISaveWindowController(IUserInterfaceManager uiManager, Modes mode, DaggerfallBaseWindow previous = null, bool displayMostRecentChar = false) : base(uiManager, mode, previous, displayMostRecentChar)
+        public UISaveLoadWindowController(IUserInterfaceManager uiManager, Modes mode, DaggerfallBaseWindow previous = null, bool displayMostRecentChar = false) : base(uiManager, mode, previous, displayMostRecentChar)
         {
             if (UIManager.referenceManager.prefab_saveLoadWindow != null)
             {
@@ -502,32 +502,28 @@ namespace AcrealUI
                             _saveLoadGameWindow.SetInputFieldValue(null);
                             _saveLoadGameWindow.SetSaveInfoHeaderActive(true);
                             _saveLoadGameWindow.SetSaveDetailsActive(true);
+                            _saveLoadGameWindow.SetRenameDeleteButtonsActive(true);
                             _saveLoadGameWindow.SetImportButtonActive(_currentState == SaveWindowState.Load);
                             _saveLoadGameWindow.SetSelectCharacterButtonActive(_currentState == SaveWindowState.Load);
 
+                            string characterText = "<color=#FFFF00>" + _selectedSaveGameData.characterName + "</color>";
+                            string headerText = null;
                             string promptText = null;
-                            string buttonText = null;
                             if (_currentState == SaveWindowState.Save)
                             {
-                                string saveText = UIUtilityFunctions.GetLocalizedText("saveButton");
-                                _saveLoadGameWindow.SetHeaderText(saveText);
-                                buttonText = saveText;
-
+                                headerText = UIUtilityFunctions.GetLocalizedText("saveButton");
                                 promptText = UIUtilityFunctions.GetLocalizedText("savePrompt");
-                                promptText = string.Format(UIUtilityFunctions.GetLocalizedText("saveLoadPromptFormat"), promptText, _selectedSaveGameData.characterName);
-                                _saveLoadGameWindow.SetSaveLoadPromptText(promptText);
                             }
                             else
                             {
-                                string loadText = UIUtilityFunctions.GetLocalizedText("loadButton");
-                                _saveLoadGameWindow.SetHeaderText(loadText);
-                                buttonText = loadText;
-
+                                headerText = UIUtilityFunctions.GetLocalizedText("loadButton");
                                 promptText = UIUtilityFunctions.GetLocalizedText("loadPrompt");
-                                promptText = string.Format(UIUtilityFunctions.GetLocalizedText("saveLoadPromptFormat"), promptText, _selectedSaveGameData.characterName);
-                                _saveLoadGameWindow.SetSaveLoadPromptText(promptText);
                             }
-                            _saveLoadGameWindow.SetSaveLoadButtonText(buttonText);
+                            promptText = string.Format(UIUtilityFunctions.GetLocalizedText("saveLoadPromptFormat"), promptText, characterText);
+
+                            _saveLoadGameWindow.SetHeaderText(headerText);
+                            _saveLoadGameWindow.SetSaveLoadPromptText(promptText);
+                            _saveLoadGameWindow.SetSaveLoadButtonText(headerText); //reuse header text
                             break;
 
                         case SaveWindowState.ImportSave:
@@ -535,6 +531,7 @@ namespace AcrealUI
                             _saveLoadGameWindow.SetSaveInfoHeaderActive(false);
                             _saveLoadGameWindow.SetSaveDetailsActive(false);
                             _saveLoadGameWindow.SetImportButtonActive(false);
+                            _saveLoadGameWindow.SetRenameDeleteButtonsActive(false);
 
                             if(_currentState == SaveWindowState.ImportSave)
                             {

@@ -3652,6 +3652,7 @@ MonoBehaviour:
   _gameObjName_rawImage_saveScreenShot: RawImage_ScreenShot
   _gameObjName_inputField_saveName: InputField_SaveName
   _gameObjName_parent_scrollGroup: ToggleGroup_Content
+  _gameObjName_parent_renameDeleteButtons: HorizontalLayout_RenameDeleteButtons
   _gameObjName_text_realTime: Text_RealTime
   _gameObjName_text_gameTime: Text_GameTime
   _gameObjName_text_version: Text_Version
