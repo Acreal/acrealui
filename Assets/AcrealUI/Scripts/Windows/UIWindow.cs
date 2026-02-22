@@ -21,6 +21,7 @@ using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 namespace AcrealUI
 {
@@ -30,12 +31,14 @@ namespace AcrealUI
         #region Variables
         [SerializeField] private string _gameObjName_canvasComponent = null;
         [SerializeField] private string _gameObjName_canvasGroup = null;
+        [SerializeField] private string _gameObjName_layoutElement = null;
         [SerializeField] private string _gameObjName_closeWindowButton = null;
         [SerializeField] private string _gameObjName_backButton = null;
         [SerializeField] private string _gameObjName_headerText = null;
 
         protected Canvas _canvasComponent = null;
         protected CanvasGroup _canvasGroup = null;
+        protected LayoutElement _layoutElement = null;
         protected UIButton _closeWindowButton = null;
         protected UIButton _backButton = null;
         protected TextMeshProUGUI _headerText = null;
@@ -105,6 +108,12 @@ namespace AcrealUI
             if(canvasGroupTform == null) { canvasGroupTform = transform; }
             _canvasGroup = canvasGroupTform != null ? canvasGroupTform.GetComponent<CanvasGroup>() : null;
 
+            // FIND LAYOUT ELEMENT
+            Transform layoutElemTform = null;
+            if (!string.IsNullOrEmpty(_gameObjName_layoutElement)) { layoutElemTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_layoutElement); }
+            if (layoutElemTform == null) { layoutElemTform = transform; }
+            _layoutElement = layoutElemTform != null ? layoutElemTform.GetComponent<LayoutElement>() : null;
+
             // FIND CLOSE BUTTON
             if (!string.IsNullOrEmpty(_gameObjName_closeWindowButton))
             {
@@ -135,6 +144,7 @@ namespace AcrealUI
                 }
             }
 
+            // FIND HEADER TEXT
             if (!string.IsNullOrEmpty(_gameObjName_headerText))
             {
                 Transform headerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_headerText);
@@ -200,6 +210,23 @@ namespace AcrealUI
             if (_headerText != null)
             {
                 _headerText.text = header;
+            }
+        }
+
+        public void SetSize(Vector2 size)
+        {
+            if(_layoutElement != null)
+            {
+                _layoutElement.minWidth = size.x;
+                _layoutElement.minHeight = size.y;
+            }
+            else
+            {
+                RectTransform rt = (_canvasGroup != null ? _canvasGroup.transform : transform) as RectTransform;
+                if(rt != null)
+                {
+                    rt.sizeDelta = size;
+                }
             }
         }
         #endregion

@@ -434,8 +434,20 @@ namespace AcrealUI
 
         public override void CancelWindow()
         {
-            HideWindow();
-            base.CancelWindow();
+            switch(_currentState)
+            {
+                case SaveWindowState.Save:
+                case SaveWindowState.Load:
+                    HideWindow();
+                    base.CancelWindow();
+                    break;
+
+                case SaveWindowState.ImportSave:
+                case SaveWindowState.SelectCharacter:
+                    if(mode == Modes.SaveGame) { SetState(SaveWindowState.Save); }
+                    else { SetState(SaveWindowState.Load); }
+                    break;
+            }
         }
 
         // NOTE(Acreal): I would normally override this instead of using UpdateSaveEntries(),
@@ -499,6 +511,7 @@ namespace AcrealUI
                     {
                         case SaveWindowState.Save:
                         case SaveWindowState.Load:
+                            _saveLoadGameWindow.SetSize(new Vector2(770, 606));
                             _saveLoadGameWindow.SetInputFieldValue(null);
                             _saveLoadGameWindow.SetSaveInfoHeaderActive(true);
                             _saveLoadGameWindow.SetSaveDetailsActive(true);
@@ -528,6 +541,7 @@ namespace AcrealUI
 
                         case SaveWindowState.ImportSave:
                         case SaveWindowState.SelectCharacter:
+                            _saveLoadGameWindow.SetSize(new Vector2(350, 450));
                             _saveLoadGameWindow.SetSaveInfoHeaderActive(false);
                             _saveLoadGameWindow.SetSaveDetailsActive(false);
                             _saveLoadGameWindow.SetImportButtonActive(false);

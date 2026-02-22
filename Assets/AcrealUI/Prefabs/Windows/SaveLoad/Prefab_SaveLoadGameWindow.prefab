@@ -2387,7 +2387,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: 275
-  m_MinHeight: 492
+  m_MinHeight: -1
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: 1
@@ -3646,6 +3646,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameObjName_canvasComponent: 
   _gameObjName_canvasGroup: MainPivot
+  _gameObjName_layoutElement: MainPivot
   _gameObjName_closeWindowButton: Button_Close
   _gameObjName_backButton: Button_Back
   _gameObjName_headerText: Text_Header
