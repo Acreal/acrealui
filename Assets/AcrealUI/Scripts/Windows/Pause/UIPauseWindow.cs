@@ -147,15 +147,15 @@ namespace AcrealUI
 
 
         #region Public API
-        public void SetState(PauseWindowState stateToSet)
+        public void SetState(PauseWindowState stateToSet, bool setSizeInstantly = false)
         {
             if (_currentState != stateToSet)
             {
                 if (_activePanel != null)
                 {
                     _activePanel.Hide();
-                    _activePanel = null;
                 }
+                _activePanel = null;
 
                 PauseWindowState prevState = currentState;
                 _currentState = stateToSet;
@@ -224,9 +224,24 @@ namespace AcrealUI
                 {
                     _activePanel.Show();
 
-                    if (_canvasGroup != null)
+                    RectTransform rt = _canvasGroup != null ? _canvasGroup.transform as RectTransform : transform as RectTransform;
+                    if (setSizeInstantly)
                     {
-                        RectTransform rt = _canvasGroup.transform as RectTransform;
+                        Vector2 size = _activePanel.panelSize + _panelSizeOffset;
+
+                        LayoutElement layoutElem = _canvasGroup.GetComponent<LayoutElement>();
+                        if (layoutElem != null)
+                        {
+                            layoutElem.minWidth = size.x;
+                            layoutElem.minHeight = size.y;
+                        }
+                        else
+                        {
+                            rt.sizeDelta = size;
+                        }
+                    }
+                    else
+                    {
                         StartCoroutine(TweenSizeRoutine(rt.sizeDelta, _activePanel.panelSize + _panelSizeOffset, 0.1f));
                     }
                 }

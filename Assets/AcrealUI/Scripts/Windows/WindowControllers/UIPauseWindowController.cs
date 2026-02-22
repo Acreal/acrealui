@@ -21,14 +21,15 @@ using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
-using DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.UI;
 
 namespace AcrealUI
 {
+    // TODO(Acreal): replace magic numbers used for settings with constant variables
     public class UIPauseWindowController : DaggerfallPauseOptionsWindow, IWindowController
     {
         #region Variables
@@ -47,9 +48,12 @@ namespace AcrealUI
         private string[] _localizedStrings_textureModes = null;
         private string[] _localizedStrings_antiAliasingMethods = null;
         private string[] _localizedStrings_smaaQualitySettings = null;
-        private string[] _localizedStrings_motionBlurQualitySettings = null;
+        private string[] _localizedStrings_ambientOcclusionMethods = null;
+        private string[] _localizedStrings_aoQualityLevels = null;
+        private string[] _localizedStrings_blurSizes = null;
+        private string[] _localizedStrings_retroPostProcessModes = null;
+        private string[] _localizedStrings_retroAspectCorrections = null;
         private int _maxFramerate = 30;
-        private bool _refreshPostFx = false;
         #endregion
 
 
@@ -66,34 +70,80 @@ namespace AcrealUI
             _instanceIdToResolutionDict = new Dictionary<int, Resolution>();
             _toggleIdToActionStringDict = new Dictionary<int, string>();
 
-            _localizedStrings_weaponSwingModes = TextManager.Instance.GetLocalizedTextList("weaponSwingModes", TextCollections.TextSettings);
-            _localizedStrings_shadowResolutionModes = TextManager.Instance.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
-            _localizedStrings_filterModes = TextManager.Instance.GetLocalizedTextList("filterModes", TextCollections.TextSettings);
-            _localizedStrings_textureModes = TextManager.Instance.GetLocalizedTextList("dungeonTextureModes", TextCollections.TextSettings);
-
-            //we can reuse the shadow resolution settings here
-            _localizedStrings_motionBlurQualitySettings = TextManager.Instance.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
+            _localizedStrings_weaponSwingModes = UIUtilityFunctions.GetLocalizedTextList("weaponSwingModes", TextCollections.TextSettings);
+            _localizedStrings_shadowResolutionModes = UIUtilityFunctions.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
+            _localizedStrings_filterModes = UIUtilityFunctions.GetLocalizedTextList("filterModes", TextCollections.TextSettings);
+            _localizedStrings_textureModes = UIUtilityFunctions.GetLocalizedTextList("dungeonTextureModes", TextCollections.TextSettings);
 
             _localizedStrings_retroModes = new string[3]
             {
-                TextManager.Instance.GetLocalizedText("retroModeOff"),
-                TextManager.Instance.GetLocalizedText("retroMode320x200"),
-                TextManager.Instance.GetLocalizedText("retroMode640x400"),
+                UIUtilityFunctions.GetLocalizedText("retroModeOff"),
+                UIUtilityFunctions.GetLocalizedText("retroMode320x200"),
+                UIUtilityFunctions.GetLocalizedText("retroMode640x400"),
             };
 
             _localizedStrings_antiAliasingMethods = new string[]
             {
-                TextManager.Instance.GetLocalizedText("none"),
-                TextManager.Instance.GetLocalizedText("fxaa"),
-                TextManager.Instance.GetLocalizedText("smaa"),
-                TextManager.Instance.GetLocalizedText("taa")
+                UIUtilityFunctions.GetLocalizedText("none"),
+                UIUtilityFunctions.GetLocalizedText("fxaa"),
+                UIUtilityFunctions.GetLocalizedText("smaa"),
+                UIUtilityFunctions.GetLocalizedText("taa")
             };
 
             _localizedStrings_smaaQualitySettings = new string[]
             {
-                TextManager.Instance.GetLocalizedText("low"),
-                TextManager.Instance.GetLocalizedText("medium"),
-                TextManager.Instance.GetLocalizedText("high")
+                UIUtilityFunctions.GetLocalizedText("low"),
+                UIUtilityFunctions.GetLocalizedText("medium"),
+                UIUtilityFunctions.GetLocalizedText("high")
+            };
+
+            if (SystemInfo.graphicsShaderLevel >= 45)
+            {
+                _localizedStrings_ambientOcclusionMethods = new string[]
+                {
+                    UIUtilityFunctions.GetLocalizedText("scalableAmbient"),
+                    UIUtilityFunctions.GetLocalizedText("multiScaleVolumetric")
+                };
+            }
+            else
+            {
+                _localizedStrings_ambientOcclusionMethods = new string[]
+                {
+                    UIUtilityFunctions.GetLocalizedText("scalableAmbient"),
+                };
+            }
+
+            _localizedStrings_aoQualityLevels = new string[]
+            {
+                UIUtilityFunctions.GetLocalizedText("lowest"),
+                UIUtilityFunctions.GetLocalizedText("low"),
+                UIUtilityFunctions.GetLocalizedText("medium"),
+                UIUtilityFunctions.GetLocalizedText("high"),
+                UIUtilityFunctions.GetLocalizedText("ultra")
+            };
+
+            _localizedStrings_blurSizes = new string[]
+            {
+                UIUtilityFunctions.GetLocalizedText("small"),
+                UIUtilityFunctions.GetLocalizedText("medium"),
+                UIUtilityFunctions.GetLocalizedText("large"),
+                UIUtilityFunctions.GetLocalizedText("veryLarge"),
+            };
+
+            _localizedStrings_retroPostProcessModes = new string[]
+            {
+                TextManager.Instance.GetLocalizedText("off"),
+                TextManager.Instance.GetLocalizedText("posterizationFull"),
+                TextManager.Instance.GetLocalizedText("posterizationMinusSky"),
+                TextManager.Instance.GetLocalizedText("palettizationFull"),
+                TextManager.Instance.GetLocalizedText("palettizationMinusSky"),
+            };
+
+            _localizedStrings_retroAspectCorrections = new string[]
+            {
+                TextManager.Instance.GetLocalizedText("off"),
+                TextManager.Instance.GetLocalizedText("FourThree"),
+                TextManager.Instance.GetLocalizedText("SixteenTen")
             };
 
             ResetKeybindDict();
@@ -439,23 +489,10 @@ namespace AcrealUI
                             GameManager.UpdateShadowResolution();
                         };
 
-                        UISlider retroSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        retroSlider.SetTextTitle("Retro Mode"); // TODO(Acreal): localize this string
-                        retroSlider.SetSliderMinMax(0, 2, true);
-                        retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroRenderingMode; };
-                        retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroModes[DaggerfallUnity.Settings.RetroRenderingMode]; }; // TODO(Acreal): localize quality level names?
-                        retroSlider.Event_OnSliderValueChanged += (UISlider slider) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.RetroRenderingMode = slider.GetSliderValueAsInt();
+                        UIScrollListGroup textureGroup = renderGroup.GetOrAddSubScrollListGroup("Textures"); // TODO(Acreal): localize this string
+                        textureGroup.Collapse();
 
-                            if (GameManager.Instance.StartGameBehaviour != null)
-                            {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.RetroMode);
-                            }
-                        };
-
-                        UISlider mainFilterSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        UISlider mainFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         mainFilterSlider.SetTextTitle("Main Filter"); // TODO(Acreal): localize this string
                         mainFilterSlider.SetSliderMinMax(0, 2, true);
                         mainFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MainFilterMode; };
@@ -466,7 +503,7 @@ namespace AcrealUI
                             DaggerfallUnity.Settings.MainFilterMode = slider.GetSliderValueAsInt();
                         };
 
-                        UISlider guiFilterSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        UISlider guiFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         guiFilterSlider.SetTextTitle("GUI Filter"); // TODO(Acreal): localize this string
                         guiFilterSlider.SetSliderMinMax(0, 2, true);
                         guiFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.GUIFilterMode; };
@@ -477,7 +514,7 @@ namespace AcrealUI
                             DaggerfallUnity.Settings.GUIFilterMode = slider.GetSliderValueAsInt();
                         };
 
-                        UISlider videoFilterSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        UISlider videoFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         videoFilterSlider.SetTextTitle("Video Filter"); // TODO(Acreal): localize this string
                         videoFilterSlider.SetSliderMinMax(0, 2, true);
                         videoFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.VideoFilterMode; };
@@ -488,7 +525,7 @@ namespace AcrealUI
                             DaggerfallUnity.Settings.VideoFilterMode = slider.GetSliderValueAsInt();
                         };
 
-                        UISlider dungeonTexSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        UISlider dungeonTexSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         dungeonTexSlider.SetTextTitle("Dungeon Texture Mode"); // TODO(Acreal): localize this string
                         dungeonTexSlider.SetSliderMinMax(0, 2, true);
                         dungeonTexSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RandomDungeonTextures; };
@@ -499,9 +536,21 @@ namespace AcrealUI
                             DaggerfallUnity.Settings.RandomDungeonTextures = slider.GetSliderValueAsInt();
                         };
 
-                        UISlider aaModeSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        aaModeSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("antialiasing") + " " + TextManager.Instance.GetLocalizedText("method"));
-                        //aaModeSlider.SetTooltip(TextManager.Instance.GetLocalizedText("antialiasingTip"));
+                        UIToggle texArrayToggle = textureGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        texArrayToggle.SetDisplayName("Enable Texture Arrays");  // TODO(Acreal): localize this string
+                        texArrayToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.EnableTextureArrays; };
+                        texArrayToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.EnableTextureArrays = toggle.isToggledOn;
+                        };
+
+                        UIScrollListGroup aaGroup = renderGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("antialiasing"));
+                        aaGroup.Collapse();
+
+                        UISlider aaModeSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        aaModeSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("method"));
+                        //aaModeSlider.SetTooltip(UIUtilityFunctions.GetLocalizedText("antialiasingTip"));
                         aaModeSlider.SetSliderMinMax(0, 3, true);
                         aaModeSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod; };
                         aaModeSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_antiAliasingMethods[DaggerfallUnity.Settings.AntialiasingMethod]; };
@@ -518,8 +567,8 @@ namespace AcrealUI
                             _pauseWindowInstance.panelVideoSettings.Refresh();
                         };
 
-                        UISlider taaSharpnessSlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        taaSharpnessSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("taaSharpness"));
+                        UISlider taaSharpnessSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        taaSharpnessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("taaSharpness"));
                         taaSharpnessSlider.SetSliderMinMax(0.0f, 3.0f, false);
                         taaSharpnessSlider.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.TAA; };
                         taaSharpnessSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingTAASharpness; };
@@ -527,12 +576,16 @@ namespace AcrealUI
                         taaSharpnessSlider.Event_OnSliderValueChanged += (UISlider slider) =>
                         {
                             saveSettings = true;
-                            _refreshPostFx = true;
                             DaggerfallUnity.Settings.AntialiasingTAASharpness = slider.GetSliderValue();
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
+                            }
                         };
 
-                        UISlider smaaQualitySlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        smaaQualitySlider.SetTextTitle(TextManager.Instance.GetLocalizedText("smaaQuality"));
+                        UISlider smaaQualitySlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                        smaaQualitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("smaaQuality"));
                         smaaQualitySlider.SetSliderMinMax(0, 2, true);
                         smaaQualitySlider.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.SMAA; };
                         smaaQualitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingSMAAQuality; };
@@ -548,8 +601,8 @@ namespace AcrealUI
                             }
                         };
 
-                        UIToggle fastFxaaToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        fastFxaaToggle.SetDisplayName(TextManager.Instance.GetLocalizedText("fxaaFastMode"));
+                        UIToggle fastFxaaToggle = aaGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        fastFxaaToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("fxaaFastMode"));
                         fastFxaaToggle.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.FXAA; };
                         fastFxaaToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.AntialiasingFXAAFastMode; };
                         fastFxaaToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
@@ -563,17 +616,8 @@ namespace AcrealUI
                             }
                         };
 
-                        UIToggle texArrayToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        texArrayToggle.SetDisplayName("Enable Texture Arrays");  // TODO(Acreal): localize this string
-                        texArrayToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.EnableTextureArrays; };
-                        texArrayToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.EnableTextureArrays = toggle.isToggledOn;
-                        };
-
                         UIToggle ambientLitToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        ambientLitToggle.SetDisplayName("Ambient Lit Interiors");  // TODO(Acreal): localize this string
+                        ambientLitToggle.SetDisplayName("Ambient Lit Interiors"); // TODO(Acreal): localize this string
                         ambientLitToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.AmbientLitInteriors; };
                         ambientLitToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -586,257 +630,912 @@ namespace AcrealUI
                         UIScrollListGroup postFxGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Post Processing"); // TODO(Acreal): localize this string
                         renderGroup.Collapse();
 
+                        #region Retro Mode
+                        UIScrollListGroup retroGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("retroMode"));
+                        retroGroup.Collapse();
+
+                        ////// RENDERING MODE ///////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            retroSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("mode"));
+                            retroSlider.SetSliderMinMax(0, _localizedStrings_retroModes.Length-1, true);
+                            retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroRenderingMode; };
+                            retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroModes[DaggerfallUnity.Settings.RetroRenderingMode]; }; // TODO(Acreal): localize quality level names?
+                            retroSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.RetroRenderingMode = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.RetroMode);
+                                }
+                            };
+                        }
+
+                        ////// POST-PROCESS MODE ///////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            retroSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("postProcess"));
+                            retroSlider.SetSliderMinMax(0, _localizedStrings_retroPostProcessModes.Length-1, true);
+                            retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.PostProcessingInRetroMode; };
+                            retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroPostProcessModes[DaggerfallUnity.Settings.PostProcessingInRetroMode]; }; // TODO(Acreal): localize quality level names?
+                            retroSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.PostProcessingInRetroMode = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.RetroMode);
+                                }
+                            };
+                        }
+
+                        ////// ASPECT CORRECTION ///////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            retroSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("retroModeAspectCorrection"));
+                            retroSlider.SetSliderMinMax(0, _localizedStrings_retroAspectCorrections.Length - 1, true);
+                            retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroModeAspectCorrection; };
+                            retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroAspectCorrections[DaggerfallUnity.Settings.RetroModeAspectCorrection]; }; // TODO(Acreal): localize quality level names?
+                            retroSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.RetroModeAspectCorrection = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.RetroMode);
+                                }
+                            };
+                        }
+                        #endregion
+
                         #region Depth of Field
-                        UIScrollListGroup dofGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("depthOfField"));
+                        UIScrollListGroup dofGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("depthOfField"));
                         dofGroup.Collapse();
 
-                        UIToggle dofToggle = dofGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        dofToggle.SetDisplayName(TextManager.Instance.GetLocalizedText("enable"));
-                        dofToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.DepthOfFieldEnable; };
-                        dofToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.DepthOfFieldEnable = toggle.isToggledOn;
-
-                            if (GameManager.Instance.StartGameBehaviour != null)
+                            UIToggle dofToggle = dofGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            dofToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                            dofToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.DepthOfFieldEnable; };
+                            dofToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                             {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
-                            }
-                        };
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.DepthOfFieldEnable = toggle.isToggledOn;
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
+                                }
+                            };
+                        }
+
+                        ////// FOCUS DISTANCE //////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider focusDistSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            focusDistSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("focusDistance"));
+                            focusDistSlider.SetSliderMinMax(0.1f, 100f, false);
+
+                            focusDistSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldFocusDistance;
+                            };
+
+                            focusDistSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldFocusDistance.ToString("N1");
+                            };
+
+                            focusDistSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.DepthOfFieldFocusDistance = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
+                                }
+                            };
+                        }
+
+                        ////// APERTURE ////////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider apertureSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            apertureSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("aperture"));
+                            apertureSlider.SetSliderMinMax(0.1f, 32.0f, false);
+
+                            apertureSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldAperture;
+                            };
+
+                            apertureSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldAperture.ToString("N1");
+                            };
+
+                            apertureSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.DepthOfFieldAperture = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
+                                }
+                            };
+                        }
+
+                        ////// FOCAL LENGTH /////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider focalLengthSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            focalLengthSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("focalLength"));
+                            focalLengthSlider.SetSliderMinMax(1, 300, true);
+
+                            focalLengthSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldFocalLength;
+                            };
+
+                            focalLengthSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldFocalLength.ToString("N1");
+                            };
+
+                            focalLengthSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.DepthOfFieldFocalLength = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
+                                }
+                            };
+                        }
+
+                        ////// MAX BLUR SIZE ///////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider focalLengthSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            focalLengthSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("maxBlurSize"));
+                            focalLengthSlider.SetSliderMinMax(0, _localizedStrings_blurSizes.Length - 1, true);
+
+                            focalLengthSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.DepthOfFieldMaxBlurSize;
+                            };
+
+                            focalLengthSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return _localizedStrings_blurSizes[DaggerfallUnity.Settings.DepthOfFieldMaxBlurSize];
+                            };
+
+                            focalLengthSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.DepthOfFieldMaxBlurSize = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.DepthOfField);
+                                }
+                            };
+                        }
                         #endregion
 
                         #region Bloom
-                        UIScrollListGroup bloomGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("bloom"));
+                        UIScrollListGroup bloomGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("bloom"));
                         bloomGroup.Collapse();
 
-                        UISlider bloomSlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        bloomSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity"));
-                        bloomSlider.SetSliderMinMax(0f, 1f, false);
-                        bloomSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.BloomEnable ? Mathf.InverseLerp(0f, 50f, DaggerfallUnity.Settings.BloomIntensity) : 0f; };
-
-                        bloomSlider.DataSource_SliderValueString = (_) =>
+                        ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            if (DaggerfallUnity.Settings.BloomEnable)
+                            UIToggle bloomToggle = bloomGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            bloomToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                            bloomToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.BloomEnable; };
+                            bloomToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.BloomEnable = toggle.isToggledOn;
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                }
+                            };
+                        }
+
+                        ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            intensitySlider.SetSliderMinMax(0f, 1f, false);
+                            intensitySlider.DataSource_SliderValue = (_) => { return Mathf.InverseLerp(0f, 50f, DaggerfallUnity.Settings.BloomIntensity); };
+
+                            intensitySlider.DataSource_SliderValueString = (_) =>
                             {
                                 return (Mathf.InverseLerp(0f, 50f, DaggerfallUnity.Settings.BloomIntensity) * 100f).ToString("N0") + "%";
-                            }
-                            else
-                            {
-                                return "Off"; // TODO(Acreal): localize this string
-                            }
-                        };
+                            };
 
-                        bloomSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            intensitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                float val = slider.GetSliderValue();
+                                DaggerfallUnity.Settings.BloomIntensity = Mathf.Lerp(0f, 50f, val);
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                }
+                            };
+                        }
+
+                        ////// THRESHOLD ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            saveSettings = true;
-                            _refreshPostFx = true;
-                            float val = slider.GetSliderValue();
-                            DaggerfallUnity.Settings.BloomEnable = val > float.Epsilon;
-                            DaggerfallUnity.Settings.BloomIntensity = Mathf.Lerp(0f, 50f, val);
+                            UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("threshold"));
+                            intensitySlider.SetSliderMinMax(0.1f, 10f, false);
+                            intensitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.BloomThreshold; };
 
-                            if (GameManager.Instance.StartGameBehaviour != null)
+                            intensitySlider.DataSource_SliderValueString = (_) =>
                             {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
-                            }
-                        };
+                                return DaggerfallUnity.Settings.BloomThreshold.ToString("F1");
+                            };
+
+                            intensitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.BloomThreshold = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                }
+                            };
+                        }
+
+                        ////// DIFFUSION //////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("diffusion"));
+                            intensitySlider.SetSliderMinMax(1f, 10f, false);
+                            intensitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.BloomDiffusion; };
+
+                            intensitySlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.BloomDiffusion.ToString("N1");
+                            };
+
+                            intensitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.BloomDiffusion = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                }
+                            };
+                        }
+
+                        ////// FAST MODE //////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UIToggle bloomToggle = bloomGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            bloomToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("bloomFastMode"));
+                            bloomToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.BloomFastMode; };
+                            bloomToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.BloomFastMode = toggle.isToggledOn;
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                }
+                            };
+                        }
                         #endregion
 
                         #region Ambient Occlusion
-                        UIScrollListGroup aoGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("ambientOcclusion"));
+                        UIScrollListGroup aoGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("ambientOcclusion"));
                         aoGroup.Collapse();
 
-                        UISlider aoSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        aoSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity"));
-                        aoSlider.SetSliderMinMax(0f, 1f, false);
-
-                        aoSlider.DataSource_SliderValue = (_) =>
+                        ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            return DaggerfallUnity.Settings.AmbientOcclusionEnable ? Mathf.InverseLerp(0f, 4f, DaggerfallUnity.Settings.AmbientOcclusionIntensity) : 0f;
-                        };
+                            UIToggle aoToggle = aoGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            aoToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                            aoToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.AmbientOcclusionEnable; };
+                            aoToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.AmbientOcclusionEnable = toggle.isToggledOn;
 
-                        aoSlider.DataSource_SliderValueString = (_) =>
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Bloom);
+                                }
+                            };
+                        }
+
+                        ////// METHOD /////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            if (DaggerfallUnity.Settings.AmbientOcclusionEnable)
+                            UISlider aoMethodSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            aoMethodSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("method"));
+                            aoMethodSlider.SetSliderMinMax(0f, _localizedStrings_ambientOcclusionMethods.Length-1, true);
+
+                            aoMethodSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.AmbientOcclusionMethod;
+                            };
+
+                            aoMethodSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return _localizedStrings_ambientOcclusionMethods[DaggerfallUnity.Settings.AmbientOcclusionMethod];
+                            };
+
+                            aoMethodSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.AmbientOcclusionMethod = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
+                                }
+
+                                // refresh for the dependent settings
+                                _pauseWindowInstance.panelVideoSettings.Refresh();
+                            };
+                        }
+
+                        ////// INTENSITY //////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider aoIntensitySlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            aoIntensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            aoIntensitySlider.SetSliderMinMax(0f, 1f, false);
+
+                            aoIntensitySlider.DataSource_SliderValue = (_) =>
+                            {
+                                return Mathf.InverseLerp(0f, 4f, DaggerfallUnity.Settings.AmbientOcclusionIntensity);
+                            };
+
+                            aoIntensitySlider.DataSource_SliderValueString = (_) =>
                             {
                                 return (Mathf.InverseLerp(0f, 4f, DaggerfallUnity.Settings.AmbientOcclusionIntensity) * 100f).ToString("N0") + "%";
-                            }
-                            else
-                            {
-                                return "Off"; // TODO(Acreal): localize this string
-                            }
-                        };
+                            };
 
-                        aoSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            aoIntensitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                float val = slider.GetSliderValue();
+                                DaggerfallUnity.Settings.AmbientOcclusionIntensity = Mathf.Lerp(0f, 4f, val);
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
+                                }
+                            };
+                        }
+
+                        ////// RADIUS ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            saveSettings = true;
-                            _refreshPostFx = true;
-                            float val = slider.GetSliderValue();
-                            DaggerfallUnity.Settings.AmbientOcclusionEnable = val > float.Epsilon;
-                            DaggerfallUnity.Settings.AmbientOcclusionIntensity = Mathf.Lerp(0f, 4f, val);
+                            UISlider aoRadiusSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            aoRadiusSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("radius"));
+                            aoRadiusSlider.SetSliderMinMax(0f, 2f, false);
 
-                            if (GameManager.Instance.StartGameBehaviour != null)
+                            aoRadiusSlider.DataSource_GameObjectActive = (_) =>
                             {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
-                            }
-                        };
+                                return DaggerfallUnity.Settings.AmbientOcclusionMethod == (int)AmbientOcclusionMode.ScalableAmbientObscurance;
+                            };
+
+                            aoRadiusSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return Mathf.InverseLerp(0f, 2f, DaggerfallUnity.Settings.AmbientOcclusionRadius);
+                            };
+
+                            aoRadiusSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return (Mathf.InverseLerp(0f, 2f, DaggerfallUnity.Settings.AmbientOcclusionRadius) * 100f).ToString("N0") + "%";
+                            };
+
+                            aoRadiusSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                float val = slider.GetSliderValue();
+                                DaggerfallUnity.Settings.AmbientOcclusionRadius = Mathf.Lerp(0f, 2f, val);
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
+                                }
+                            };
+                        }
+
+                        ////// QUALITY //////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider aoQualitySlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            aoQualitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("quality"));
+                            aoQualitySlider.SetSliderMinMax(0, _localizedStrings_aoQualityLevels.Length - 1, true);
+
+                            aoQualitySlider.DataSource_GameObjectActive = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.AmbientOcclusionMethod == (int)AmbientOcclusionMode.ScalableAmbientObscurance;
+                            };
+
+                            aoQualitySlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.AmbientOcclusionQuality;
+                            };
+
+                            aoQualitySlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return _localizedStrings_aoQualityLevels[DaggerfallUnity.Settings.AmbientOcclusionQuality];
+                            };
+
+                            aoQualitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.AmbientOcclusionQuality = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
+                                }
+                            };
+                        }
+
+                        ////// THICKNESS ////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider aoThicknessSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            aoThicknessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("thickness"));
+                            aoThicknessSlider.SetSliderMinMax(1f, 10f, false);
+
+                            aoThicknessSlider.DataSource_GameObjectActive = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.AmbientOcclusionMethod == (int)AmbientOcclusionMode.MultiScaleVolumetricObscurance;
+                            };
+
+                            aoThicknessSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.AmbientOcclusionThickness;
+                            };
+
+                            aoThicknessSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.AmbientOcclusionThickness.ToString("N1");
+                            };
+
+                            aoThicknessSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.AmbientOcclusionThickness = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.AmbientOcclusion);
+                                }
+                            };
+                        }
                         #endregion
 
                         #region Motion Blur
-                        UIScrollListGroup motionBlurGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("motionBlur"));
+                        UIScrollListGroup motionBlurGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("motionBlur"));
                         motionBlurGroup.Collapse();
 
-                        UISlider motionBlurSlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        motionBlurSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("quality"));
-                        motionBlurSlider.SetSliderMinMax(0, 4, true);
-
-                        motionBlurSlider.DataSource_SliderValue = (_) =>
+                        ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            int idx = 0;
-                            if (DaggerfallUnity.Settings.MotionBlurEnable)
+                            UIToggle motionBlurToggle = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            motionBlurToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                            motionBlurToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.MotionBlurEnable; };
+                            motionBlurToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                             {
-                                switch (DaggerfallUnity.Settings.MotionBlurSampleCount)
-                                {
-                                    case 4: idx = 1; break;
-                                    case 8: idx = 2; break;
-                                    case 16: idx = 3; break;
-                                    case 32: idx = 4; break;
-                                }
-                            }
-                            return idx;
-                        };
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.MotionBlurEnable = toggle.isToggledOn;
 
-                        motionBlurSlider.DataSource_SliderValueString = (_) =>
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.MotionBlur);
+                                }
+                            };
+                        }
+
+                        ////// SHUTTER ANGLE ////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            if (DaggerfallUnity.Settings.MotionBlurEnable)
+                            UISlider intensitySlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("shutterAngle"));
+                            intensitySlider.SetSliderMinMax(0, 360, true);
+                            intensitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MotionBlurShutterAngle; };
+
+                            intensitySlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.MotionBlurShutterAngle.ToString("N0");
+                            };
+
+                            intensitySlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.MotionBlurShutterAngle = slider.GetSliderValueAsInt();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.MotionBlur);
+                                }
+                            };
+                        }
+
+                        ////// SAMPLE COUNT /////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider motionBlurSlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            motionBlurSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("sampleCount"));
+                            motionBlurSlider.SetSliderMinMax(0, 3, true);
+
+                            motionBlurSlider.DataSource_SliderValue = (_) =>
                             {
                                 int idx = 0;
-                                switch(DaggerfallUnity.Settings.MotionBlurSampleCount)
+                                switch (DaggerfallUnity.Settings.MotionBlurSampleCount)
                                 {
-                                    case 4: idx = 1; break;
-                                    case 8: idx = 2; break;
-                                    case 16: idx = 3; break;
-                                    case 32: idx = 4; break;
+                                    case 4: idx = 0; break;
+                                    case 8: idx = 1; break;
+                                    case 16: idx = 2; break;
+                                    case 32: idx = 3; break;
                                 }
-                                return _localizedStrings_motionBlurQualitySettings[idx-1];
-                            }
-                            else
-                            {
-                                return "Off"; // TODO(Acreal): localize this string
-                            }
-                        };
+                                return idx;
+                            };
 
-                        motionBlurSlider.Event_OnSliderValueChanged += (UISlider slider) =>
-                        {
-                            saveSettings = true;
-                            _refreshPostFx = true;
-                            int val = slider.GetSliderValueAsInt();
-                            DaggerfallUnity.Settings.MotionBlurEnable = val > 0;
-                            switch (val)
+                            motionBlurSlider.DataSource_SliderValueString = (_) =>
                             {
-                                case 1:
-                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 4;
-                                    break;
-                                case 2:
-                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 8;
-                                    break;
-                                case 3:
-                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 16;
-                                    break;
-                                case 4:
-                                    DaggerfallUnity.Settings.MotionBlurSampleCount = 32;
-                                    break;
-                            }
+                                return DaggerfallUnity.Settings.MotionBlurSampleCount.ToString("N0");
+                            };
 
-                            if (GameManager.Instance.StartGameBehaviour != null)
+                            motionBlurSlider.Event_OnSliderValueChanged += (UISlider slider) =>
                             {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.MotionBlur);
-                            }
-                        };
+                                saveSettings = true;
+                                
+                                int val = slider.GetSliderValueAsInt();
+                                switch (val)
+                                {
+                                    case 0:
+                                        DaggerfallUnity.Settings.MotionBlurSampleCount = 4;
+                                        break;
+                                    case 1:
+                                        DaggerfallUnity.Settings.MotionBlurSampleCount = 8;
+                                        break;
+                                    case 2:
+                                        DaggerfallUnity.Settings.MotionBlurSampleCount = 16;
+                                        break;
+                                    case 3:
+                                        DaggerfallUnity.Settings.MotionBlurSampleCount = 32;
+                                        break;
+                                }
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.MotionBlur);
+                                }
+                            };
+                        }
                         #endregion
 
                         #region Vignette
-                        UIScrollListGroup vignetteGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("vignette"));
+                        UIScrollListGroup vignetteGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("vignette"));
                         vignetteGroup.Collapse();
 
-                        UISlider vignetteSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        vignetteSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity")); // TODO(Acreal): localize this string
-                        vignetteSlider.SetSliderMinMax(0f, 1f, false);
-
-                        vignetteSlider.DataSource_SliderValue = (_) =>
-                        { 
-                            return DaggerfallUnity.Settings.VignetteEnable ? DaggerfallUnity.Settings.VignetteIntensity : 0f; 
-                        };
-
-                        vignetteSlider.DataSource_SliderValueString = (_) =>
+                        ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            if (DaggerfallUnity.Settings.VignetteEnable)
+                            UIToggle vignetteToggle = vignetteGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            vignetteToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                            vignetteToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VignetteEnable; };
+                            vignetteToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.VignetteEnable = toggle.isToggledOn;
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                                }
+                            };
+                        }
+
+                        ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider vignetteSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            vignetteSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            vignetteSlider.SetSliderMinMax(0f, 1f, false);
+
+                            vignetteSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.VignetteIntensity;
+                            };
+
+                            vignetteSlider.DataSource_SliderValueString = (_) =>
                             {
                                 return (DaggerfallUnity.Settings.VignetteIntensity * 100f).ToString("N0") + "%";
-                            }
-                            else
-                            {
-                                return "Off"; // TODO(Acreal): localize this string
-                            }
-                        };
+                            };
 
-                        vignetteSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            vignetteSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.VignetteIntensity = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                                }
+                            };
+                        }
+
+                        ////// SMOOTHNESS /////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            saveSettings = true;
-                            _refreshPostFx = true;
-                            float val = slider.GetSliderValue();
-                            DaggerfallUnity.Settings.VignetteEnable = val > float.Epsilon;
-                            DaggerfallUnity.Settings.VignetteIntensity = val;
+                            UISlider smoothnessSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            smoothnessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("smoothness"));
+                            smoothnessSlider.SetSliderMinMax(0f, 1f, false);
 
-                            if (GameManager.Instance.StartGameBehaviour != null)
+                            smoothnessSlider.DataSource_SliderValue = (_) =>
                             {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
-                            }
-                        };
+                                return DaggerfallUnity.Settings.VignetteSmoothness;
+                            };
+
+                            smoothnessSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return (DaggerfallUnity.Settings.VignetteSmoothness * 100f).ToString("N0") + "%";
+                            };
+
+                            smoothnessSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.VignetteSmoothness = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                                }
+                            };
+                        }
+
+                        ////// ROUNDNESS //////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider roundnessSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            roundnessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("roundness"));
+                            roundnessSlider.SetSliderMinMax(0f, 1f, false);
+
+                            roundnessSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.VignetteRoundness;
+                            };
+
+                            roundnessSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return (DaggerfallUnity.Settings.VignetteRoundness * 100f).ToString("N0") + "%";
+                            };
+
+                            roundnessSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+
+                                float val = slider.GetSliderValue();
+                                DaggerfallUnity.Settings.VignetteRoundness = val;
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                                }
+                            };
+                        }
+
+                        ////// ROUNDED //////////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UIToggle roundedToggle = vignetteGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            roundedToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("rounded"));
+                            roundedToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VignetteRounded; };
+                            roundedToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.VignetteRounded = toggle.isToggledOn;
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                                }
+                            };
+                        }
                         #endregion
 
                         #region Color Boost
-                        UIScrollListGroup colorBoostGroup = postFxGroup.GetOrAddSubScrollListGroup(TextManager.Instance.GetLocalizedText("colorBoost"));
+                        UIScrollListGroup colorBoostGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("colorBoost"));
                         colorBoostGroup.Collapse();
 
-                        UISlider colorBoostSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        colorBoostSlider.SetTextTitle(TextManager.Instance.GetLocalizedText("intensity"));
-                        colorBoostSlider.SetSliderMinMax(0f, 1f, false);
-
-                        colorBoostSlider.DataSource_SliderValue = (_) =>
+                        ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            return DaggerfallUnity.Settings.ColorBoostEnable ? DaggerfallUnity.Settings.ColorBoostIntensity : 0f;
-                        };
+                            UIToggle colorBoostToggle = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                            colorBoostToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                            colorBoostToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ColorBoostEnable; };
+                            colorBoostToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostEnable = toggle.isToggledOn;
 
-                        colorBoostSlider.DataSource_SliderValueString = (_) =>
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
+
+                        ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            if (DaggerfallUnity.Settings.ColorBoostEnable)
+                            UISlider colorBoostSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            colorBoostSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            colorBoostSlider.SetSliderMinMax(0f, 1f, false);
+
+                            colorBoostSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostIntensity;
+                            };
+
+                            colorBoostSlider.DataSource_SliderValueString = (_) =>
                             {
                                 return (DaggerfallUnity.Settings.ColorBoostIntensity * 100f).ToString("N0") + "%";
-                            }
-                            else
-                            {
-                                return "Off"; // TODO(Acreal): localize this string
-                            }
-                        };
+                            };
 
-                        colorBoostSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            colorBoostSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostIntensity = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
+
+                        ////// RADIUS ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
-                            saveSettings = true;
-                            _refreshPostFx = true;
-                            float val = slider.GetSliderValue();
-                            DaggerfallUnity.Settings.ColorBoostEnable = val > float.Epsilon;
-                            DaggerfallUnity.Settings.ColorBoostIntensity = val;
+                            UISlider radiusSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            radiusSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("radius"));
+                            radiusSlider.SetSliderMinMax(0.1f, 50.0f, false);
 
-                            if (GameManager.Instance.StartGameBehaviour != null)
+                            radiusSlider.DataSource_SliderValue = (_) =>
                             {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
-                            }
-                        };
+                                return DaggerfallUnity.Settings.ColorBoostRadius;
+                            };
+
+                            radiusSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostRadius.ToString("F1");
+                            };
+
+                            radiusSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostRadius = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
+
+                        ////// INTERIOR SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider interiorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            interiorScaleSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("interiorScale"));
+                            interiorScaleSlider.SetSliderMinMax(0f, 8f, false);
+
+                            interiorScaleSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostInteriorScale;
+                            };
+
+                            interiorScaleSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostInteriorScale.ToString("F1");
+                            };
+
+                            interiorScaleSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostInteriorScale = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
+
+                        ////// EXTERIOR SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider exteriorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            exteriorScaleSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("exteriorScale"));
+                            exteriorScaleSlider.SetSliderMinMax(0f, 8f, false);
+
+                            exteriorScaleSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostExteriorScale;
+                            };
+
+                            exteriorScaleSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostExteriorScale.ToString("F1");
+                            };
+
+                            exteriorScaleSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostExteriorScale = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
+
+                        ////// DUNGEON SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider dungeonScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            dungeonScaleSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("dungeonScale"));
+                            dungeonScaleSlider.SetSliderMinMax(0f, 8f, false);
+
+                            dungeonScaleSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostDungeonScale;
+                            };
+
+                            dungeonScaleSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostDungeonScale.ToString("F1");
+                            };
+
+                            dungeonScaleSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostDungeonScale = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
+
+                        ////// DUNGEON FALLOFF ///////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            UISlider falloffSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
+                            falloffSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("dungeonFalloff"));
+                            falloffSlider.SetSliderMinMax(0f, 8f, false);
+
+                            falloffSlider.DataSource_SliderValue = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostDungeonFalloff;
+                            };
+
+                            falloffSlider.DataSource_SliderValueString = (_) =>
+                            {
+                                return DaggerfallUnity.Settings.ColorBoostDungeonFalloff.ToString("F1");
+                            };
+
+                            falloffSlider.Event_OnSliderValueChanged += (UISlider slider) =>
+                            {
+                                saveSettings = true;
+                                DaggerfallUnity.Settings.ColorBoostDungeonFalloff = slider.GetSliderValue();
+
+                                if (GameManager.Instance.StartGameBehaviour != null)
+                                {
+                                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.ColorBoost);
+                                }
+                            };
+                        }
                         #endregion
 
                         #region Dithering
                         UIToggle ditherToggle = postFxGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        ditherToggle.SetDisplayName(TextManager.Instance.GetLocalizedText("dither"));
+                        ditherToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("dither"));
                         ditherToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.DitherEnable; };
                         ditherToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -1479,6 +2178,7 @@ namespace AcrealUI
             base.OnPush();
 
             GameManager.Instance.SaveLoadManager.EnumerateSaves();
+            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Paused, true);
             ShowWindow();
         }
 
@@ -1490,16 +2190,6 @@ namespace AcrealUI
                 saveSettings = false;
             }
             
-            if(_refreshPostFx)
-            {
-                if (GameManager.Instance.StartGameBehaviour != null)
-                {
-                    GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Everything);
-                }
-
-                _refreshPostFx = false;
-            }
-
             HideWindow();
             GameManager.Instance.PlayerMouseLook.cursorActive = false;
         }
