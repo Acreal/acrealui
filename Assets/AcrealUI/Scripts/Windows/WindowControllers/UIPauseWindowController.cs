@@ -627,7 +627,7 @@ namespace AcrealUI
                         #endregion
 
                         #region PostFX Settings
-                        UIScrollListGroup postFxGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Post Processing"); // TODO(Acreal): localize this string
+                        UIScrollListGroup postFxGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup(UIUtilityFunctions.GetLocalizedText("postProcess")); // TODO(Acreal): localize this string
                         renderGroup.Collapse();
 
                         #region Retro Mode
