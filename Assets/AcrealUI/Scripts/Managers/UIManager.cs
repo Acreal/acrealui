@@ -240,8 +240,8 @@ namespace AcrealUI
             if(_confirmationWindowController != null)
             {
                 _confirmationWindowController.SetText(title, message);
-                _confirmationWindowController.Event_OnConfirm += onConfirm;
-                _confirmationWindowController.Event_OnCancel += onCancel;
+                _confirmationWindowController.Event_ButtonClick_OnConfirm += onConfirm;
+                _confirmationWindowController.Event_ButtonClick_OnCancel += onCancel;
                 _confirmationWindowController.UpdateButtons();
                 _confirmationWindowController.ShowWindow();
             }

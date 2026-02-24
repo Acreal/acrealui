@@ -59,6 +59,7 @@ namespace AcrealUI
                 if (confirmTform != null) { _confirmButton = confirmTform.GetComponent<UIButton>(); };
                 if(_confirmButton != null)
                 {
+                    _confirmButton.Initialize();
                     _confirmButton.Event_OnClicked += (_, _1) =>
                     {
                         Event_OnConfirm?.Invoke();
@@ -72,6 +73,7 @@ namespace AcrealUI
                 if (cancelTform != null) { _cancelButton = cancelTform.GetComponent<UIButton>(); }
                 if (_cancelButton != null)
                 {
+                    _cancelButton.Initialize();
                     _cancelButton.Event_OnClicked += (_, _1) =>
                     {
                         Event_OnCancel?.Invoke();

@@ -213,6 +213,14 @@ namespace AcrealUI
             }
         }
 
+        public void SetBackButtonActive(bool active)
+        {
+            if(_backButton != null)
+            {
+                _backButton.gameObject.SetActive(active);
+            }
+        }
+
         public void SetSize(Vector2 size)
         {
             if(_layoutElement != null)

@@ -17,10 +17,12 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallConnect.Arena2;
 using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
+using DaggerfallWorkshop.Localization;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -195,24 +197,21 @@ namespace AcrealUI
 
                         _pauseWindowInstance.panelPaused.Event_OnButtonClicked_ExitGame += () =>
                         {
-                            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Confirmation);
+                            AllowCancel = false;
 
-                            DaggerfallMessageBox confirmExitBox = new DaggerfallMessageBox(uiManager, DaggerfallMessageBox.CommonMessageBoxButtons.YesNo, strAreYouSure, this);
-                            confirmExitBox.OnButtonClick += (DaggerfallMessageBox sender, DaggerfallMessageBox.MessageBoxButtons messageBoxButton) =>
-                            {
-                                sender.CloseWindow();
+                            TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRSCTokens(1069);
+                            string msg = DaggerfallStringTableImporter.ConvertRSCTokensToString(1069, tokens).Split('[')[0];
 
-                                if (messageBoxButton == DaggerfallMessageBox.MessageBoxButtons.Yes)
+                            UIManager.ShowConfirmationWindow(null, msg,
+                                () => 
                                 {
                                     DaggerfallUI.PostMessage(DaggerfallUIMessages.dfuiExitGame);
-                                    CancelWindow();
-                                }
-                                else
+                                }, 
+                                () =>
                                 {
-                                    _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Paused);
-                                }
-                            };
-                            confirmExitBox.Show();
+                                    AllowCancel = true;
+                                    UIManager.HideConfirmationWindow();
+                                });
                         };
                     }
 
@@ -2006,18 +2005,7 @@ namespace AcrealUI
                             };
 
                             axisBindingEntry.Event_OnRebind += Controls_OnRebind;
-                            axisBindingEntry.Event_OnClearBinding += (UIControlBindingEntry entry, bool _) =>
-                            {
-                                UIAxisBindingEntry axisEntry = entry as UIAxisBindingEntry;
-                                if (axisEntry != null)
-                                {
-                                    InputManager.Instance.ClearAxisBinding(axisEntry.boundAction);
-                                    _allPrimaryKeybindsDict[axisEntry.actionEnumAsString] = string.Empty;
-                                    InputManager.Instance.SaveKeyBinds();
-                                    axisEntry.Refresh();
-                                    CheckDuplicates();
-                                }
-                            };
+                            axisBindingEntry.Event_OnClearBinding += Controls_OnClearBinding;
 
                             // INVERT TOGGLE //////////////////////////////////////////////////////////////////////////////////////////
                             UIToggle invertToggle = scrollRow.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
@@ -2142,18 +2130,7 @@ namespace AcrealUI
                             joystickBindingEntry.DataSource_PrimaryKeybindDisplayValue = Controls_JoystickBindingDataSource;
 
                             joystickBindingEntry.Event_OnRebind += Controls_OnRebind;
-                            joystickBindingEntry.Event_OnClearBinding += (UIControlBindingEntry entry, bool _) =>
-                            {
-                                UIJoystickKeyBindingEntry joyEntry = entry as UIJoystickKeyBindingEntry;
-                                if (joyEntry != null)
-                                {
-                                    InputManager.Instance.ClearJoystickUIBinding(joyEntry.boundAction);
-                                    _allPrimaryKeybindsDict[joyEntry.actionEnumAsString] = string.Empty;
-                                    InputManager.Instance.SaveKeyBinds();
-                                    joyEntry.Refresh();
-                                    CheckDuplicates();
-                                }
-                            };
+                            joystickBindingEntry.Event_OnClearBinding += Controls_OnClearBinding;
                         }
                         #endregion
                     }
@@ -2301,19 +2278,27 @@ namespace AcrealUI
 
         private void Controls_OnClearBinding(UIControlBindingEntry entry, bool primary)
         {
-            UIKeyCodeBindingEntry keyCodeEntry = entry as UIKeyCodeBindingEntry;
-            if (keyCodeEntry != null)
-            {
-                if (_stringToActionEnumDict.TryGetValue(keyCodeEntry.actionEnumAsString, out InputManager.Actions inputAction))
+            // TODO(Acreal): localize strings
+            string msg = string.Format("Do you want to clear the binding for '{0}'?", entry.actionEnumAsString); 
+            UIManager.ShowConfirmationWindow("Clear Binding", msg,
+                () => 
                 {
-                    InputManager.Instance.ClearBinding(inputAction, primary);
-                    if (primary) { _allPrimaryKeybindsDict[keyCodeEntry.actionEnumAsString] = string.Empty; }
-                    else { _allSecondaryKeybindsDict[keyCodeEntry.actionEnumAsString] = string.Empty; }
-                    InputManager.Instance.SaveKeyBinds();
-                    keyCodeEntry.Refresh();
+                    UIManager.HideConfirmationWindow();
+                    
+                    if(entry is UIKeyCodeBindingEntry) { InputManager.Instance.ClearBinding(((UIKeyCodeBindingEntry)entry).boundAction); }
+                    else if(entry is UIJoystickKeyBindingEntry) { InputManager.Instance.ClearJoystickUIBinding(((UIJoystickKeyBindingEntry)entry).boundAction); }
+                    else if(entry is UIAxisBindingEntry) { InputManager.Instance.ClearAxisBinding(((UIAxisBindingEntry)entry).boundAction); }
+
+                    entry.Refresh();
+
+                    if (primary) { _allPrimaryKeybindsDict[entry.actionEnumAsString] = string.Empty; }
+                    else { _allSecondaryKeybindsDict[entry.actionEnumAsString] = string.Empty; }
                     CheckDuplicates();
-                }
-            }
+                },
+                () =>
+                {
+                    UIManager.HideConfirmationWindow();
+                });
         }
 
         private string Controls_GetControlBindName(string actionEnumAsString)
@@ -2448,6 +2433,64 @@ namespace AcrealUI
             }
         }
 
+        private void SetKeyBind(UIControlBindingEntry bindingEntry, KeyCode bindingAsKeyCode, string bindingAsString, bool isPrimaryBinding)
+        {
+            bool isAxisAction = bindingEntry is UIAxisBindingEntry;
+            bool isJoystickAction = !isAxisAction && bindingEntry is UIJoystickKeyBindingEntry;
+
+            if (isAxisAction)
+            {
+                //there are no secondary keybinds for axis actions
+                bindingEntry.SetPrimaryBindingValue(bindingAsString);
+                _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = bindingAsString;
+
+                UIAxisBindingEntry axisEntry = bindingEntry as UIAxisBindingEntry;
+                InputManager.Instance.SetAxisBinding(bindingAsString, axisEntry.boundAction);
+
+                // TODO(Acreal): add tooltips to keybindings
+                //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
+                //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
+            }
+            else if (isJoystickAction)
+            {
+                //there are no secondary keybinds for joystick actions
+                bindingEntry.SetPrimaryBindingValue(bindingAsString);
+                _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = bindingAsString;
+
+                UIJoystickKeyBindingEntry joystickEntry = bindingEntry as UIJoystickKeyBindingEntry;
+                InputManager.Instance.SetJoystickUIBinding(bindingAsKeyCode, joystickEntry.boundAction);
+
+                // TODO(Acreal): add tooltips to keybindings
+                //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
+                //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
+            }
+            else
+            {
+                UIKeyCodeBindingEntry keyCodeBindingEntry = bindingEntry as UIKeyCodeBindingEntry;
+                if (keyCodeBindingEntry != null)
+                {
+                    if (isPrimaryBinding)
+                    {
+                        bindingEntry.SetPrimaryBindingValue(bindingAsString);
+                        _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = bindingAsString;
+                    }
+                    else
+                    {
+                        bindingEntry.SetSecondaryBindingValue(bindingAsString);
+                        _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = bindingAsString;
+                    }
+                    InputManager.Instance.SetBinding(bindingAsKeyCode, keyCodeBindingEntry.boundAction, isPrimaryBinding);
+
+                    // TODO(Acreal): add tooltips to keybindings
+                    //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
+                    //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
+                }
+            }
+
+            saveSettings = true;
+            InputManager.Instance.SaveKeyBinds();
+        }
+
         private IEnumerator<float> WaitForKeyPressRoutine(UIControlBindingEntry bindingEntry, bool isPrimaryBinding)
         {
             GameManager.Instance.PlayerMouseLook.enabled = false;
@@ -2461,12 +2504,7 @@ namespace AcrealUI
             bool isAxisAction = bindingEntry is UIAxisBindingEntry;
             bool isJoystickAction = !isAxisAction && bindingEntry is UIJoystickKeyBindingEntry;
 
-            KeyCode code = KeyCode.None;
-            string currentLabel = isPrimaryBinding ? bindingEntry.primaryBindingString : bindingEntry.secondaryBindingString;
-
-            if (isPrimaryBinding) { bindingEntry.SetPrimaryBindingValue(string.Empty); }
-            else { bindingEntry.SetSecondaryBindingValue(string.Empty); }
-
+            // TODO(Acreal): localize strings
             string primOrSec = isPrimaryBinding ? "Primary" : "Secondary";
             UIManager.ShowConfirmationWindow("Waiting For Input", 
                                              "Rebinding " + primOrSec + " Action: " + bindingEntry.actionEnumAsString + "\nPress Any Key...\n('Esc' to Cancel)", 
@@ -2479,6 +2517,7 @@ namespace AcrealUI
                 yield return 0f;
             }
 
+            KeyCode code = KeyCode.None;
             while ((!isAxisAction && (code = InputManager.Instance.GetAnyKeyDownIgnoreAxisBinds(true)) == KeyCode.None)
                 || (isAxisAction && (code = InputManager.Instance.GetAnyKeyDown(true)) == KeyCode.None))
             {
@@ -2489,89 +2528,88 @@ namespace AcrealUI
 
             if (code != KeyCode.Escape && InputManager.Instance.ReservedKeys.FirstOrDefault(x => x == code) == KeyCode.None)
             {
-                if (isAxisAction)
+                // restore mouse function
+                GameManager.Instance.PlayerMouseLook.enabled = true;
+                InputManager.Instance.CursorVisible = true;
+                UnityEngine.Cursor.visible = true;
+                UnityEngine.Cursor.lockState = CursorLockMode.None;
+
+                string prevBindingString = isPrimaryBinding ? _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] : _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString];
+
+                KeyCode newBindingCode = code;
+                string newBindingString = null;
+                if (isAxisAction) { newBindingString = InputManager.Instance.AxisKeyCodeToInputAxis((int)newBindingCode); }
+                else { newBindingString = ControlsConfigManager.Instance.GetButtonText(newBindingCode); }
+
+                if (isPrimaryBinding) { _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = newBindingString; }
+                else { _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = newBindingString; }
+
+                IEnumerable<string> values = _allPrimaryKeybindsDict.Values.Concat(_allSecondaryKeybindsDict.Values);
+                HashSet<string> duplicateSet = ControlsConfigManager.Instance.GetDuplicates(values);
+                if(newBindingString != null && duplicateSet.Contains(newBindingString))
                 {
-                    UIAxisBindingEntry axisEntry = bindingEntry as UIAxisBindingEntry;
-                    string axisText = InputManager.Instance.AxisKeyCodeToInputAxis((int)code);
-                    if (!string.IsNullOrEmpty(axisText))
+                    ////// FIND DUPLICATE ACTION NAME //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    string otherActionBinding = null;
+
+                    foreach(KeyValuePair<string, string> kvp in _allPrimaryKeybindsDict)
                     {
-                        //there are no secondary keybinds for axis actions
-                        bindingEntry.SetPrimaryBindingValue(axisText);
-                        _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = axisText;
-
-                        // TODO(Acreal): add tooltips to keybindings
-                        //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
-                        //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
-
-                        InputManager.Instance.SetAxisBinding(axisText, axisEntry.boundAction);
-                        InputManager.Instance.SaveKeyBinds();
+                        if(kvp.Value == newBindingString)
+                        {
+                            otherActionBinding = kvp.Key;
+                            break;
+                        }
                     }
-                }
-                else if (isJoystickAction)
-                {
-                    UIJoystickKeyBindingEntry joystickEntry = bindingEntry as UIJoystickKeyBindingEntry;
-                    KeyCode boundKey = InputManager.Instance.GetJoystickUIBinding(joystickEntry.boundAction);
-                    string joystickText = ControlsConfigManager.Instance.GetButtonText(boundKey);
-                    if (!string.IsNullOrEmpty(joystickText))
+
+                    if(otherActionBinding == null)
                     {
-                        //there are no secondary keybinds for joystick actions
-                        bindingEntry.SetPrimaryBindingValue(joystickText);
-                        _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = joystickText;
+                        foreach (KeyValuePair<string, string> kvp in _allSecondaryKeybindsDict)
+                        {
+                            if (kvp.Value == newBindingString)
+                            {
+                                otherActionBinding = kvp.Key;
+                                break;
+                            }
+                        }
+                    }
 
-                        // TODO(Acreal): add tooltips to keybindings
-                        //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
-                        //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
+                    if (otherActionBinding != null && otherActionBinding != bindingEntry.actionEnumAsString) //ignore if binding to self
+                    {
+                        ////// SHOW CONFIRMATION WINDOW FOR DUPLICATE KEYBINDS //////////////////////////////////////////////////////////////////////////////////////////////////////
+                        {
+                            AllowCancel = false;
 
-                        InputManager.Instance.SetJoystickUIBinding(code, joystickEntry.boundAction);
-                        InputManager.Instance.SaveKeyBinds();
+                            // TODO(Acreal): localize strings
+                            string msg = string.Format("'{0}' is already bound to '{1}'. Do you want to duplicate this binding?\n(Warning: This could cause unintended behaviour.)", newBindingString, otherActionBinding);
+                            UIManager.ShowConfirmationWindow("Duplicate Bind", msg,
+                                () =>
+                                {
+                                    AllowCancel = true;
+                                    UIManager.HideConfirmationWindow();
+                                    SetKeyBind(bindingEntry, newBindingCode, newBindingString, isPrimaryBinding);
+                                    _pauseWindowInstance?.panelControlSettings?.UpdateDuplicateBindings(duplicateSet);
+                                },
+                                () =>
+                                {
+                                    AllowCancel = true;
+                                    UIManager.HideConfirmationWindow();
+                                    if (isPrimaryBinding) { _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = prevBindingString; }
+                                    else { _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = prevBindingString; }
+                                });
+
+                            while (!AllowCancel)
+                            {
+                                yield return 0f;
+                            }
+                        }
                     }
                 }
                 else
                 {
-                    UIKeyCodeBindingEntry keyCodeBindingEntry = bindingEntry as UIKeyCodeBindingEntry;
-                    if (keyCodeBindingEntry != null)
-                    {
-                        string keyText = ControlsConfigManager.Instance.GetButtonText(code);
-                        if (isPrimaryBinding)
-                        {
-                            bindingEntry.SetPrimaryBindingValue(keyText);
-                            _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = keyText;
-                        }
-                        else
-                        {
-                            bindingEntry.SetSecondaryBindingValue(keyText);
-                            _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = keyText;
-                        }
-
-                        // TODO(Acreal): add tooltips to keybindings
-                        //bindingEntry.SuppressToolTip = bindingEntry.Label.Text != ControlsConfigManager.ElongatedButtonText;
-                        //bindingEntry.ToolTipText = ControlsConfigManager.Instance.GetButtonText(code, true);
-
-                        InputManager.Instance.SetBinding(code, keyCodeBindingEntry.boundAction, isPrimaryBinding);
-                        InputManager.Instance.SaveKeyBinds();
-                    }
+                    AllowCancel = true;
+                    SetKeyBind(bindingEntry, newBindingCode, newBindingString, isPrimaryBinding);
+                    _pauseWindowInstance?.panelControlSettings?.UpdateDuplicateBindings(duplicateSet);
                 }
-
-                CheckDuplicates();
             }
-            else
-            {
-                if (isPrimaryBinding) { bindingEntry.SetPrimaryBindingValue(currentLabel); }
-                else { bindingEntry.SetSecondaryBindingValue(currentLabel); }
-            }
-
-            t = 0.2f;
-            while (t > 0f)
-            {
-                t -= Time.unscaledDeltaTime;
-                yield return 0f;
-            }
-
-            AllowCancel = true;
-            GameManager.Instance.PlayerMouseLook.enabled = true;
-            InputManager.Instance.CursorVisible = true;
-            UnityEngine.Cursor.visible = true;
-            UnityEngine.Cursor.lockState = CursorLockMode.None;
         }
         #endregion
     }

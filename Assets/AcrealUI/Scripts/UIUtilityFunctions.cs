@@ -1816,9 +1816,14 @@ namespace AcrealUI
             return TextManager.Instance != null ? TextManager.Instance.GetLocalizedText(key) : null;
         }
 
-        public static string GetLocalizedText(string localizationTableID, string key)
+        public static string GetLocalizedText(string key, string localizationTableID)
         {
             return TextManager.Instance != null ? TextManager.Instance.GetText(localizationTableID, key) : null;
+        }
+
+        public static string GetLocalizedText(string key, TextCollections collection)
+        {
+            return TextManager.Instance != null ? TextManager.Instance.GetLocalizedText(key, collection) : null;
         }
 
         public static string[] GetLocalizedTextList(string key, TextCollections collection)

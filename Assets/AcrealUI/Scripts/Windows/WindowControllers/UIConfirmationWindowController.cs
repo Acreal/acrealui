@@ -29,8 +29,8 @@ namespace AcrealUI
 
 
         #region Events
-        public event System.Action Event_OnConfirm = null;
-        public event System.Action Event_OnCancel = null;
+        public event System.Action Event_ButtonClick_OnConfirm = null;
+        public event System.Action Event_ButtonClick_OnCancel = null;
         #endregion
 
 
@@ -42,8 +42,11 @@ namespace AcrealUI
                 _confirmationWindow = Object.Instantiate(UIManager.referenceManager.prefab_confirmationWindow);
                 _confirmationWindow.Initialize();
                 _confirmationWindow.Hide();
-                _confirmationWindow.Event_OnConfirm += () => { Event_OnConfirm?.Invoke(); };
-                _confirmationWindow.Event_OnCancel += () => { Event_OnCancel?.Invoke(); };
+                _confirmationWindow.SetBackButtonActive(false);
+                _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(); };
+                _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(); };
+                _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(); };
+                _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(); };
             }
         }
         #endregion
@@ -52,16 +55,16 @@ namespace AcrealUI
         #region Public API
         public void ResetEvents()
         {
-            Event_OnConfirm = null;
-            Event_OnCancel = null;
+            Event_ButtonClick_OnConfirm = null;
+            Event_ButtonClick_OnCancel = null;
         }
 
         public void UpdateButtons()
         {
             if(_confirmationWindow != null)
             {
-                _confirmationWindow.SetConfirmButtonActive(Event_OnConfirm != null);
-                _confirmationWindow.SetCancelButtonActive(Event_OnCancel != null);
+                _confirmationWindow.SetConfirmButtonActive(Event_ButtonClick_OnConfirm != null);
+                _confirmationWindow.SetCancelButtonActive(Event_ButtonClick_OnCancel != null);
             }
         }
 

@@ -73,7 +73,7 @@ namespace AcrealUI
         {
             if (_textComp != null && !string.IsNullOrEmpty(_localizationTableID) && !string.IsNullOrEmpty(_localizationKey))
             {
-                _textComp.text = UIUtilityFunctions.GetLocalizedText(_localizationTableID, _localizationKey);
+                _textComp.text = UIUtilityFunctions.GetLocalizedText(_localizationKey, _localizationTableID);
             }
         }
         #endregion
