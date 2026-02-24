@@ -13,10 +13,10 @@ This should be located at: 'DaggerfallUnity_Data\StreamingAssets\Mods'
 That's it! Just make sure you have the mod enabled in your mod list, and that it is loaded after
 any other mods that might modify menus. 
 
-![Enable AcrealUI in your mods menu](Screens/screen_modList_01.png)
-
 (NOTE: other UI mods may render over the top of these menus - especially those that change or add 
 elements to the HUD - so you may need to disable those mods.)
+
+![Enable AcrealUI in your mods menu](Screens/screen_modList_01.png)
 
 ![Load Game Menu](Screens/screen_loadGame_01.png)
 
