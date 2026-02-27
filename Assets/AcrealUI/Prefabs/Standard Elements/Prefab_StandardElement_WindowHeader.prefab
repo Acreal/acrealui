@@ -350,7 +350,7 @@ GameObject:
   - component: {fileID: 6722578833042806474}
   - component: {fileID: 4915825020142280084}
   m_Layer: 5
-  m_Name: Prefab_PauseWindow_Header
+  m_Name: Prefab_StandardElement_WindowHeader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

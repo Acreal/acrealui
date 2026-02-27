@@ -34,7 +34,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Iniitalization
+        #region Initialization
         public UIConfirmationWindowController()
         {
             if (UIManager.referenceManager.prefab_confirmationWindow != null)

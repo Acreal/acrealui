@@ -39,6 +39,7 @@ namespace AcrealUI
         public UIWindowSaveLoad prefab_saveLoadWindow = null;
 
         public UIConfirmationWindow prefab_confirmationWindow = null;
+        public UIConversationWindow prefab_conversationWindow = null;
 
         public UISaveGameEntry prefab_saveEntry = null;
        
@@ -151,6 +152,9 @@ namespace AcrealUI
 
             GameObject confirmationObj = mod.GetAsset<GameObject>("Prefab_ConfirmationWindow");
             prefab_confirmationWindow = confirmationObj != null ? confirmationObj.GetComponent<UIConfirmationWindow>() : null;
+
+            GameObject conversationObj = mod.GetAsset<GameObject>("Prefab_ConversationWindow");
+            prefab_conversationWindow = conversationObj != null ? conversationObj.GetComponent<UIConversationWindow>() : null;
 
             _keyCodeToIconDict = new Dictionary<KeyCode, Sprite>()
             {

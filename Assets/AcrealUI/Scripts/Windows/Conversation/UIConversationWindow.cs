@@ -25,6 +25,16 @@ namespace AcrealUI
 {
     public class UIConversationWindow : UIWindow
     {
+        [SerializeField] private string _gameObjName_dialogueEntryParent = null;
+        [SerializeField] private string _gameObjName_okayButton = null;
+        [SerializeField] private string _gameObjName_historyButton = null;
 
+
+        public override void Initialize()
+        {
+            base.Initialize();
+
+
+        }
     }
 }

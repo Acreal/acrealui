@@ -101,18 +101,21 @@ namespace AcrealUI
             {
                 _canvasComponent.enabled = false;
             }
+            else { Debug.LogError("Unable to find Canvas for UIWindow attached to GameObject: " + gameObject.name); }
 
             // FIND CANVAS GROUP
             Transform canvasGroupTform = null;
             if (!string.IsNullOrEmpty(_gameObjName_canvasGroup)) { canvasGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_canvasGroup); }
             if(canvasGroupTform == null) { canvasGroupTform = transform; }
             _canvasGroup = canvasGroupTform != null ? canvasGroupTform.GetComponent<CanvasGroup>() : null;
+            if(_canvasGroup == null) { Debug.LogError("Unable to find CanvasGroup for UIWindow attached to GameObject: " + gameObject.name); }
 
             // FIND LAYOUT ELEMENT
             Transform layoutElemTform = null;
             if (!string.IsNullOrEmpty(_gameObjName_layoutElement)) { layoutElemTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_layoutElement); }
             if (layoutElemTform == null) { layoutElemTform = transform; }
             _layoutElement = layoutElemTform != null ? layoutElemTform.GetComponent<LayoutElement>() : null;
+            if (_layoutElement == null) { Debug.LogError("Unable to find LayoutElement for UIWindow attached to GameObject: " + gameObject.name); }
 
             // FIND CLOSE BUTTON
             if (!string.IsNullOrEmpty(_gameObjName_closeWindowButton))
@@ -127,6 +130,7 @@ namespace AcrealUI
                         Event_ButtonClick_CloseWindow?.Invoke();
                     };
                 }
+                else { Debug.LogError("Unable to find UIButton for UIWindow attached to GameObject: " + gameObject.name); }
             }
 
             // FIND BACK BUTTON
@@ -142,6 +146,7 @@ namespace AcrealUI
                         Event_ButtonClick_PrevWindow?.Invoke();
                     };
                 }
+                else { Debug.LogError("Unable to find UIButton for UIWindow attached to GameObject: " + gameObject.name); }
             }
 
             // FIND HEADER TEXT
@@ -149,6 +154,7 @@ namespace AcrealUI
             {
                 Transform headerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_headerText);
                 _headerText = headerTform != null ? headerTform.GetComponent<TextMeshProUGUI>() : null;
+                if (_canvasGroup == null) { Debug.LogError("Unable to find CanvasGroup for UIWindow attached to GameObject: " + gameObject.name); }
             }
         }
 

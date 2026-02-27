@@ -27,19 +27,48 @@ namespace AcrealUI
 {
     public class UIConversationWindowController : DaggerfallTalkWindow, IWindowController
     {
+        private UIConversationWindow _conversationWindowInstance = null;
+
+
         public UIConversationWindowController(IUserInterfaceManager uiManager, DaggerfallBaseWindow previous = null) : base(uiManager, previous)
         {
-
+            _conversationWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_conversationWindow);
+            if(_conversationWindowInstance != null)
+            {
+                _conversationWindowInstance.Initialize();
+                _conversationWindowInstance.Hide();
+            }
         }
 
         public void ShowWindow()
         {
-
+            if(_conversationWindowInstance != null)
+            {
+                _conversationWindowInstance.Show();
+            }
         }
 
         public void HideWindow()
         {
-
+            if(_conversationWindowInstance != null)
+            {
+                _conversationWindowInstance.Hide();
+            }
         }
+
+
+        public override void OnPush()
+        {
+            base.OnPush();
+            ShowWindow();
+        }
+
+        public override void OnPop()
+        {
+            base.OnPop();
+            HideWindow();
+        }
+
+        public override void Draw() { }
     }
 }
