@@ -3855,6 +3855,11 @@ PrefabInstance:
       propertyPath: m_IgnoreLayout
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_SwitchChar
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}
 --- !u!224 &4132406536369249710 stripped
@@ -4267,6 +4272,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Rename
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}
 --- !u!224 &7645746091965802421 stripped
@@ -4438,6 +4448,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Delete
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}
@@ -4620,6 +4635,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_MinHeight
       value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Import
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}
@@ -4807,6 +4827,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_MinHeight
       value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_SaveLoad
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}

@@ -111,4 +111,13 @@ namespace AcrealUI
         public Texture2D screenshot;
     }
     #endregion
+
+
+    #region Conversations
+    public struct DialogueInfo
+    {
+        public string dialogue;
+        public Texture2D speakerTexture;
+    }
+    #endregion
 }

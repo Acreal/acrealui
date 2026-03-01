@@ -121,188 +121,131 @@ namespace AcrealUI
 
             _idToSaveGameDataDict = new Dictionary<string, UISaveGameEntry>();
 
-            if (!string.IsNullOrEmpty(_gameObjName_parent_scrollGroup))
+            _scrollGroupParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_parent_scrollGroup);
+            if (_scrollGroupParent != null) 
             {
-                _scrollGroupParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_parent_scrollGroup);
-                if (_scrollGroupParent != null) 
+                _saveEntriesToggleGroup = _scrollGroupParent.GetComponent<UIToggleGroup>();
+                if (_saveEntriesToggleGroup != null)
                 {
-                    _saveEntriesToggleGroup = _scrollGroupParent.GetComponent<UIToggleGroup>();
-                    if (_saveEntriesToggleGroup != null)
+                    _saveEntriesToggleGroup.Initialize();
+                    _saveEntriesToggleGroup.canBeToggledOff = false;
+                }
+                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIToggleGroup component on gameObject: \"" + _scrollGroupParent.name + "\""); }
+            }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_parent_scrollGroup + "\""); }
+
+            Transform promptParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_savePromptParent);
+            if (promptParentTform != null) { _savePromptParent = promptParentTform.gameObject; }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_savePromptParent + "\""); }
+
+            Transform promptTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_saveLoadPrompt);
+            if (promptTextTform != null) { _saveLoadPromptText = promptTextTform.GetComponent<TextMeshProUGUI>(); }
+            if (_saveLoadPromptText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_saveLoadPrompt + "\""); }
+
+            Transform saveDetailsParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_saveDetailsParent);
+            if (saveDetailsParentTform != null) { _saveDetailsParent = saveDetailsParentTform.gameObject; }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_saveDetailsParent + "\""); }
+
+            Transform scrollListTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_scrollListParent);
+            if (scrollListTForm != null) { _scrollListParent = scrollListTForm.gameObject; }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_scrollListParent + "\""); }
+
+            Transform buttonsTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_parent_renameDeleteButtons);
+            if (buttonsTForm != null) { _renameDeleteButtonsParent = buttonsTForm.gameObject; }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_parent_renameDeleteButtons + "\""); }
+
+            Transform inputFieldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inputField_saveName);
+            if (inputFieldTform != null) { _saveNameInputField = inputFieldTform.GetComponent<TMP_InputField>(); }
+            if (_saveNameInputField != null)
+            {
+                _saveNameInputField.onValueChanged.AddListener((string inputText) =>
+                {
+                    if (_saveNameInputField.isFocused)
                     {
-                        _saveEntriesToggleGroup.Initialize();
-                        _saveEntriesToggleGroup.canBeToggledOff = false;
+                        Event_InputFieldChanged_SaveFileName?.Invoke(inputText);
                     }
-                    else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIToggleGroup component on gameObject: \"" + _scrollGroupParent.name + "\""); }
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_parent_scrollGroup + "\""); }
+                });
             }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TMP_InputField script on GameObject \"" + _gameObjName_inputField_saveName + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_savePromptParent))
+            Transform screenshotTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_rawImage_saveScreenShot);
+            if (screenshotTform != null) { _saveScreenShotRawImage = screenshotTform.GetComponent<RawImage>(); }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find RawImage script on GameObject \"" + _gameObjName_rawImage_saveScreenShot + "\""); }
+
+            Transform switchTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_switchChar);
+            if (switchTform != null) { _switchCharButton = switchTform.GetComponent<UIButton>(); }
+            if (_switchCharButton != null)
             {
-                Transform promptParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_savePromptParent);
-                if (promptParentTform != null) { _savePromptParent = promptParentTform.gameObject; }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_savePromptParent + "\""); }
+                _switchCharButton.Initialize();
+                _switchCharButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_SelectCharacter?.Invoke(); };
             }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_switchChar + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_saveLoadPrompt))
+            Transform renameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_rename);
+            if (renameTform != null) { _renameButton = renameTform.GetComponent<UIButton>(); }
+            if (_renameButton != null)
             {
-                Transform promptTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_saveLoadPrompt);
-                if (promptTextTform != null) { _saveLoadPromptText = promptTextTform.GetComponent<TextMeshProUGUI>(); }
-                if (_saveLoadPromptText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_saveLoadPrompt + "\""); }
+                _renameButton.Initialize();
+                _renameButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_RenameSave?.Invoke(); };
             }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_rename + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_saveDetailsParent))
+            Transform deleteTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_delete);
+            if (deleteTform != null) { _deleteButton = deleteTform.GetComponent<UIButton>(); }
+            if (_deleteButton != null)
             {
-                Transform saveDetailsParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_saveDetailsParent);
-                if (saveDetailsParentTform != null) { _saveDetailsParent = saveDetailsParentTform.gameObject; }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_saveDetailsParent + "\""); }
+                _deleteButton.Initialize();
+                _deleteButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_DeleteSave?.Invoke(); };
             }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_delete + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_scrollListParent))
+            Transform saveLoadTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_saveLoad);
+            if (saveLoadTform != null) { _saveLoadButton = saveLoadTform.GetComponent<UIButton>(); }
+            if (_saveLoadButton != null)
             {
-                Transform scrollListTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_scrollListParent);
-                if (scrollListTForm != null) { _scrollListParent = scrollListTForm.gameObject; }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_scrollListParent + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_parent_renameDeleteButtons))
-            {
-                Transform buttonsTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_parent_renameDeleteButtons);
-                if (buttonsTForm != null) { _renameDeleteButtonsParent = buttonsTForm.gameObject; }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find GameObject by name: \"" + _gameObjName_parent_renameDeleteButtons + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_inputField_saveName))
-            {
-                Transform inputFieldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inputField_saveName);
-                if (inputFieldTform != null) { _saveNameInputField = inputFieldTform.GetComponent<TMP_InputField>(); }
-                if (_saveNameInputField != null)
+                _saveLoadButton.Initialize();
+                _saveLoadButton.Event_OnClicked += (_, _1) =>
                 {
-                    _saveNameInputField.onValueChanged.AddListener((string inputText) =>
-                    {
-                        if (_saveNameInputField.isFocused)
-                        {
-                            Event_InputFieldChanged_SaveFileName?.Invoke(inputText);
-                        }
-                    });
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TMP_InputField script on GameObject \"" + _gameObjName_inputField_saveName + "\""); }
+                    if (_isSaving) { Event_ButtonClick_SaveGame?.Invoke(); }
+                    else { Event_ButtonClick_LoadGame?.Invoke(); }
+                };
             }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_saveLoad + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_rawImage_saveScreenShot))
-            {
-                Transform screenshotTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_rawImage_saveScreenShot);
-                if (screenshotTform != null) { _saveScreenShotRawImage = screenshotTform.GetComponent<RawImage>(); }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find RawImage script on GameObject \"" + _gameObjName_rawImage_saveScreenShot + "\""); }
-            }
+            Transform saveTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_saveOrLoad);
+            if (saveTextTform != null) { _saveLoadText = saveTextTform.GetComponent<TextMeshProUGUI>(); }
+            if (_saveLoadText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_saveOrLoad + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_switchChar))
+            Transform importTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_import);
+            if (importTform != null) { _importButton = importTform.GetComponent<UIButton>(); }
+            if (_importButton != null)
             {
-                Transform switchTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_switchChar);
-                if (switchTform != null) { _switchCharButton = switchTform.GetComponent<UIButton>(); }
-                if (_switchCharButton != null)
-                {
-                    _switchCharButton.Initialize();
-                    _switchCharButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_SelectCharacter?.Invoke(); };
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_switchChar + "\""); }
+                _importButton.Initialize();
+                _importButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_ImportSave?.Invoke(); };
             }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_import + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_rename))
-            {
-                Transform renameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_rename);
-                if (renameTform != null) { _renameButton = renameTform.GetComponent<UIButton>(); }
-                if (_renameButton != null)
-                {
-                    _renameButton.Initialize();
-                    _renameButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_RenameSave?.Invoke(); };
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_rename + "\""); }
-            }
+            Transform rtTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_realTime);
+            if (rtTform != null) { _realTimeText = rtTform.GetComponent<TextMeshProUGUI>(); }
+            if (_realTimeText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_realTime + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_delete))
-            {
-                Transform deleteTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_delete);
-                if (deleteTform != null) { _deleteButton = deleteTform.GetComponent<UIButton>(); }
-                if (_deleteButton != null)
-                {
-                    _deleteButton.Initialize();
-                    _deleteButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_DeleteSave?.Invoke(); };
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_delete + "\""); }
-            }
+            Transform gtTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_gameTime);
+            if (gtTform != null) { _gameTimeText = gtTform.GetComponent<TextMeshProUGUI>(); }
+            if (_gameTimeText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_gameTime + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_saveLoad))
-            {
-                Transform saveLoadTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_saveLoad);
-                if (saveLoadTform != null) { _saveLoadButton = saveLoadTform.GetComponent<UIButton>(); }
-                if (_saveLoadButton != null)
-                {
-                    _saveLoadButton.Initialize();
-                    _saveLoadButton.Event_OnClicked += (_, _1) =>
-                    {
-                        if (_isSaving) { Event_ButtonClick_SaveGame?.Invoke(); }
-                        else { Event_ButtonClick_LoadGame?.Invoke(); }
-                    };
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_saveLoad + "\""); }
-            }
+            Transform versTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_version);
+            if (versTform != null) { _versionText = versTform.GetComponent<TextMeshProUGUI>(); }
+            if (_versionText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_version + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_saveOrLoad))
-            {
-                Transform saveTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_saveOrLoad);
-                if (saveTextTform != null) { _saveLoadText = saveTextTform.GetComponent<TextMeshProUGUI>(); }
-                if (_saveLoadText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_saveOrLoad + "\""); }
-            }
+            Transform noSavesTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_noSaves);
+            if (noSavesTform != null) { _noSavesText = noSavesTform.GetComponent<TextMeshProUGUI>(); }
+            if (_noSavesText != null) { _noSavesText.text = UIUtilityFunctions.GetLocalizedText("noSavesFound"); }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_noSaves + "\""); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_import))
-            {
-                Transform importTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_import);
-                if (importTform != null) { _importButton = importTform.GetComponent<UIButton>(); }
-                if (_importButton != null)
-                {
-                    _importButton.Initialize();
-                    _importButton.Event_OnClicked += (_, _1) => { Event_ButtonClick_ImportSave?.Invoke(); };
-                }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find UIButton script on GameObject \"" + _gameObjName_button_import + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_realTime))
-            {
-                Transform rtTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_realTime);
-                if (rtTform != null) { _realTimeText = rtTform.GetComponent<TextMeshProUGUI>(); }
-                if (_realTimeText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_realTime + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_gameTime))
-            {
-                Transform gtTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_gameTime);
-                if (gtTform != null) { _gameTimeText = gtTform.GetComponent<TextMeshProUGUI>(); }
-                if (_gameTimeText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_gameTime + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_version))
-            {
-                Transform versTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_version);
-                if (versTform != null) { _versionText = versTform.GetComponent<TextMeshProUGUI>(); }
-                if (_versionText == null) { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_version + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_noSaves))
-            {
-                Transform noSavesTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_noSaves);
-                if (noSavesTform != null) { _noSavesText = noSavesTform.GetComponent<TextMeshProUGUI>(); }
-                if (_noSavesText != null) { _noSavesText.text = UIUtilityFunctions.GetLocalizedText("noSavesFound"); }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_noSaves + "\""); }
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_importSave))
-            {
-                Transform importTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_importSave);
-                if (importTform != null) { _importSaveText = importTform.GetComponent<TextMeshProUGUI>(); }
-                if (_importSaveText != null) { _importSaveText.text = UIUtilityFunctions.GetLocalizedText("classicSave"); }
-                else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_importSave + "\""); }
-            }
+            Transform importSaveTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_importSave);
+            if (importSaveTform != null) { _importSaveText = importSaveTform.GetComponent<TextMeshProUGUI>(); }
+            if (_importSaveText != null) { _importSaveText.text = UIUtilityFunctions.GetLocalizedText("classicSave"); }
+            else { Debug.LogError("[AcrealUI.UIWindowSaveLoad] Failed to find TextMeshProUGUI script on GameObject \"" + _gameObjName_text_importSave + "\""); }
         }
         #endregion
 

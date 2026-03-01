@@ -438,9 +438,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: Text_SliderName
+  _gameObjName_valueText: Text_SliderValue
   _gameObjName_slider: Slider_HandleType
-  _gameObjName_text_sliderTitle: Text_SliderName
-  _gameObjName_text_sliderValue: Text_SliderValue
 --- !u!1 &3086168622633849891
 GameObject:
   m_ObjectHideFlags: 0

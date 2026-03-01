@@ -43,10 +43,10 @@ namespace AcrealUI
         {
             base.Initialize();
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_default))
+            Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_default);
+            if (defaultTform != null)
             {
-                Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_default);
-                _button_default = defaultTform != null ? defaultTform.GetComponent<UIButton>() : null;
+                _button_default = defaultTform.GetComponent<UIButton>();
                 if (_button_default != null)
                 {
                     _button_default.Initialize();

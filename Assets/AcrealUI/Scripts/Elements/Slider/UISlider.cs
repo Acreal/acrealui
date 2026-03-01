@@ -30,12 +30,8 @@ namespace AcrealUI
     {
         #region Variables
         [SerializeField] private string _gameObjName_slider = null;
-        [SerializeField] private string _gameObjName_text_sliderTitle = null;
-        [SerializeField] private string _gameObjName_text_sliderValue = null;
 
         private Slider _slider = null;
-        private TextMeshProUGUI _text_sliderName = null;
-        private TextMeshProUGUI _text_sliderValue = null;
         #endregion
 
 
@@ -53,36 +49,27 @@ namespace AcrealUI
         #region Initialization/Cleanup
         public override void Initialize()
         {
-            if (!string.IsNullOrEmpty(_gameObjName_text_sliderTitle))
-            {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_sliderTitle);
-                _text_sliderName = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_text_sliderValue))
-            {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_sliderValue);
-                _text_sliderValue = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
-            }
-
             if (!string.IsNullOrEmpty(_gameObjName_slider))
             {
                 Transform sliderTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_slider);
-                _slider = sliderTform != null ? sliderTform.GetComponent<Slider>() : null;
-                if (_slider != null)
+                if (sliderTform != null)
                 {
-                    _slider.onValueChanged.AddListener((float val) =>
+                    _slider = sliderTform.GetComponent<Slider>();
+                    if (_slider != null)
                     {
-                        if (Event_OnSliderValueChanged != null)
+                        _slider.onValueChanged.AddListener((float val) =>
                         {
-                            Event_OnSliderValueChanged(this);
-                        }
+                            if (Event_OnSliderValueChanged != null)
+                            {
+                                Event_OnSliderValueChanged(this);
+                            }
 
-                        if (DataSource_SliderValueString != null)
-                        {
-                            SetTextValue(DataSource_SliderValueString(gameObject));
-                        }
-                    });
+                            if (DataSource_SliderValueString != null)
+                            {
+                                SetDisplayValue(DataSource_SliderValueString(gameObject));
+                            }
+                        });
+                    }
                 }
             }
 
@@ -99,16 +86,16 @@ namespace AcrealUI
             if (_slider != null)
             {
                 _slider.interactable = !isDisabled;
+
+                if (DataSource_SliderValue != null)
+                {
+                    _slider.SetValueWithoutNotify(DataSource_SliderValue(gameObject));
+                }
             }
 
-            if (DataSource_SliderValue != null)
+            if(DataSource_SliderValueString != null && _valueText != null)
             {
-                _slider.SetValueWithoutNotify(DataSource_SliderValue(gameObject));
-            }
-
-            if(DataSource_SliderValueString != null)
-            {
-                _text_sliderValue.text = DataSource_SliderValueString(gameObject);
+                _valueText.text = DataSource_SliderValueString(gameObject);
             }
         }
         #endregion
@@ -135,7 +122,7 @@ namespace AcrealUI
 
                     if (DataSource_SliderValueString != null)
                     {
-                        SetTextValue(DataSource_SliderValueString(gameObject));
+                        SetDisplayValue(DataSource_SliderValueString(gameObject));
                     }
                 }
                 else { _slider.value = value; }
@@ -149,22 +136,6 @@ namespace AcrealUI
                 _slider.minValue = minValue;
                 _slider.maxValue = maxValue;
                 _slider.wholeNumbers = useWholeNumbersOnly;
-            }
-        }
-
-        public void SetTextTitle(string text)
-        {
-            if(_text_sliderName != null)
-            {
-                _text_sliderName.text = text;
-            }
-        }
-        
-        public void SetTextValue(string text)
-        {
-            if(_text_sliderValue != null)
-            {
-                _text_sliderValue.text = text;
             }
         }
         #endregion

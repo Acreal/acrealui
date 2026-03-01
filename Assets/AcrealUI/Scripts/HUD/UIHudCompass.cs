@@ -63,28 +63,28 @@ namespace AcrealUI
             iconsList = new List<IconContainer>();
             gameWorldObjToIconContainerDict = new Dictionary<GameObject, IconContainer>();
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_north))
+            Transform northTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_north);
+            if (northTform != null)
             {
-                Transform northTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_north);
-                _text_north = northTform != null ? northTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_north = northTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_east))
+            Transform eastTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_east);
+            if (eastTform != null)
             {
-                Transform eastTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_east);
-                _text_east = eastTform != null ? eastTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_east = eastTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_south))
+            Transform southTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_south);
+            if (southTform != null)
             {
-                Transform southTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_south);
-                _text_south = southTform != null ? southTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_south = southTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_west))
+            Transform westTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_west);
+            if (westTform != null)
             {
-                Transform westTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_west);
-                _text_west = westTform != null ? westTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_west = westTform.GetComponent<TextMeshProUGUI>();
             }
         }
 

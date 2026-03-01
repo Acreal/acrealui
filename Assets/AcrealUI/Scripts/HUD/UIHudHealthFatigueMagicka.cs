@@ -41,10 +41,10 @@ namespace AcrealUI
 
         private void Awake()
         {
-            if(!string.IsNullOrEmpty(_gameObjName_healthSlider))
+            Transform healthTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_healthSlider);
+            if (healthTform != null)
             {
-                Transform healthTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_healthSlider);
-                healthSlider = healthTform != null ? healthTform.GetComponent<UISlider>() : null;
+                healthSlider = healthTform.GetComponent<UISlider>();
                 if (healthSlider != null)
                 {
                     healthSlider.Initialize();
@@ -52,10 +52,10 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_fatigueSlider))
+            Transform fatigueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_fatigueSlider);
+            if (fatigueTform != null)
             {
-                Transform fatigueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_fatigueSlider);
-                fatigueSlider = fatigueTform != null ? fatigueTform.GetComponent<UISlider>() : null;
+                fatigueSlider = fatigueTform.GetComponent<UISlider>();
                 if (fatigueSlider != null)
                 {
                     fatigueSlider.Initialize();
@@ -63,10 +63,10 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_magickaSlider))
+            Transform magickaTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_magickaSlider);
+            if (magickaTform != null)
             {
-                Transform magickaTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_magickaSlider);
-                magickaSlider = magickaTform != null ? magickaTform.GetComponent<UISlider>() : null;
+                magickaSlider = magickaTform.GetComponent<UISlider>();
                 if (magickaSlider != null)
                 {
                     magickaSlider.Initialize();

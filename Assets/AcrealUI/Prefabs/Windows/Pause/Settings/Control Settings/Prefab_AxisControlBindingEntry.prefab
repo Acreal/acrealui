@@ -565,6 +565,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
   _gameObjName_text_bindingName: Text_Name
   _gameObjName_text_bindingValue_primary: Text_KeyValue_Primary
   _gameObjName_text_bindingValue_secondary: 
@@ -682,6 +684,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!114 &3153241444374499033
 MonoBehaviour:
   m_ObjectHideFlags: 0

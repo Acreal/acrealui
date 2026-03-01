@@ -41,10 +41,10 @@ namespace AcrealUI
         {
             base.Initialize(uiElement);
 
-            if (_objectToToggle == null)
+            Transform tform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_objectToToggle);
+            if (tform != null)
             {
-                Transform tform = string.IsNullOrEmpty(_gameObjName_objectToToggle) ? transform : UIUtilityFunctions.FindDeepChild(transform, _gameObjName_objectToToggle);
-                _objectToToggle = tform != null ? tform.gameObject : null;
+                _objectToToggle = tform.gameObject;
             }
 
             Refresh();

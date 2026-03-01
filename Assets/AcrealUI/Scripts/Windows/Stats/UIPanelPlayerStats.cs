@@ -106,10 +106,10 @@ namespace AcrealUI
             _statEnumAsIntToStatEntryDict = new Dictionary<int, UIPlayerStatEntry>();
             _skillEnumAsIntToSkillEntryDict = new Dictionary<int, UIPlayerSkillEntry>();
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_enemyTypeDropdown))
+            Transform dropdownTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_enemyTypeDropdown);
+            if (dropdownTform != null)
             {
-                Transform dropdownTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_enemyTypeDropdown);
-                _enemyTypeDropdown = dropdownTform != null ? dropdownTform.GetComponent<TMP_Dropdown>() : null;
+                _enemyTypeDropdown = dropdownTform.GetComponent<TMP_Dropdown>();
                 if (_enemyTypeDropdown != null)
                 {
                     _enemyTypeDropdown.ClearOptions();
@@ -117,50 +117,50 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_experiencePercentSlider))
+            Transform expTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_experiencePercentSlider);
+            if (expTform != null)
             {
-                Transform expTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_experiencePercentSlider);
-                _experiencePercentSlider = expTform != null ? expTform.GetComponent<UISlider>() : null;
+                _experiencePercentSlider = expTform.GetComponent<UISlider>();
                 if (_experiencePercentSlider != null)
                 {
                     _experiencePercentSlider.Initialize();
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_healthSlider))
+            Transform healthTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_healthSlider);
+            if (healthTform != null)
             {
-                Transform healthTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_healthSlider);
-                _healthSlider = healthTform != null ? healthTform.GetComponent<UISlider>() : null;
+                _healthSlider = healthTform.GetComponent<UISlider>();
                 if (_healthSlider != null)
                 {
                     _healthSlider.Initialize();
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_fatigueSlider))
+            Transform fatigueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_fatigueSlider);
+            if (fatigueTform != null)
             {
-                Transform fatigueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_fatigueSlider);
-                _fatigueSlider = fatigueTform != null ? fatigueTform.GetComponent<UISlider>() : null;
+                _fatigueSlider = fatigueTform.GetComponent<UISlider>();
                 if (_fatigueSlider != null)
                 {
                     _fatigueSlider.Initialize();
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_magickaSlider))
+            Transform magickaTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_magickaSlider);
+            if (magickaTform != null)
             {
-                Transform magickaTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_magickaSlider);
-                _magickaSlider = magickaTform != null ? magickaTform.GetComponent<UISlider>() : null;
+                _magickaSlider = magickaTform.GetComponent<UISlider>();
                 if (_magickaSlider != null)
                 {
                     _magickaSlider.Initialize();
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_showPanelButton))
+            Transform showTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_showPanelButton);
+            if (showTform != null)
             {
-                Transform showTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_showPanelButton);
-                _showPanelButton = showTform != null ? showTform.GetComponent<UIButton>() : null;
+                _showPanelButton = showTform.GetComponent<UIButton>();
                 if (_showPanelButton != null)
                 {
                     _showPanelButton.Initialize();
@@ -171,10 +171,10 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_hidePanelButton))
+            Transform hideTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_hidePanelButton);
+            if (hideTform != null)
             {
-                Transform hideTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_hidePanelButton);
-                _hidePanelButton = hideTform != null ? hideTform.GetComponent<UIButton>() : null;
+                _hidePanelButton = hideTform.GetComponent<UIButton>();
                 if (_hidePanelButton != null)
                 {
                     _hidePanelButton.Initialize();
@@ -185,65 +185,35 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_playerLevelText))
-            {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerNameText);
-                if (nameTform != null) { _playerNameText = nameTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerNameText);
+            if (nameTform != null) { _playerNameText = nameTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_playerLevelText))
-            {
-                Transform raceTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerRaceText);
-                if (raceTform != null) { _playerRaceText = raceTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform raceTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerRaceText);
+            if (raceTform != null) { _playerRaceText = raceTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_playerLevelText))
-            {
-                Transform classTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerClassText);
-                if (classTform != null) { _playerClassText = classTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform classTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerClassText);
+            if (classTform != null) { _playerClassText = classTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_playerLevelText))
-            {
-                Transform levelTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerLevelText);
-                if (levelTform != null) { _playerLevelText = levelTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform levelTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_playerLevelText);
+            if (levelTform != null) { _playerLevelText = levelTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_mainHandDamageText))
-            {
-                Transform mainTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_mainHandDamageText);
-                if (mainTform != null) { _mainHandDamageText = mainTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform mainTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_mainHandDamageText);
+            if (mainTform != null) { _mainHandDamageText = mainTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_offHandDamageText))
-            {
-                Transform offTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_offHandDamageText);
-                if (offTform != null) { _offHandDamageText = offTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform offTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_offHandDamageText);
+            if (offTform != null) { _offHandDamageText = offTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_mainHandHitChanceText))
-            {
-                Transform mainHitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_mainHandHitChanceText);
-                if (mainHitTform != null) { _mainHandHitChanceText = mainHitTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform mainHitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_mainHandHitChanceText);
+            if (mainHitTform != null) { _mainHandHitChanceText = mainHitTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_offHandHitChanceText))
-            {
-                Transform offHitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_offHandHitChanceText);
-                if (offHitTform != null) { _offHandHitChanceText = offHitTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform offHitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_offHandHitChanceText);
+            if (offHitTform != null) { _offHandHitChanceText = offHitTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_totalArmorText))
-            {
-                Transform armorTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_totalArmorText);
-                if (armorTform != null) { _totalArmorText = armorTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform armorTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_totalArmorText);
+            if (armorTform != null) { _totalArmorText = armorTform.GetComponent<TextMeshProUGUI>(); }
 
-            if (!string.IsNullOrEmpty(_gameObjName_paperDollRawImage))
-            {
-                Transform dollTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_paperDollRawImage);
-                if(dollTform != null) { _paperDollRawImage = dollTform.GetComponent<RawImage>(); }
-            }
+            Transform dollTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_paperDollRawImage);
+            if(dollTform != null) { _paperDollRawImage = dollTform.GetComponent<RawImage>(); }
 
             if (layoutElement != null)
             {
@@ -366,7 +336,7 @@ namespace AcrealUI
             if (_experiencePercentSlider != null)
             {
                 _experiencePercentSlider.SetSliderValue(expPct, false);
-                _experiencePercentSlider.SetTextValue((expPct * 100f).ToString("N0") + "%");
+                _experiencePercentSlider.SetDisplayValue((expPct * 100f).ToString("N0") + "%");
             }
         }
         
@@ -401,7 +371,7 @@ namespace AcrealUI
         {
             if (_healthSlider != null)
             {
-                _healthSlider.SetTextValue(healthStr);
+                _healthSlider.SetDisplayValue(healthStr);
             }
         }
 
@@ -409,7 +379,7 @@ namespace AcrealUI
         {
             if (_fatigueSlider != null)
             {
-                _fatigueSlider.SetTextValue(fatigueStr);
+                _fatigueSlider.SetDisplayValue(fatigueStr);
             }
         }
 
@@ -417,7 +387,7 @@ namespace AcrealUI
         {
             if (_magickaSlider != null)
             {
-                _magickaSlider.SetTextValue(magickaStr);
+                _magickaSlider.SetDisplayValue(magickaStr);
             }
         }
 

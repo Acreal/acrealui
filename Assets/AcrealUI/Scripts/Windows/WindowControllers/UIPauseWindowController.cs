@@ -452,7 +452,7 @@ namespace AcrealUI
                         };
 
                         UISlider framerateSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        framerateSlider.SetTextTitle("Max Framerate"); // TODO(Acreal): localize this string
+                        framerateSlider.SetTitle("Max Framerate"); // TODO(Acreal): localize this string
                         framerateSlider.SetSliderMinMax(30f, _maxFramerate + 1, true);
                         framerateSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? _maxFramerate + 1 : DaggerfallUnity.Settings.TargetFrameRate; };
                         framerateSlider.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.TargetFrameRate == 0 ? "Unlimited" : DaggerfallUnity.Settings.TargetFrameRate.ToString("N0"); }; // TODO(Acreal): localize this string
@@ -474,7 +474,7 @@ namespace AcrealUI
                         renderGroup.Collapse();
 
                         UISlider qualitySlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        qualitySlider.SetTextTitle("Render Quality"); // TODO(Acreal): localize this string
+                        qualitySlider.SetTitle("Render Quality"); // TODO(Acreal): localize this string
                         qualitySlider.SetSliderMinMax(0, QualitySettings.names.Length - 1, true);
                         qualitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.QualityLevel; };
                         qualitySlider.DataSource_SliderValueString = (_) => { return QualitySettings.names[DaggerfallUnity.Settings.QualityLevel]; }; // TODO(Acreal): localize quality level names?
@@ -492,7 +492,7 @@ namespace AcrealUI
                         textureGroup.Collapse();
 
                         UISlider mainFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        mainFilterSlider.SetTextTitle("Main Filter"); // TODO(Acreal): localize this string
+                        mainFilterSlider.SetTitle("Main Filter"); // TODO(Acreal): localize this string
                         mainFilterSlider.SetSliderMinMax(0, 2, true);
                         mainFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MainFilterMode; };
                         mainFilterSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_filterModes[DaggerfallUnity.Settings.MainFilterMode]; };
@@ -503,7 +503,7 @@ namespace AcrealUI
                         };
 
                         UISlider guiFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        guiFilterSlider.SetTextTitle("GUI Filter"); // TODO(Acreal): localize this string
+                        guiFilterSlider.SetTitle("GUI Filter"); // TODO(Acreal): localize this string
                         guiFilterSlider.SetSliderMinMax(0, 2, true);
                         guiFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.GUIFilterMode; };
                         guiFilterSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_filterModes[DaggerfallUnity.Settings.GUIFilterMode]; };
@@ -514,7 +514,7 @@ namespace AcrealUI
                         };
 
                         UISlider videoFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        videoFilterSlider.SetTextTitle("Video Filter"); // TODO(Acreal): localize this string
+                        videoFilterSlider.SetTitle("Video Filter"); // TODO(Acreal): localize this string
                         videoFilterSlider.SetSliderMinMax(0, 2, true);
                         videoFilterSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.VideoFilterMode; };
                         videoFilterSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_filterModes[DaggerfallUnity.Settings.VideoFilterMode]; };
@@ -525,7 +525,7 @@ namespace AcrealUI
                         };
 
                         UISlider dungeonTexSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        dungeonTexSlider.SetTextTitle("Dungeon Texture Mode"); // TODO(Acreal): localize this string
+                        dungeonTexSlider.SetTitle("Dungeon Texture Mode"); // TODO(Acreal): localize this string
                         dungeonTexSlider.SetSliderMinMax(0, 2, true);
                         dungeonTexSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RandomDungeonTextures; };
                         dungeonTexSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_textureModes[DaggerfallUnity.Settings.RandomDungeonTextures]; };
@@ -548,7 +548,7 @@ namespace AcrealUI
                         aaGroup.Collapse();
 
                         UISlider aaModeSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        aaModeSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("method"));
+                        aaModeSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("method"));
                         //aaModeSlider.SetTooltip(UIUtilityFunctions.GetLocalizedText("antialiasingTip"));
                         aaModeSlider.SetSliderMinMax(0, 3, true);
                         aaModeSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod; };
@@ -567,7 +567,7 @@ namespace AcrealUI
                         };
 
                         UISlider taaSharpnessSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        taaSharpnessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("taaSharpness"));
+                        taaSharpnessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("taaSharpness"));
                         taaSharpnessSlider.SetSliderMinMax(0.0f, 3.0f, false);
                         taaSharpnessSlider.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.TAA; };
                         taaSharpnessSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingTAASharpness; };
@@ -584,7 +584,7 @@ namespace AcrealUI
                         };
 
                         UISlider smaaQualitySlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        smaaQualitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("smaaQuality"));
+                        smaaQualitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("smaaQuality"));
                         smaaQualitySlider.SetSliderMinMax(0, 2, true);
                         smaaQualitySlider.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.SMAA; };
                         smaaQualitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.AntialiasingSMAAQuality; };
@@ -636,7 +636,7 @@ namespace AcrealUI
                         ////// RENDERING MODE ///////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            retroSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("mode"));
+                            retroSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("mode"));
                             retroSlider.SetSliderMinMax(0, _localizedStrings_retroModes.Length-1, true);
                             retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroRenderingMode; };
                             retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroModes[DaggerfallUnity.Settings.RetroRenderingMode]; }; // TODO(Acreal): localize quality level names?
@@ -655,7 +655,7 @@ namespace AcrealUI
                         ////// POST-PROCESS MODE ///////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            retroSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("postProcess"));
+                            retroSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("postProcess"));
                             retroSlider.SetSliderMinMax(0, _localizedStrings_retroPostProcessModes.Length-1, true);
                             retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.PostProcessingInRetroMode; };
                             retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroPostProcessModes[DaggerfallUnity.Settings.PostProcessingInRetroMode]; }; // TODO(Acreal): localize quality level names?
@@ -674,7 +674,7 @@ namespace AcrealUI
                         ////// ASPECT CORRECTION ///////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            retroSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("retroModeAspectCorrection"));
+                            retroSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("retroModeAspectCorrection"));
                             retroSlider.SetSliderMinMax(0, _localizedStrings_retroAspectCorrections.Length - 1, true);
                             retroSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.RetroModeAspectCorrection; };
                             retroSlider.DataSource_SliderValueString = (_) => { return _localizedStrings_retroAspectCorrections[DaggerfallUnity.Settings.RetroModeAspectCorrection]; }; // TODO(Acreal): localize quality level names?
@@ -715,7 +715,7 @@ namespace AcrealUI
                         ////// FOCUS DISTANCE //////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider focusDistSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            focusDistSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("focusDistance"));
+                            focusDistSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("focusDistance"));
                             focusDistSlider.SetSliderMinMax(0.1f, 100f, false);
 
                             focusDistSlider.DataSource_SliderValue = (_) =>
@@ -743,7 +743,7 @@ namespace AcrealUI
                         ////// APERTURE ////////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider apertureSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            apertureSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("aperture"));
+                            apertureSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("aperture"));
                             apertureSlider.SetSliderMinMax(0.1f, 32.0f, false);
 
                             apertureSlider.DataSource_SliderValue = (_) =>
@@ -771,7 +771,7 @@ namespace AcrealUI
                         ////// FOCAL LENGTH /////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider focalLengthSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            focalLengthSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("focalLength"));
+                            focalLengthSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("focalLength"));
                             focalLengthSlider.SetSliderMinMax(1, 300, true);
 
                             focalLengthSlider.DataSource_SliderValue = (_) =>
@@ -799,7 +799,7 @@ namespace AcrealUI
                         ////// MAX BLUR SIZE ///////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider focalLengthSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            focalLengthSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("maxBlurSize"));
+                            focalLengthSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("maxBlurSize"));
                             focalLengthSlider.SetSliderMinMax(0, _localizedStrings_blurSizes.Length - 1, true);
 
                             focalLengthSlider.DataSource_SliderValue = (_) =>
@@ -849,7 +849,7 @@ namespace AcrealUI
                         ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
                             intensitySlider.SetSliderMinMax(0f, 1f, false);
                             intensitySlider.DataSource_SliderValue = (_) => { return Mathf.InverseLerp(0f, 50f, DaggerfallUnity.Settings.BloomIntensity); };
 
@@ -874,7 +874,7 @@ namespace AcrealUI
                         ////// THRESHOLD ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("threshold"));
+                            intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("threshold"));
                             intensitySlider.SetSliderMinMax(0.1f, 10f, false);
                             intensitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.BloomThreshold; };
 
@@ -898,7 +898,7 @@ namespace AcrealUI
                         ////// DIFFUSION //////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("diffusion"));
+                            intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("diffusion"));
                             intensitySlider.SetSliderMinMax(1f, 10f, false);
                             intensitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.BloomDiffusion; };
 
@@ -961,7 +961,7 @@ namespace AcrealUI
                         ////// METHOD /////////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider aoMethodSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            aoMethodSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("method"));
+                            aoMethodSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("method"));
                             aoMethodSlider.SetSliderMinMax(0f, _localizedStrings_ambientOcclusionMethods.Length-1, true);
 
                             aoMethodSlider.DataSource_SliderValue = (_) =>
@@ -992,7 +992,7 @@ namespace AcrealUI
                         ////// INTENSITY //////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider aoIntensitySlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            aoIntensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            aoIntensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
                             aoIntensitySlider.SetSliderMinMax(0f, 1f, false);
 
                             aoIntensitySlider.DataSource_SliderValue = (_) =>
@@ -1021,7 +1021,7 @@ namespace AcrealUI
                         ////// RADIUS ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider aoRadiusSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            aoRadiusSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("radius"));
+                            aoRadiusSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("radius"));
                             aoRadiusSlider.SetSliderMinMax(0f, 2f, false);
 
                             aoRadiusSlider.DataSource_GameObjectActive = (_) =>
@@ -1055,7 +1055,7 @@ namespace AcrealUI
                         ////// QUALITY //////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider aoQualitySlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            aoQualitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("quality"));
+                            aoQualitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("quality"));
                             aoQualitySlider.SetSliderMinMax(0, _localizedStrings_aoQualityLevels.Length - 1, true);
 
                             aoQualitySlider.DataSource_GameObjectActive = (_) =>
@@ -1088,7 +1088,7 @@ namespace AcrealUI
                         ////// THICKNESS ////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider aoThicknessSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            aoThicknessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("thickness"));
+                            aoThicknessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("thickness"));
                             aoThicknessSlider.SetSliderMinMax(1f, 10f, false);
 
                             aoThicknessSlider.DataSource_GameObjectActive = (_) =>
@@ -1143,7 +1143,7 @@ namespace AcrealUI
                         ////// SHUTTER ANGLE ////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider intensitySlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            intensitySlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("shutterAngle"));
+                            intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("shutterAngle"));
                             intensitySlider.SetSliderMinMax(0, 360, true);
                             intensitySlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MotionBlurShutterAngle; };
 
@@ -1167,7 +1167,7 @@ namespace AcrealUI
                         ////// SAMPLE COUNT /////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider motionBlurSlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            motionBlurSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("sampleCount"));
+                            motionBlurSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("sampleCount"));
                             motionBlurSlider.SetSliderMinMax(0, 3, true);
 
                             motionBlurSlider.DataSource_SliderValue = (_) =>
@@ -1241,7 +1241,7 @@ namespace AcrealUI
                         ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider vignetteSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            vignetteSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            vignetteSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
                             vignetteSlider.SetSliderMinMax(0f, 1f, false);
 
                             vignetteSlider.DataSource_SliderValue = (_) =>
@@ -1269,7 +1269,7 @@ namespace AcrealUI
                         ////// SMOOTHNESS /////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider smoothnessSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            smoothnessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("smoothness"));
+                            smoothnessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("smoothness"));
                             smoothnessSlider.SetSliderMinMax(0f, 1f, false);
 
                             smoothnessSlider.DataSource_SliderValue = (_) =>
@@ -1297,7 +1297,7 @@ namespace AcrealUI
                         ////// ROUNDNESS //////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider roundnessSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            roundnessSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("roundness"));
+                            roundnessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("roundness"));
                             roundnessSlider.SetSliderMinMax(0f, 1f, false);
 
                             roundnessSlider.DataSource_SliderValue = (_) =>
@@ -1366,7 +1366,7 @@ namespace AcrealUI
                         ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider colorBoostSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            colorBoostSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                            colorBoostSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
                             colorBoostSlider.SetSliderMinMax(0f, 1f, false);
 
                             colorBoostSlider.DataSource_SliderValue = (_) =>
@@ -1394,7 +1394,7 @@ namespace AcrealUI
                         ////// RADIUS ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider radiusSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            radiusSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("radius"));
+                            radiusSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("radius"));
                             radiusSlider.SetSliderMinMax(0.1f, 50.0f, false);
 
                             radiusSlider.DataSource_SliderValue = (_) =>
@@ -1422,7 +1422,7 @@ namespace AcrealUI
                         ////// INTERIOR SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider interiorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            interiorScaleSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("interiorScale"));
+                            interiorScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("interiorScale"));
                             interiorScaleSlider.SetSliderMinMax(0f, 8f, false);
 
                             interiorScaleSlider.DataSource_SliderValue = (_) =>
@@ -1450,7 +1450,7 @@ namespace AcrealUI
                         ////// EXTERIOR SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider exteriorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            exteriorScaleSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("exteriorScale"));
+                            exteriorScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("exteriorScale"));
                             exteriorScaleSlider.SetSliderMinMax(0f, 8f, false);
 
                             exteriorScaleSlider.DataSource_SliderValue = (_) =>
@@ -1478,7 +1478,7 @@ namespace AcrealUI
                         ////// DUNGEON SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider dungeonScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            dungeonScaleSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("dungeonScale"));
+                            dungeonScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("dungeonScale"));
                             dungeonScaleSlider.SetSliderMinMax(0f, 8f, false);
 
                             dungeonScaleSlider.DataSource_SliderValue = (_) =>
@@ -1506,7 +1506,7 @@ namespace AcrealUI
                         ////// DUNGEON FALLOFF ///////////////////////////////////////////////////////////////////////////////////////////////
                         {
                             UISlider falloffSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                            falloffSlider.SetTextTitle(UIUtilityFunctions.GetLocalizedText("dungeonFalloff"));
+                            falloffSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("dungeonFalloff"));
                             falloffSlider.SetSliderMinMax(0f, 8f, false);
 
                             falloffSlider.DataSource_SliderValue = (_) =>
@@ -1554,7 +1554,7 @@ namespace AcrealUI
                         cameraGroup.Collapse();
 
                         UISlider fovSlider = cameraGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        fovSlider.SetTextTitle("Field of View"); // TODO(Acreal): localize this string
+                        fovSlider.SetTitle("Field of View"); // TODO(Acreal): localize this string
                         fovSlider.SetSliderMinMax(60, 120, true);
                         fovSlider.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.FieldOfView; };
                         fovSlider.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.FieldOfView.ToString("N0"); };
@@ -1575,7 +1575,7 @@ namespace AcrealUI
                         shadowGroup.Collapse();
 
                         UISlider shadowRes = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        shadowRes.SetTextTitle("Shadow Resolution"); // TODO(Acreal): localize this string
+                        shadowRes.SetTitle("Shadow Resolution"); // TODO(Acreal): localize this string
                         shadowRes.SetSliderMinMax(0, 3, true);
                         shadowRes.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.ShadowResolutionMode; };
                         shadowRes.DataSource_SliderValueString = (_) => { return _localizedStrings_shadowResolutionModes[DaggerfallUnity.Settings.ShadowResolutionMode]; };
@@ -1586,7 +1586,7 @@ namespace AcrealUI
                         };
 
                         UISlider shadowDistExt = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        shadowDistExt.SetTextTitle("Exterior Shadow Distance"); // TODO(Acreal): localize this string
+                        shadowDistExt.SetTitle("Exterior Shadow Distance"); // TODO(Acreal): localize this string
                         shadowDistExt.SetSliderMinMax(0.1f, 150f, false);
                         shadowDistExt.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.ExteriorShadowDistance; };
                         shadowDistExt.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.ExteriorShadowDistance.ToString("F2"); };
@@ -1597,7 +1597,7 @@ namespace AcrealUI
                         };
 
                         UISlider shadowDistInt = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        shadowDistInt.SetTextTitle("Interior Shadow Distance"); // TODO(Acreal): localize this string
+                        shadowDistInt.SetTitle("Interior Shadow Distance"); // TODO(Acreal): localize this string
                         shadowDistInt.SetSliderMinMax(0.1f, 50f, false);
                         shadowDistInt.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.InteriorShadowDistance; };
                         shadowDistInt.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.InteriorShadowDistance.ToString("F2"); };
@@ -1608,7 +1608,7 @@ namespace AcrealUI
                         };
 
                         UISlider shadowDistDungeon = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        shadowDistDungeon.SetTextTitle("Dungeon Shadow Distance"); // TODO(Acreal): localize this string
+                        shadowDistDungeon.SetTitle("Dungeon Shadow Distance"); // TODO(Acreal): localize this string
                         shadowDistDungeon.SetSliderMinMax(0.1f, 50f, false);
                         shadowDistDungeon.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.DungeonShadowDistance; };
                         shadowDistDungeon.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.DungeonShadowDistance.ToString("F2"); };
@@ -1685,7 +1685,7 @@ namespace AcrealUI
                         UIScrollListGroup volumeGroup = _pauseWindowInstance.panelAudioSettings.GetOrAddScrollListGroup("Volume"); // TODO(Acreal): localize this string
 
                         UISlider soundVolume = volumeGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        soundVolume.SetTextTitle("Sound"); // TODO(Acreal): localize this string
+                        soundVolume.SetTitle("Sound"); // TODO(Acreal): localize this string
                         soundVolume.SetSliderMinMax(0f, 100f, true);
                         soundVolume.DataSource_SliderValue = (_) => { return Mathf.RoundToInt(DaggerfallUnity.Settings.SoundVolume * 100f); };
                         soundVolume.DataSource_SliderValueString = (_) =>
@@ -1699,7 +1699,7 @@ namespace AcrealUI
                         };
 
                         UISlider musicVolume = volumeGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        musicVolume.SetTextTitle("Music"); // TODO(Acreal): localize this string
+                        musicVolume.SetTitle("Music"); // TODO(Acreal): localize this string
                         musicVolume.SetSliderMinMax(0f, 100f, true);
                         musicVolume.DataSource_SliderValue = (_) => { return Mathf.RoundToInt(DaggerfallUnity.Settings.MusicVolume * 100f); };
                         musicVolume.DataSource_SliderValueString = (_) =>
@@ -1832,7 +1832,7 @@ namespace AcrealUI
                         combatGroup.Collapse();
 
                         UISlider slider_weaponSwingMode = combatGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        slider_weaponSwingMode.SetTextTitle(TextManager.Instance.GetText("MainMenu", "weaponSwingMode"));
+                        slider_weaponSwingMode.SetTitle(TextManager.Instance.GetText("MainMenu", "weaponSwingMode"));
                         slider_weaponSwingMode.SetSliderMinMax(0, _localizedStrings_weaponSwingModes.Length - 1, true);
                         slider_weaponSwingMode.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.WeaponSwingMode; };
                         slider_weaponSwingMode.DataSource_SliderValueString = (_) => { return _localizedStrings_weaponSwingModes[DaggerfallUnity.Settings.WeaponSwingMode]; };
@@ -2059,7 +2059,7 @@ namespace AcrealUI
                         joystickGroup.Collapse();
 
                         UISlider slider_lookSensitivity = joystickGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        slider_lookSensitivity.SetTextTitle("Look Sensitivity"); // TODO(Acreal): localize this string
+                        slider_lookSensitivity.SetTitle("Look Sensitivity"); // TODO(Acreal): localize this string
                         slider_lookSensitivity.SetSliderMinMax(0f, 1f, false);
                         slider_lookSensitivity.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.JoystickLookSensitivity; };
                         slider_lookSensitivity.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.JoystickLookSensitivity.ToString("F2"); };
@@ -2069,7 +2069,7 @@ namespace AcrealUI
                         };
 
                         UISlider slider_uiMouseSensitivity = joystickGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        slider_uiMouseSensitivity.SetTextTitle("UI Mouse Sensitivity"); // TODO(Acreal): localize this string
+                        slider_uiMouseSensitivity.SetTitle("UI Mouse Sensitivity"); // TODO(Acreal): localize this string
                         slider_uiMouseSensitivity.SetSliderMinMax(0f, 1f, false);
                         slider_uiMouseSensitivity.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MouseLookSensitivity; };
                         slider_uiMouseSensitivity.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.MouseLookSensitivity.ToString("F2"); };
@@ -2079,7 +2079,7 @@ namespace AcrealUI
                         };
 
                         UISlider slider_uiMouseSmoothing = joystickGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        slider_uiMouseSmoothing.SetTextTitle("Mouse Smoothing Factor"); // TODO(Acreal): localize this string
+                        slider_uiMouseSmoothing.SetTitle("Mouse Smoothing Factor"); // TODO(Acreal): localize this string
                         slider_uiMouseSmoothing.SetSliderMinMax(0f, 0.9f, false);
                         slider_uiMouseSmoothing.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.MouseLookSmoothingFactor; };
                         slider_uiMouseSmoothing.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.MouseLookSmoothingFactor.ToString("F2"); };
@@ -2089,7 +2089,7 @@ namespace AcrealUI
                         };
 
                         UISlider slider_maxMovementThreshold = joystickGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        slider_maxMovementThreshold.SetTextTitle("Maximum Movement Threshold"); // TODO(Acreal): localize this string
+                        slider_maxMovementThreshold.SetTitle("Maximum Movement Threshold"); // TODO(Acreal): localize this string
                         slider_maxMovementThreshold.SetSliderMinMax(0f, 1f, false);
                         slider_maxMovementThreshold.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.JoystickMovementThreshold; };
                         slider_maxMovementThreshold.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.JoystickMovementThreshold.ToString("F2"); };
@@ -2099,7 +2099,7 @@ namespace AcrealUI
                         };
 
                         UISlider slider_deadzone = joystickGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        slider_deadzone.SetTextTitle("Deadzone"); // TODO(Acreal): localize this string
+                        slider_deadzone.SetTitle("Deadzone"); // TODO(Acreal): localize this string
                         slider_deadzone.SetSliderMinMax(0f, 1f, false);
                         slider_deadzone.DataSource_SliderValue = (_) => { return DaggerfallUnity.Settings.JoystickDeadzone; };
                         slider_deadzone.DataSource_SliderValueString = (_) => { return DaggerfallUnity.Settings.JoystickDeadzone.ToString("F2"); };

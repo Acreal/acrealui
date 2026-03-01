@@ -41,23 +41,14 @@ namespace AcrealUI
         #region Initialization
         public void Initialize()
         {
-            if(_image_icon == null && !string.IsNullOrEmpty(_gameObjName_image_icon))
-            {
-                Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_icon);
-                if(iconTform != null) { _image_icon = iconTform.GetComponent<Image>(); }
-            }
-
-            if (_text_title == null && !string.IsNullOrEmpty(_gameObjName_text_title))
-            {
-                Transform titleTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_title);
-                if (titleTform != null) { _text_title = titleTform.GetComponent<TextMeshProUGUI>(); }
-            }
-
-            if (_text_description == null && !string.IsNullOrEmpty(_gameObjName_text_description))
-            {
-                Transform descTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_description);
-                if (descTform != null) { _text_description = descTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_icon);
+            if(iconTform != null) { _image_icon = iconTform.GetComponent<Image>(); }
+                
+            Transform titleTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_title);
+            if (titleTform != null) { _text_title = titleTform.GetComponent<TextMeshProUGUI>(); }
+                
+            Transform descTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_description);
+            if (descTform != null) { _text_description = descTform.GetComponent<TextMeshProUGUI>(); }
         }
         #endregion
 

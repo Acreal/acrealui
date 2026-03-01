@@ -115,7 +115,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameObjName_canvasComponent: 
   _gameObjName_canvasGroup: CanvasGroup_Main
-  _gameObjName_layoutElement: 
+  _gameObjName_layoutElement: CanvasGroup_Main
   _gameObjName_closeWindowButton: Button_Close
   _gameObjName_backButton: Button_Back
   _gameObjName_headerText: Text_Header
@@ -2308,6 +2308,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2037913875385057771, guid: e98b96c26d06c4541af411aa60482f13,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Settings
+      objectReference: {fileID: 0}
+    - target: {fileID: 2037913875467074520, guid: e98b96c26d06c4541af411aa60482f13,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Continue
+      objectReference: {fileID: 0}
+    - target: {fileID: 2037913875708407757, guid: e98b96c26d06c4541af411aa60482f13,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Save
+      objectReference: {fileID: 0}
+    - target: {fileID: 2037913876163863238, guid: e98b96c26d06c4541af411aa60482f13,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Quit
+      objectReference: {fileID: 0}
     - target: {fileID: 3388066440236293440, guid: e98b96c26d06c4541af411aa60482f13,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -2457,6 +2477,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8034405892826179088, guid: e98b96c26d06c4541af411aa60482f13,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Load
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e98b96c26d06c4541af411aa60482f13, type: 3}

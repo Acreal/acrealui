@@ -77,26 +77,28 @@ namespace AcrealUI
         #region Initialization/Cleanup
         public override void Initialize()
         {
-            base.Initialize();
-
-            if (!string.IsNullOrWhiteSpace(_gameObjName_text_bindingName))
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingName);
+            if (nameTform != null)
             {
-                _text_bindingName = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingName).GetComponent<TextMeshProUGUI>();
+                _text_bindingName = nameTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_text_bindingValue_primary))
+            Transform primaryTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_primary);
+            if (primaryTform != null)
             {
-                _text_bindingValue_primary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_primary).GetComponent<TextMeshProUGUI>();
+                _text_bindingValue_primary = primaryTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_text_bindingValue_secondary))
+            Transform secondaryTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_secondary);
+            if (secondaryTForm != null)
             {
-                _text_bindingValue_secondary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_bindingValue_secondary).GetComponent<TextMeshProUGUI>();
+                _text_bindingValue_secondary = secondaryTForm.GetComponent<TextMeshProUGUI>();
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_button_bindPrimary))
+            Transform bindPrimTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindPrimary);
+            if (bindPrimTform != null)
             {
-                _button_bindPrimary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindPrimary).GetComponent<UIButton>();
+                _button_bindPrimary = bindPrimTform.GetComponent<UIButton>();
                 if (_button_bindPrimary != null)
                 {
                     _button_bindPrimary.Initialize();
@@ -104,15 +106,18 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_button_bindSecondary))
+            Transform bindSecTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindSecondary);
+            if (bindSecTform != null)
             {
-                _button_bindSecondary = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_bindSecondary).GetComponent<UIButton>();
+                _button_bindSecondary = bindSecTform.GetComponent<UIButton>();
                 if (_button_bindSecondary != null)
                 {
                     _button_bindSecondary.Initialize();
                     _button_bindSecondary.Event_OnClicked += OnClick_SecondaryBinding;
                 }
             }
+
+            base.Initialize();
         }
         #endregion
 

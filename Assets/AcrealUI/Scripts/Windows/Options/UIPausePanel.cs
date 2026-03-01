@@ -55,49 +55,64 @@ namespace AcrealUI
             base.Initialize();
 
             Transform continueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_continue);
-            _button_continue = continueTform != null ? continueTform.GetComponent<UIButton>() : null;
-            if (_button_continue != null)
+            if (continueTform != null)
             {
-                _button_continue.Initialize();
-                _button_continue.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Continue?.Invoke(); };
+                _button_continue = continueTform.GetComponent<UIButton>();
+                if (_button_continue != null)
+                {
+                    _button_continue.Initialize();
+                    _button_continue.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Continue?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (continueTform != null ? continueTform.name : "NULL") + "\""); }
             }
-            else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (continueTform != null ? continueTform.name : "NULL") + "\""); }
 
             Transform saveTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_saveGame);
-            _button_saveGame = saveTform != null ? saveTform.GetComponent<UIButton>() : null;
-            if (_button_saveGame != null)
+            if (saveTform != null)
             {
-                _button_saveGame.Initialize();
-                _button_saveGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_SaveGame?.Invoke(); };
+                _button_saveGame = saveTform.GetComponent<UIButton>();
+                if (_button_saveGame != null)
+                {
+                    _button_saveGame.Initialize();
+                    _button_saveGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_SaveGame?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (saveTform != null ? saveTform.name : "NULL") + "\""); }
             }
-            else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (saveTform != null ? saveTform.name : "NULL") + "\""); }
 
             Transform loadTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_loadGame);
-            _button_loadGame = loadTform != null ? loadTform.GetComponent<UIButton>() : null;
-            if (_button_loadGame != null)
+            if (loadTform != null)
             {
-                _button_loadGame.Initialize();
-                _button_loadGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_LoadGame?.Invoke(); };
+                _button_loadGame = loadTform.GetComponent<UIButton>();
+                if (_button_loadGame != null)
+                {
+                    _button_loadGame.Initialize();
+                    _button_loadGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_LoadGame?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (loadTform != null ? loadTform.name : "NULL") + "\""); }
             }
-            else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (loadTform != null ? loadTform.name : "NULL") + "\""); }
 
             Transform exitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_exitGame);
-            _button_exitGame = exitTform != null ? exitTform.GetComponent<UIButton>() : null;
-            if (_button_exitGame != null)
+            if (exitTform != null)
             {
-                _button_exitGame.Initialize();
-                _button_exitGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_ExitGame?.Invoke(); };
+                _button_exitGame = exitTform.GetComponent<UIButton>();
+                if (_button_exitGame != null)
+                {
+                    _button_exitGame.Initialize();
+                    _button_exitGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_ExitGame?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (exitTform != null ? exitTform.name : "NULL") + "\""); }
             }
-            else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (exitTform != null ? exitTform.name : "NULL") + "\""); }
 
             Transform settingsTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_settings);
-            _button_settings = settingsTform != null ? settingsTform.GetComponent<UIButton>() : null;
-            if (_button_settings != null)
+            if (settingsTform != null)
             {
-                _button_settings.Initialize();
-                _button_settings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Settings?.Invoke(); };
+                _button_settings = settingsTform.GetComponent<UIButton>();
+                if (_button_settings != null)
+                {
+                    _button_settings.Initialize();
+                    _button_settings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Settings?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (settingsTform != null ? settingsTform.name : "NULL") + "\""); }
             }
-            else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (settingsTform != null ? settingsTform.name : "NULL") + "\""); }
         }
         #endregion
     }

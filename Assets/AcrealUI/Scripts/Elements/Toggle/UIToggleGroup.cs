@@ -42,10 +42,10 @@ namespace AcrealUI
         {
             if (_toggles == null)
             {
-                if (!string.IsNullOrEmpty(_gameObjName_defaultToggle))
+                Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_defaultToggle);
+                if (defaultTform != null)
                 {
-                    Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_defaultToggle);
-                    _defaultToggle = defaultTform != null ? defaultTform.GetComponent<UIToggle>() : null;
+                    _defaultToggle = defaultTform.GetComponent<UIToggle>();
                 }
 
                 if (_gameObjNameList_toggles != null)

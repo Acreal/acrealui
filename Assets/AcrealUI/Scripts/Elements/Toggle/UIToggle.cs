@@ -28,19 +28,12 @@ namespace AcrealUI
     public class UIToggle : UIButton
     {
         #region Variables
-        [SerializeField] private string _gameObjectName_text_displayName = null;
-
         //set by UIToggleGroup to indicate whether this
         //toggle can be clicked consecutively
-        #if UNITY_EDITOR
         public bool canBeToggledOff = true;
-        #else
-        [HideInInspector] public bool canBeToggledOff = true;
-        #endif
 
         protected bool _isToggledOn = false;
         private string _displayName = null;
-        private TextMeshProUGUI _displayNameText = null;
         #endregion
 
 
@@ -101,13 +94,6 @@ namespace AcrealUI
             Event_OnToggledOnOrOff = null;
 
             base.Initialize();
-
-            if (!string.IsNullOrEmpty(_gameObjectName_text_displayName))
-            {
-                Transform textTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjectName_text_displayName);
-                _displayNameText = textTform != null ? textTform.GetComponent<TextMeshProUGUI>() : null;
-                SetDisplayName(_displayName);
-            }
         }
         #endregion
 
@@ -130,9 +116,9 @@ namespace AcrealUI
         {
             _displayName = toggleDisplayName;
 
-            if(_displayNameText != null )
+            if(_titleText != null )
             {
-                _displayNameText.text = _displayName;
+                _titleText.text = _displayName;
             }
         }
 

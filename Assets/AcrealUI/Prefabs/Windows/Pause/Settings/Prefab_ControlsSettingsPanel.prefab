@@ -2042,6 +2042,11 @@ PrefabInstance:
       propertyPath: m_FlexibleWidth
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Default
+      objectReference: {fileID: 0}
     - target: {fileID: 7518637396586820398, guid: 2c91898386cccac489f9a2cb1aff655b,
         type: 3}
       propertyPath: colorTintSettings.Array.data[0].tintColor.b

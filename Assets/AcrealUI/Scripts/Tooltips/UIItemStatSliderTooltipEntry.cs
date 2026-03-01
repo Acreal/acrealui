@@ -40,8 +40,14 @@ namespace AcrealUI
             if (_slider_condition == null && _gameObjName_slider_condition != null)
             {
                 Transform sliderTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_slider_condition);
-                if (sliderTform != null) { _slider_condition = sliderTform.GetComponent<UISlider>(); }
-                if (_slider_condition != null) { _slider_condition.Initialize(); }
+                if (sliderTform != null)
+                {
+                    _slider_condition = sliderTform.GetComponent<UISlider>();
+                    if (_slider_condition != null)
+                    {
+                        _slider_condition.Initialize();
+                    }
+                }
             }
         }
         #endregion

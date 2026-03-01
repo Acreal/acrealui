@@ -37,7 +37,6 @@ namespace AcrealUI
 
         public UIPauseWindow prefab_pauseWindow = null;
         public UIWindowSaveLoad prefab_saveLoadWindow = null;
-
         public UIConfirmationWindow prefab_confirmationWindow = null;
         public UIConversationWindow prefab_conversationWindow = null;
 
@@ -46,9 +45,10 @@ namespace AcrealUI
         public UIToggle prefab_resolutionSettingEntry = null;
 
         public UIInventoryWindow prefab_inventoryWindow = null;
-        public UIInventoryWindow_ItemEntry itemEntryPrefab = null;
+        public UIInventoryWindow_ItemEntry prefab_itemEntry = null;
         public UIPlayerStatEntry prefab_playerStatEntry = null;
         public UIPlayerSkillEntry prefab_playerSkillEntry = null;
+        public UIDialogueEntry prefab_dialogueEntry = null;
 
         public Canvas prefab_tooltipCanvas = null;
         public UITextTooltip prefab_textTooltip = null;
@@ -118,7 +118,7 @@ namespace AcrealUI
             prefab_inventoryWindow = inventoryWindowObj != null ? inventoryWindowObj.GetComponent<UIInventoryWindow>() : null;
 
             GameObject itemEntryObj = mod.GetAsset<GameObject>("Prefab_InventoryItemEntry");
-            itemEntryPrefab = itemEntryObj != null ? itemEntryObj.GetComponent<UIInventoryWindow_ItemEntry>() : null;
+            prefab_itemEntry = itemEntryObj != null ? itemEntryObj.GetComponent<UIInventoryWindow_ItemEntry>() : null;
 
             GameObject payerStatEntryObj = mod.GetAsset<GameObject>("Prefab_CharacterStatEntry");
             prefab_playerStatEntry = payerStatEntryObj != null ? payerStatEntryObj.GetComponent<UIPlayerStatEntry>() : null;

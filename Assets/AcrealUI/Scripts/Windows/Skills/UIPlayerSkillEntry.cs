@@ -45,35 +45,20 @@ namespace AcrealUI
         #region Initialization
         public void Initialize()
         {
-            if (!string.IsNullOrEmpty(_gameObjName_text_skillName))
-            {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_skillName);
-                _text_skillName = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_skillName);
+            _text_skillName = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_skillValue))
-            {
-                Transform valTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_skillValue);
-                _text_skillValue = valTform != null ? valTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+            Transform valTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_skillValue);
+            _text_skillValue = valTform != null ? valTform.GetComponent<TextMeshProUGUI>() : null;
 
-            if (!string.IsNullOrEmpty(_gameObjName_image_skillIcon))
-            {
-                Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_skillIcon);
-                _image_skillIcon = iconTform != null ? iconTform.GetComponent<Image>() : null;
-            }
+            Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_skillIcon);
+            _image_skillIcon = iconTform != null ? iconTform.GetComponent<Image>() : null;
 
-            if (!string.IsNullOrEmpty(_gameObjName_image_skillRankIcon))
-            {
-                Transform primaryTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_skillRankIcon);
-                _image_skillRankIcon = primaryTform != null ? primaryTform.GetComponent<Image>() : null;
-            }
+            Transform primaryTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_skillRankIcon);
+            _image_skillRankIcon = primaryTform != null ? primaryTform.GetComponent<Image>() : null;
 
-            if (!string.IsNullOrEmpty(_gameObjName_skillRankParent))
-            {
-                Transform parentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_skillRankParent);
-                _skillRankParent = parentTform != null ? parentTform.gameObject : null;
-            }
+            Transform parentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_skillRankParent);
+            _skillRankParent = parentTform != null ? parentTform.gameObject : null;
         }
         #endregion
 

@@ -40,21 +40,18 @@ namespace AcrealUI
         {
             base.Initalize();
 
-            if (_iconImage == null && !string.IsNullOrEmpty(_gameObjName_iconImage))
+            Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_iconImage);
+            if (iconTform != null)
             {
-                Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_iconImage);
-                if (iconTform != null) { _iconImage = iconTform.GetComponent<Image>(); }
+                _iconImage = iconTform.GetComponent<Image>();
             }
 
-            if (_iconLayoutElement == null && !string.IsNullOrEmpty(_gameObjName_iconLayoutElement))
-            {
-                Transform layoutTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_iconLayoutElement);
-                if (layoutTform != null)
-                { 
-                    _iconLayoutElement = layoutTform.GetComponent<LayoutElement>();
-                    _iconLayoutElement.minWidth = _ICON_DEFAULT_SIZE;
-                    _iconLayoutElement.minHeight = _ICON_DEFAULT_SIZE;
-                }
+            Transform layoutTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_iconLayoutElement);
+            if (layoutTform != null)
+            { 
+                _iconLayoutElement = layoutTform.GetComponent<LayoutElement>();
+                _iconLayoutElement.minWidth = _ICON_DEFAULT_SIZE;
+                _iconLayoutElement.minHeight = _ICON_DEFAULT_SIZE;
             }
         }
 

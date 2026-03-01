@@ -61,20 +61,34 @@ namespace AcrealUI
             uiElementsRO = _uiElements.AsReadOnly();
 
             _parent_groupEntries = UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
-            _parent_groupEntries.gameObject.SetActive(true);
-
-            _text_groupTitle = UIUtilityFunctions.FindDeepChild(transform, _text_groupTitleGameObjName).GetComponent<TextMeshProUGUI>();
-
-            _toggle_expandCollapse = UIUtilityFunctions.FindDeepChild(transform, _toggle_expandCollapseGameObjName).GetComponent<UIToggle>();
-            _toggle_expandCollapse.Initialize();
-            _toggle_expandCollapse.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+            if (_parent_groupEntries != null)
             {
-                if (_parent_groupEntries != null && toggle != null)
+                _parent_groupEntries.gameObject.SetActive(true);
+            }
+
+            Transform titleTform = UIUtilityFunctions.FindDeepChild(transform, _text_groupTitleGameObjName);
+            if (titleTform != null)
+            {
+                _text_groupTitle = titleTform.GetComponent<TextMeshProUGUI>();
+            }
+
+            Transform expColTform = UIUtilityFunctions.FindDeepChild(transform, _toggle_expandCollapseGameObjName);
+            if (expColTform != null)
+            {
+                _toggle_expandCollapse = expColTform.GetComponent<UIToggle>();
+                if (_toggle_expandCollapse != null)
                 {
-                    _parent_groupEntries.gameObject.SetActive(toggle.isToggledOn);
+                    _toggle_expandCollapse.Initialize();
+                    _toggle_expandCollapse.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                    {
+                        if (_parent_groupEntries != null && toggle != null)
+                        {
+                            _parent_groupEntries.gameObject.SetActive(toggle.isToggledOn);
+                        }
+                    };
+                    _toggle_expandCollapse.isToggledOn = true;
                 }
-            };
-            _toggle_expandCollapse.isToggledOn = true;
+            }
         }
         #endregion
 

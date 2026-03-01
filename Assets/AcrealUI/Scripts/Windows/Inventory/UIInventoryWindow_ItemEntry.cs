@@ -79,94 +79,94 @@ namespace AcrealUI
         #region Initialization
         public void Initalize()
         {
-            if (_image_itemTypeIcon == null)
+            Transform typeIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemTypeIcon);
+            if (typeIconTform != null)
             {
-                Transform typeIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemTypeIcon);
-                _image_itemTypeIcon = typeIconTform != null ? typeIconTform.GetComponent<Image>() : null;
+                _image_itemTypeIcon = typeIconTform.GetComponent<Image>();
+            }
+                
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_nameText);
+            if (nameTform != null)
+            {
+                _text_name = nameTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (_text_name == null)
+            Transform dmgTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_damageText);
+            if (dmgTform != null)
             {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_nameText);
-                _text_name = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_damage = dmgTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (_text_damage == null)
+            Transform armorTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_armorText);
+            if (armorTform != null)
             {
-                Transform dmgTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_damageText);
-                _text_damage = dmgTform != null ? dmgTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_armor = armorTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (_text_armor == null)
+            Transform conTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_conditionSlider);
+            if (conTform != null)
             {
-                Transform armorTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_armorText);
-                _text_armor = armorTform != null ? armorTform.GetComponent<TextMeshProUGUI>() : null;
-            }
-
-            if (_slider_condition == null && !string.IsNullOrEmpty(_gameObjName_conditionSlider))
-            {
-                Transform conTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_conditionSlider);
-                _slider_condition = conTform != null ? conTform.GetComponent<UISlider>() : null;
-                if(_slider_condition != null)
+                _slider_condition = conTform.GetComponent<UISlider>();
+                if (_slider_condition != null)
                 {
                     _slider_condition.Initialize();
                     _slider_condition.SetSliderMinMax(0f, 1f, false);
                 }
             }
 
-            if (_text_noCondition == null)
+            Transform noConTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_noConditionText);
+            if (noConTform != null)
             {
-                Transform noConTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_noConditionText);
-                _text_noCondition = noConTform != null ? noConTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_noCondition = noConTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (_text_weight == null)
+            Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightText);
+            if (weightTform != null)
             {
-                Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightText);
-                _text_weight = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_weight = weightTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (_text_value == null)
+            Transform valTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_valueText);
+            if (valTform != null)
             {
-                Transform valTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_valueText);
-                _text_value = valTform != null ? valTform.GetComponent<TextMeshProUGUI>() : null;
+                _text_value = valTform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (_statusParent_equipped == null)
+            Transform equippedTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_equipped);
+            if (equippedTform != null)
             {
-                Transform equippedTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_equipped);
-                _statusParent_equipped = equippedTform != null ? equippedTform.gameObject : null;
+                _statusParent_equipped = equippedTform.gameObject;
             }
 
-            if (_statusParent_broken == null)
+            Transform brokenTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_broken);
+            if (brokenTform != null)
             {
-                Transform brokenTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_broken);
-                _statusParent_broken = brokenTform != null ? brokenTform.gameObject : null;
+                _statusParent_broken = brokenTform.gameObject;
             }
 
-            if (_statusParent_prohibited == null)
+            Transform prohibTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_prohibited);
+            if (prohibTform != null)
             {
-                Transform prohibTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_prohibited);
-                _statusParent_prohibited = prohibTform != null ? prohibTform.gameObject : null;
+                _statusParent_prohibited = prohibTform.gameObject;
             }
 
-            if (_statusParent_magic == null)
+            Transform magicTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_magic);
+            if (magicTform != null)
             {
-                Transform magicTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_magic);
-                _statusParent_magic = magicTform != null ? magicTform.gameObject : null;
+                _statusParent_magic = magicTform.gameObject;
             }
 
-            if (_statusParent_poisoned == null)
+            Transform poisonedTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_poisoned);
+            if (poisonedTform != null)
             {
-                Transform poisonedTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_statusParent_poisoned);
-                _statusParent_poisoned = poisonedTform != null ? poisonedTform.gameObject : null;
+                _statusParent_poisoned = poisonedTform.gameObject;
             }
 
-            if (_image_highlight == null)
+            Transform highlightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_highlight);
+            if (highlightTform != null)
             {
-                Transform highlightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_highlight);
-                _image_highlight = highlightTform != null ? highlightTform.GetComponent<Image>() : null;
-                if(_image_highlight != null)
+                _image_highlight = highlightTform.GetComponent<Image>();
+                if (_image_highlight != null)
                 {
                     _defaultHighlightColor = _image_highlight.color;
                     _image_highlight.gameObject.SetActive(false);

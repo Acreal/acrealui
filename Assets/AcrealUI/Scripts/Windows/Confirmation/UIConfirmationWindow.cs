@@ -18,11 +18,13 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game;
+using DaggerfallWorkshop.Game.Utility.ModSupport;
 using TMPro;
 using UnityEngine;
 
 namespace AcrealUI
 {
+    [ImportedComponent]
     public class UIConfirmationWindow : UIWindow
     {
         #region Variables
@@ -47,17 +49,17 @@ namespace AcrealUI
         {
             base.Initialize();
 
-            if(!string.IsNullOrWhiteSpace(_gameObjName_messageText))
+            Transform msgTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_messageText);
+            if(msgTform != null)
             {
-                Transform msgTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_messageText);
-                if(msgTform != null) { _messageText = msgTform.GetComponent<TextMeshProUGUI>(); };
-            }
+                _messageText = msgTform.GetComponent<TextMeshProUGUI>();
+            };
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_confirmButton))
-            {
-                Transform confirmTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_confirmButton);
-                if (confirmTform != null) { _confirmButton = confirmTform.GetComponent<UIButton>(); };
-                if(_confirmButton != null)
+            Transform confirmTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_confirmButton);
+            if (confirmTform != null) 
+            { 
+                _confirmButton = confirmTform.GetComponent<UIButton>();
+                if (_confirmButton != null)
                 {
                     _confirmButton.Initialize();
                     _confirmButton.Event_OnClicked += (_, _1) =>
@@ -67,10 +69,10 @@ namespace AcrealUI
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_gameObjName_cancelButton))
+            Transform cancelTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_cancelButton);
+            if (cancelTform != null)
             {
-                Transform cancelTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_cancelButton);
-                if (cancelTform != null) { _cancelButton = cancelTform.GetComponent<UIButton>(); }
+                _cancelButton = cancelTform.GetComponent<UIButton>();
                 if (_cancelButton != null)
                 {
                     _cancelButton.Initialize();
@@ -80,6 +82,7 @@ namespace AcrealUI
                     };
                 }
             }
+            
         }
         #endregion
 

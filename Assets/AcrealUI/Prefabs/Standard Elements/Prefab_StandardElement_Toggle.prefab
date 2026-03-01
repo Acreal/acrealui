@@ -107,9 +107,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
-  _gameObjectName_text_displayName: Text_Name
-  canBeToggledOff: 1
+  _gameObjName_titleText: Text_Title
   _gameObjName_valueText: Text_Value
+  canBeToggledOff: 1
   _toggledOnText: On
   _toggledOffText: Off
   _messagesAreLocalizationKeys: 0
@@ -261,7 +261,7 @@ GameObject:
   - component: {fileID: 239548007898203814}
   - component: {fileID: 1584473273604192452}
   m_Layer: 5
-  m_Name: Text_Name
+  m_Name: Text_Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

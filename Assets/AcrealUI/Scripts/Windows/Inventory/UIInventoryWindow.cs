@@ -58,20 +58,20 @@ namespace AcrealUI
         {
             base.Initialize();
 
-            if (!string.IsNullOrEmpty(_gameObjName_panel_playerStats))
+            Transform statsTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panel_playerStats);
+            if (statsTform != null)
             {
-                Transform statsTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panel_playerStats);
-                _panel_playerStats = statsTform != null ? statsTform.GetComponent<UIPanelPlayerStats>() : null;
+                _panel_playerStats = statsTform.GetComponent<UIPanelPlayerStats>();
                 if (_panel_playerStats != null)
                 {
                     _panel_playerStats.Initialize();
                 }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_itemList_playerInventory))
+            Transform invTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_playerInventory);
+            if (invTform != null)
             {
-                Transform invTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_playerInventory);
-                _itemList_playerInventory = invTform != null ? invTform.GetComponent<UIInventoryWindow_ItemList>() : null;
+                _itemList_playerInventory = invTform.GetComponent<UIInventoryWindow_ItemList>();
                 if (_itemList_playerInventory != null)
                 {
                     _itemList_playerInventory.Initialize();
@@ -79,10 +79,10 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI] Failed to Find PlayerInventory ItemList!"); }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_itemList_container))
+            Transform conTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_container);
+            if (conTform != null)
             {
-                Transform conTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_container);
-                _itemList_container = conTform != null ? conTform.GetComponent<UIInventoryWindow_ItemList>() : null;
+                _itemList_container = conTform.GetComponent<UIInventoryWindow_ItemList>();
                 if (_itemList_container != null)
                 {
                     _itemList_container.Initialize();

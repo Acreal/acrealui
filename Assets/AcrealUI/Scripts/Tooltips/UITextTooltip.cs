@@ -35,11 +35,8 @@ namespace AcrealUI
         {
             base.Initalize();
 
-            if (_text_body == null && !string.IsNullOrEmpty(_gameObjName_text_body))
-            {
-                Transform bodyTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_body);
-                if (bodyTform != null) { _text_body = bodyTform.GetComponent<TextMeshProUGUI>(); }
-            }
+            Transform bodyTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_body);
+            if (bodyTform != null) { _text_body = bodyTform.GetComponent<TextMeshProUGUI>(); }
         }
 
         public void SetMessage(string message)

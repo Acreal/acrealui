@@ -48,20 +48,9 @@ namespace AcrealUI
             _statEntries = new List<UIItemStatTooltipEntry>(3);
             _powerEntries = new List<UIItemPowerTooltipEntry>(4);
 
-            if (_itemStatEntriesParent == null && !string.IsNullOrEmpty(_gameObjName_text_statEntries_parent))
-            {
-                _itemStatEntriesParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_statEntries_parent);
-            }
-
-            if (_itemPowersParent == null && !string.IsNullOrEmpty(_gameObjName_itemPowersParent))
-            {
-                _itemPowersParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemPowersParent);
-            }
-
-            if (_itemPowerEntriesParent == null && !string.IsNullOrEmpty(_gameObjName_itemPowerEntriesParent))
-            {
-                _itemPowerEntriesParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemPowerEntriesParent);
-            }
+            _itemStatEntriesParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_statEntries_parent);
+            _itemPowersParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemPowersParent);
+            _itemPowerEntriesParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemPowerEntriesParent);
         }
         #endregion
 

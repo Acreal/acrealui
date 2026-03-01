@@ -51,10 +51,10 @@ namespace AcrealUI
         {
             base.Initialize();
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_generalSettings))
+            Transform generalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_generalSettings);
+            if (generalTform != null)
             {
-                Transform generalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_generalSettings);
-                button_generalSettings = generalTform != null ? generalTform.GetComponent<UIButton>() : null;
+                button_generalSettings = generalTform.GetComponent<UIButton>();
                 if (button_generalSettings != null)
                 {
                     button_generalSettings.Initialize();
@@ -63,10 +63,10 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_generalSettings + "\""); }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_videoSettings))
+            Transform videoTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_videoSettings);
+            if (videoTform != null)
             {
-                Transform videoTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_videoSettings);
-                button_videoSettings = videoTform != null ? videoTform.GetComponent<UIButton>() : null;
+                button_videoSettings = videoTform.GetComponent<UIButton>();
                 if (button_videoSettings != null)
                 {
                     button_videoSettings.Initialize();
@@ -75,10 +75,10 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_videoSettings + "\""); }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_audioSettings))
+            Transform audioTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_audioSettings);
+            if (audioTform != null)
             {
-                Transform audioTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_audioSettings);
-                button_audioSettings = audioTform != null ? audioTform.GetComponent<UIButton>() : null;
+                button_audioSettings = audioTform.GetComponent<UIButton>();
                 if (button_audioSettings != null)
                 {
                     button_audioSettings.Initialize();
@@ -87,10 +87,10 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_audioSettings + "\""); }
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_button_controlSettings))
+            Transform controlTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_controlSettings);
+            if (controlTform != null)
             {
-                Transform controlTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_controlSettings);
-                button_controlSettings = controlTform != null ? controlTform.GetComponent<UIButton>() : null;
+                button_controlSettings = controlTform.GetComponent<UIButton>();
                 if (button_controlSettings != null)
                 {
                     button_controlSettings.Initialize();

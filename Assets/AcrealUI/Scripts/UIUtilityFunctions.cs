@@ -56,23 +56,30 @@ namespace AcrealUI
         #region Transforms
         public static Transform FindDeepChild(Transform aParent, string aName)
         {
-            Queue<Transform> queue = new Queue<Transform>();
-            queue.Enqueue(aParent);
-            while (queue.Count > 0)
+            if (!string.IsNullOrWhiteSpace(aName))
             {
-                var c = queue.Dequeue();
-
-                if (c.name == aName)
+                Queue<Transform> queue = new Queue<Transform>();
+                queue.Enqueue(aParent);
+                while (queue.Count > 0)
                 {
-                    return c;
-                }
+                    var c = queue.Dequeue();
 
-                foreach (Transform t in c)
-                {
-                    queue.Enqueue(t);
+                    if (c.name == aName)
+                    {
+                        return c;
+                    }
+
+                    foreach (Transform t in c)
+                    {
+                        queue.Enqueue(t);
+                    }
                 }
+                Debug.LogError("[AcrealUI] Failed to Find Child Attached to GameObject \"" + (aParent != null ? aParent.gameObject.name : "NULL") + "\" by Name: " + aName);
             }
-            Debug.LogError("[AcrealUI] Failed to Return DeepChild by Name: " + aName);
+            //else
+            //{
+            //    Debug.LogError("[AcrealUI] No Name Provided to Find Child Attached to GameObject \"" + (aParent != null ? aParent.gameObject.name : "NULL"));
+            //}
             return null;
         }
         #endregion

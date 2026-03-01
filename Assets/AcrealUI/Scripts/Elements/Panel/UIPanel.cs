@@ -63,14 +63,11 @@ namespace AcrealUI
                 _canvasGroup = GetComponent<CanvasGroup>();
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_scrollGroupParent))
+            _scrollGroupParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_scrollGroupParent);
+            
+            Transform layoutTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_layoutElement);
+            if (layoutTform != null)
             {
-                _scrollGroupParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_scrollGroupParent);
-            }
-
-            if (!string.IsNullOrEmpty(_gameObjName_layoutElement))
-            {
-                Transform layoutTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_layoutElement);
                 _layoutElement = layoutTform != null ? layoutTform.GetComponent<LayoutElement>() : null;
             }
 

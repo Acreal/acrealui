@@ -599,11 +599,11 @@ namespace AcrealUI
         #region Item Entries
         private void SpawnItemEntryBlock()
         {
-            if (UIManager.referenceManager.itemEntryPrefab == null || _itemEntryParent == null) { return; }
+            if (UIManager.referenceManager.prefab_itemEntry == null || _itemEntryParent == null) { return; }
 
             for (int i = 0; i < ITEM_ENTRY_BLOCK_SIZE; i++)
             {
-                UIInventoryWindow_ItemEntry itemEntry = Instantiate(UIManager.referenceManager.itemEntryPrefab, _itemEntryParent);
+                UIInventoryWindow_ItemEntry itemEntry = Instantiate(UIManager.referenceManager.prefab_itemEntry, _itemEntryParent);
                 itemEntry.transform.localScale = Vector3.one;
                 itemEntry.Initalize();
                 itemEntry.gameObject.SetActive(false);

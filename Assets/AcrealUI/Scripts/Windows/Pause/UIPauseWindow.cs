@@ -83,52 +83,70 @@ namespace AcrealUI
             _currentState = PauseWindowState.None;
 
             Transform pauseTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelPaused);
-            _panelPaused = pauseTform != null ? pauseTform.GetComponent<UIPausePanel>() : null;
-            if (_panelPaused)
-            { 
-                _panelPaused.Initialize();
+            if (pauseTform != null)
+            {
+                _panelPaused = pauseTform.GetComponent<UIPausePanel>();
+                if (_panelPaused)
+                {
+                    _panelPaused.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPausePanel script from GameObject \"" + (pauseTform != null ? pauseTform.gameObject.name : "NULL")); }
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPausePanel script from GameObject \"" + (pauseTform != null ? pauseTform.gameObject.name : "NULL")); }
 
             Transform settingsTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelSettings);
-            _panelSettings = settingsTform != null ? settingsTform.GetComponent<UISettingsMenuPanel>() : null;
-            if (_panelSettings) 
-            { 
-                _panelSettings.Initialize();
+            if (settingsTform != null)
+            {
+                _panelSettings = settingsTform.GetComponent<UISettingsMenuPanel>();
+                if (_panelSettings)
+                {
+                    _panelSettings.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UISettingsMenuPanel script from GameObject \"" + (settingsTform != null ? settingsTform.gameObject.name : "NULL")); }
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UISettingsMenuPanel script from GameObject \"" + (settingsTform != null ? settingsTform.gameObject.name : "NULL")); }
 
             Transform generalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelGeneralSettings);
-            _panelGeneralSettings = generalTform != null ? generalTform.GetComponent<UIPanel>() : null;
-            if (_panelGeneralSettings) 
+            if (generalTform != null)
             {
-                _panelGeneralSettings.Initialize();
+                _panelGeneralSettings = generalTform.GetComponent<UIPanel>();
+                if (_panelGeneralSettings)
+                {
+                    _panelGeneralSettings.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_GeneralSettings script from GameObject \"" + (generalTform != null ? generalTform.gameObject.name : "NULL")); }
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_GeneralSettings script from GameObject \"" + (generalTform != null ? generalTform.gameObject.name : "NULL")); }
 
             Transform audioTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelAudioSettings);
-            _panelAudioSettings = audioTform != null ? audioTform.GetComponent<UIPanel>() : null;
-            if (_panelAudioSettings) 
+            if (audioTform != null)
             {
-                _panelAudioSettings.Initialize();
+                _panelAudioSettings = audioTform.GetComponent<UIPanel>();
+                if (_panelAudioSettings)
+                {
+                    _panelAudioSettings.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_AudioSettings script from GameObject \"" + (audioTform != null ? audioTform.gameObject.name : "NULL")); }
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_AudioSettings script from GameObject \"" + (audioTform != null ? audioTform.gameObject.name : "NULL")); }
 
             Transform videoTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelVideoSettings);
-            _panelVideoSettings = videoTform != null ? videoTform.GetComponent<UIPanel>() : null;
-            if (_panelVideoSettings) 
-            { 
-                _panelVideoSettings.Initialize();
+            if (videoTform != null)
+            {
+                _panelVideoSettings = videoTform.GetComponent<UIPanel>();
+                if (_panelVideoSettings)
+                {
+                    _panelVideoSettings.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_VideoSettings script from GameObject \"" + (videoTform != null ? videoTform.gameObject.name : "NULL")); }
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_VideoSettings script from GameObject \"" + (videoTform != null ? videoTform.gameObject.name : "NULL")); }
 
             Transform controlTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelControlSettings);
-            _panelControlSettings = controlTform != null ? controlTform.GetComponent<UIControlOptionsPanel>() : null;
-            if (_panelControlSettings)
+            if (controlTform != null)
             {
-                _panelControlSettings.Initialize();
+                _panelControlSettings = controlTform.GetComponent<UIControlOptionsPanel>();
+                if (_panelControlSettings)
+                {
+                    _panelControlSettings.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIControlOptionsPanel script from GameObject \"" + (controlTform != null ? controlTform.gameObject.name : "NULL")); }
             }
-            else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIControlOptionsPanel script from GameObject \"" + (controlTform != null ? controlTform.gameObject.name : "NULL")); }
         }
         #endregion
 

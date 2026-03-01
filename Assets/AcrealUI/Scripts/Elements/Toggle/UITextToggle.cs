@@ -32,13 +32,10 @@ namespace AcrealUI
     public class UITextToggle : UIToggle
     {
         #region Variables
-        [SerializeField] private string _gameObjName_valueText = null;
         [SerializeField] private string _toggledOnText = "On";
         [SerializeField] private string _toggledOffText = "Off";
         [SerializeField] private bool _messagesAreLocalizationKeys = false;
         [SerializeField] private string localizationTableID = null;
-
-        private TextMeshProUGUI text_value = null;
         #endregion
 
 
@@ -49,7 +46,7 @@ namespace AcrealUI
             set
             {
                 _toggledOnText = value;
-                UpdateTextValue();
+                Refresh();
             }
         }
 
@@ -59,7 +56,7 @@ namespace AcrealUI
             set
             {
                 _toggledOffText = value;
-                UpdateTextValue();
+                Refresh();
             }
         }
 
@@ -71,47 +68,27 @@ namespace AcrealUI
                 if (_messagesAreLocalizationKeys != value)
                 {
                     _messagesAreLocalizationKeys = value;
-                    UpdateTextValue();
+                    Refresh();
                 }
             }
         }
         #endregion
 
 
-        #region MonoBehaviour
-        public override void Initialize()
-        {
-            base.Initialize();
-
-            Transform textTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_valueText);
-            text_value = textTform != null ? textTform.GetComponent<TextMeshProUGUI>() : null;
-
-            Event_OnToggledOnOrOff += (UIToggle toggle) => { UpdateTextValue(); };
-            Event_OnDisabledChanged += (bool disabled) => 
-            {
-                UpdateTextValue();
-            };
-        }
-
-        private void Start()
-        {
-            UpdateTextValue();
-        }
-        #endregion
-
-
         #region Update Text
-        private void UpdateTextValue()
+        public override void Refresh()
         {
-            if(text_value != null)
+            base.Refresh();
+
+            if(_valueText != null)
             {
                 if (messagesAreLocalizationKeys)
                 {
-                    text_value.text = !isDisabled && isToggledOn ? TextManager.Instance.GetText(localizationTableID, _toggledOnText) : TextManager.Instance.GetText(localizationTableID, _toggledOffText);
+                    _valueText.text = !isDisabled && isToggledOn ? TextManager.Instance.GetText(localizationTableID, _toggledOnText) : TextManager.Instance.GetText(localizationTableID, _toggledOffText);
                 }
                 else
                 {
-                    text_value.text = !isDisabled && isToggledOn ? _toggledOnText : _toggledOffText;
+                    _valueText.text = !isDisabled && isToggledOn ? _toggledOnText : _toggledOffText;
                 }
             }
         }

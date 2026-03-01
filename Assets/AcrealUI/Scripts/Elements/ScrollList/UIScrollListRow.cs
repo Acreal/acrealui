@@ -46,7 +46,8 @@ namespace AcrealUI
             _uiElements = new List<UIElement>();
             uiElementsRO = _uiElements.AsReadOnly();
 
-            _parent_groupEntries = string.IsNullOrWhiteSpace(_parent_groupEntriesGameObjName) ? transform : UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
+            _parent_groupEntries = UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
+            if(_parent_groupEntries == null) { _parent_groupEntries = transform; }
         }
         #endregion
 

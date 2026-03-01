@@ -929,6 +929,11 @@ PrefabInstance:
       propertyPath: m_MinHeight
       value: 29
       objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Cancel
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}
 --- !u!224 &4857466562681905072 stripped
@@ -1370,6 +1375,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_MinHeight
       value: 29
+      objectReference: {fileID: 0}
+    - target: {fileID: 5557418116785568637, guid: 2c91898386cccac489f9a2cb1aff655b,
+        type: 3}
+      propertyPath: _gameObjName_valueText
+      value: Text_Confirm
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c91898386cccac489f9a2cb1aff655b, type: 3}

@@ -150,7 +150,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
-  _gameObjectName_text_displayName: Text_SaveName
+  _gameObjName_titleText: Text_SaveName
+  _gameObjName_valueText: 
   canBeToggledOff: 1
 --- !u!114 &7563862435705061308
 MonoBehaviour:
