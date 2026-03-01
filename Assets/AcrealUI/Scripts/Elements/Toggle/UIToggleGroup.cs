@@ -40,28 +40,25 @@ namespace AcrealUI
         #region Initialization
         public void Initialize()
         {
-            if (_toggles == null)
+            Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_defaultToggle);
+            if (defaultTform != null)
             {
-                Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_defaultToggle);
-                if (defaultTform != null)
-                {
-                    _defaultToggle = defaultTform.GetComponent<UIToggle>();
-                }
+                _defaultToggle = defaultTform.GetComponent<UIToggle>();
+            }
 
-                if (_gameObjNameList_toggles != null)
-                {
-                    _toggles = new List<UIToggle>();
+            if (_gameObjNameList_toggles != null)
+            {
+                _toggles = new List<UIToggle>();
 
-                    foreach (string s in _gameObjNameList_toggles)
+                foreach (string s in _gameObjNameList_toggles)
+                {
+                    if (!string.IsNullOrEmpty(s))
                     {
-                        if (!string.IsNullOrEmpty(s))
+                        Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, s);
+                        UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
+                        if (toggle != null)
                         {
-                            Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, s);
-                            UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
-                            if (toggle != null)
-                            {
-                                _toggles.Add(toggle);
-                            }
+                            _toggles.Add(toggle);
                         }
                     }
                 }
@@ -72,8 +69,6 @@ namespace AcrealUI
                 for (int i = 0; i < _toggles.Count; i++)
                 {
                     _toggles[i].canBeToggledOff = canBeToggledOff;
-
-                    _toggles[i].Event_OnToggledOn -= OnToggleSwitchedOn;
                     _toggles[i].Event_OnToggledOn += OnToggleSwitchedOn;
                 }
             }

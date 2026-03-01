@@ -150,74 +150,51 @@ namespace AcrealUI
             _uidToItemEntryDict = new Dictionary<ulong, UIInventoryWindow_ItemEntry>();
             _itemEntryStack = new Stack<UIInventoryWindow_ItemEntry>();
 
-
-            if (!string.IsNullOrEmpty(_gameObjName_itemEntryParent))
-            {
-                Transform entryParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemEntryParent);
-                _itemEntryParent = entryParentTform != null ? entryParentTform as RectTransform : null;
-            }
-
+            Transform entryParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemEntryParent);
+            _itemEntryParent = entryParentTform != null ? entryParentTform as RectTransform : null;
 
             #region Tab Toggle References
-            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggleGroup))
+            Transform playerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_player);
+            _inventoryTabToggle_player = playerTform != null ? playerTform.GetComponent<UIToggle>() : null;
+            if (_inventoryTabToggle_player != null)
             {
-                Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggleGroup);
-                _inventoryTabToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
-                if (_inventoryTabToggleGroup != null)
-                {
-                    _inventoryTabToggleGroup.Initialize();
-                }
+                _inventoryTabToggle_player.Initialize();
+                _inventoryTabToggle_player.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Player?.Invoke(); };
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_player))
+            Transform wagonTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_wagon);
+            _inventoryTabToggle_wagon = wagonTform != null ? wagonTform.GetComponent<UIToggle>() : null;
+            if (_inventoryTabToggle_wagon != null)
             {
-                Transform playerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_player);
-                _inventoryTabToggle_player = playerTform != null ? playerTform.GetComponent<UIToggle>() : null;
-                if (_inventoryTabToggle_player != null)
-                {
-                    _inventoryTabToggle_player.Initialize();
-                    _inventoryTabToggle_player.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Player?.Invoke(); };
-                }
+                _inventoryTabToggle_wagon.Initialize();
+                _inventoryTabToggle_wagon.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Wagon?.Invoke(); };
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_wagon))
+            Transform merchTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_merchant);
+            _inventoryTabToggle_merchant = merchTform != null ? merchTform.GetComponent<UIToggle>() : null;
+            if (_inventoryTabToggle_merchant != null)
             {
-                Transform wagonTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_wagon);
-                _inventoryTabToggle_wagon = wagonTform != null ? wagonTform.GetComponent<UIToggle>() : null;
-                if (_inventoryTabToggle_wagon != null)
-                {
-                    _inventoryTabToggle_wagon.Initialize();
-                    _inventoryTabToggle_wagon.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Wagon?.Invoke(); };
-                }
+                _inventoryTabToggle_merchant.Initialize();
+                _inventoryTabToggle_merchant.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Merchant?.Invoke(); };
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_merchant))
+            Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggleGroup);
+            _inventoryTabToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
+            if (_inventoryTabToggleGroup != null)
             {
-                Transform merchTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_merchant);
-                _inventoryTabToggle_merchant = merchTform != null ? merchTform.GetComponent<UIToggle>() : null;
-                if (_inventoryTabToggle_merchant != null)
-                {
-                    _inventoryTabToggle_merchant.Initialize();
-                    _inventoryTabToggle_merchant.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Merchant?.Invoke(); };
-                }
+                _inventoryTabToggleGroup.Initialize();
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_inventoryTabToggle_lootPile))
+            Transform lootTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_lootPile);
+            _inventoryTabToggle_lootPile = lootTform != null ? lootTform.GetComponent<UIToggle>() : null;
+            if (_inventoryTabToggle_lootPile != null)
             {
-                Transform lootTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_lootPile);
-                _inventoryTabToggle_lootPile = lootTform != null ? lootTform.GetComponent<UIToggle>() : null;
-                if (_inventoryTabToggle_lootPile != null)
-                {
-                    _inventoryTabToggle_lootPile.Initialize();
-                    _inventoryTabToggle_lootPile.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_LootPile?.Invoke(); };
-                }
+                _inventoryTabToggle_lootPile.Initialize();
+                _inventoryTabToggle_lootPile.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_LootPile?.Invoke(); };
             }
 
-            if (!string.IsNullOrEmpty(_gameObjName_lootPileIcon))
-            {
-                Transform lootIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_lootPileIcon);
-                _lootPileIcon = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
-            }
+            Transform lootIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_lootPileIcon);
+            _lootPileIcon = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
             #endregion
 
 
@@ -235,8 +212,8 @@ namespace AcrealUI
 
             if (!string.IsNullOrEmpty(_gameObjName_toggleGroup))
             {
-                Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_toggleGroup);
-                _filterToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
+                Transform togGrpTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_toggleGroup);
+                _filterToggleGroup = togGrpTform != null ? togGrpTform.GetComponent<UIToggleGroup>() : null;
                 if (_filterToggleGroup != null)
                 {
                     _filterToggleGroup.Initialize();
@@ -254,10 +231,11 @@ namespace AcrealUI
             _sortToggle_weight = InitializeSortItemsToggle(_gameObjName_sortToggle_weight, ItemColumnFlags.Weight);
             _sortToggle_value = InitializeSortItemsToggle(_gameObjName_sortToggle_value, ItemColumnFlags.GoldValue);
 
-            if (!string.IsNullOrEmpty(_gameObjName_sortToggleGroup))
-            {
-                Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
-                if (groupTForm != null) { _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>(); }
+            Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
+            if (groupTForm != null)
+            { 
+                _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>();
+
                 if (_sortToggleGroup != null)
                 {
                     _sortToggleGroup.Initialize();
@@ -267,41 +245,26 @@ namespace AcrealUI
 
 
             #region Text References
-            if (!string.IsNullOrEmpty(_gameObjName_text_itemFilter))
-            {
-                Transform filterTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_itemFilter);
-                _text_itemFilter = filterTextTform != null ? filterTextTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+            Transform filterTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_itemFilter);
+            _text_itemFilter = filterTextTform != null ? filterTextTform.GetComponent<TextMeshProUGUI>() : null;
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_totalGold))
-            {
-                Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
-                _text_totalGold = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+            Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
+            _text_totalGold = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
 
-            if (!string.IsNullOrEmpty(_gameObjName_text_totalWeight))
-            {
-                Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalWeight);
-                _text_totalWeight = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+            Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalWeight);
+            _text_totalWeight = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
 
-            if(!string.IsNullOrEmpty(_gameObjName_weightGoldParent))
-            {
-                Transform weightGoldParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightGoldParent);
-                if(weightGoldParentTform != null) { _weightGoldParent = weightGoldParentTform.gameObject; }
-            }
+            Transform weightGoldParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightGoldParent);
+            if(weightGoldParentTform != null) { _weightGoldParent = weightGoldParentTform.gameObject; }
 
-            if (!string.IsNullOrEmpty(_gameObjName_goldButton))
+            Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
+            if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
+            if(_goldButton != null)
             {
-                Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
-                if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
-                if(_goldButton != null)
+                _goldButton.Event_OnClicked += (_, _1) =>
                 {
-                    _goldButton.Event_OnClicked += (_, _1) =>
-                    {
-                        Event_OnGoldButtonClicked?.Invoke();
-                    };
-                }
+                    Event_OnGoldButtonClicked?.Invoke();
+                };
             }
             #endregion
         }
@@ -325,52 +288,46 @@ namespace AcrealUI
 
         private UIToggle InitializeItemFilterToggle(string transformName, ItemFilter filter)
         {
-            if (!string.IsNullOrEmpty(transformName))
+            Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
+            UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
+            if (toggle != null)
             {
-                Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
-                UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
-                if (toggle != null)
+                toggle.Initialize();
+
+                toggle.Event_OnToggledOn += (_) =>
                 {
-                    toggle.Initialize();
+                    _currentItemFilter = filter;
+                    SetItemFilterText(UIUtilityFunctions.ItemFilterToString(filter));
+                    SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
+                    Event_OnItemFilterChanged?.Invoke();
+                };
 
-                    toggle.Event_OnToggledOn += (_) =>
-                    {
-                        _currentItemFilter = filter;
-                        SetItemFilterText(UIUtilityFunctions.ItemFilterToString(filter));
-                        SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
-                        Event_OnItemFilterChanged?.Invoke();
-                    };
-
-                    return toggle;
-                }
+                return toggle;
             }
             return null;
         }
 
         private UISortToggle InitializeSortItemsToggle(string transformName, ItemColumnFlags sortColumn)
         {
-            if (!string.IsNullOrEmpty(transformName))
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
+            UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;
+            if (sortToggle != null)
             {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
-                UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;
-                if (sortToggle != null)
+                sortToggle.Initialize();
+
+                sortToggle.Event_OnToggledOn += (UIToggle toggle) => 
                 {
-                    sortToggle.Initialize();
+                    _sortItemsColumn = sortColumn;
+                    _activeSortToggle = toggle as UISortToggle;
+                    Event_OnSortItemsColumnChanged?.Invoke();
+                };
 
-                    sortToggle.Event_OnToggledOn += (UIToggle toggle) => 
-                    {
-                        _sortItemsColumn = sortColumn;
-                        _activeSortToggle = toggle as UISortToggle;
-                        Event_OnSortItemsColumnChanged?.Invoke();
-                    };
+                sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) => 
+                {
+                    Event_OnSortAscendingChanged?.Invoke();
+                };
 
-                    sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) => 
-                    {
-                        Event_OnSortAscendingChanged?.Invoke();
-                    };
-
-                    return sortToggle;
-                }
+                return sortToggle;
             }
             return null;
         }
