@@ -124,32 +124,23 @@ namespace AcrealUI
 
         private void Start()
         {
-            //if (referenceManager.prefab_hud != null)
-            //{
-            //    Instantiate(referenceManager.prefab_hud);
-            //}
-
-            //DaggerfallUI.Instance.DaggerfallHUD.Enabled = false;
-
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************************[NEW WINDOWS]******************************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController));
+            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController));
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************[WINDOWS THAT NEED TO BE REPLACED]*********************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Automap, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Banking, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.BankPurchasePopup, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.BookReader, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Court, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.DaedraSummoned, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.EffectSettingsEditor, null);
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.ExteriorAutomap, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.GuildServiceCureDisease, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.GuildServiceDonation, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.GuildServicePopup, null);
@@ -165,8 +156,6 @@ namespace AcrealUI
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.SpellBook, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.SpellIconPicker, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.SpellMaker, null);
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Start, null);
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.StartNewGameWizard, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Tavern, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.TeleportPopUp, null);
@@ -175,17 +164,7 @@ namespace AcrealUI
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.TravelMap, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.TravelPopUp, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UseMagicItem, null);
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.VidPlayer, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.WitchesCovenPopup, null);
-
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////
-            //**********************************[DEPRECATED WINDOWS]***************************************//
-            /////////////////////////////////////////////////////////////////////////////////////////////////
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnityMouseControls, null); <-- now rolled into the pause window
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.JoystickControls, null);   <-- now rolled into the pause window
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Controls, null;            <-- now rolled into the pause window
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.CharacterSheet, null);     <-- now rolled into the inventory window
         }
 
         private void Update()
