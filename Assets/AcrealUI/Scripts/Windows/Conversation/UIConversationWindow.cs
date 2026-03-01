@@ -44,6 +44,7 @@ namespace AcrealUI
         private Transform _dialogueEntryParent = null;
 
         private List<UIButton> _topicButtonEntries = null;
+        private List<UIDialogueEntry> _dialogueEntries = null;
         #endregion
 
 
@@ -121,12 +122,13 @@ namespace AcrealUI
         #region Public API
         public UIDialogueEntry AddDialogueEntry(DialogueInfo dialogue)
         {
-            if (_topicButtonEntries != null)
+            if (_dialogueEntries != null)
             {
                 UIDialogueEntry dialogueEntry = Instantiate(UIManager.referenceManager.prefab_dialogueEntry, _dialogueEntryParent);
                 if (dialogueEntry != null)
                 {
                     dialogueEntry.Initialize();
+                    _dialogueEntries.Add(dialogueEntry);
                     return dialogueEntry;
                 }
             }
