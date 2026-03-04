@@ -130,7 +130,7 @@ namespace AcrealUI
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController));
+            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController));
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************[WINDOWS THAT NEED TO BE REPLACED]*********************************//

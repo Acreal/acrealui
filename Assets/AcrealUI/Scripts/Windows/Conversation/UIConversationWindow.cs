@@ -18,7 +18,8 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using System.Collections.Generic;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -32,19 +33,27 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_okayButton = null;
         [SerializeField] private string _gameObjName_historyButton = null;
         [SerializeField] private string _gameObjName_topicDivider = null;
-        [SerializeField] private string _gameObjName_topicTypeParent = null;
+        [SerializeField] private string _gameObjName_topicCategoryParent = null;
         [SerializeField] private string _gameObjName_topicEntryParent = null;
         [SerializeField] private string _gameObjName_dialogueEntryParent = null;
+        [SerializeField] private string _gameObjName_pendingDialogueText = null;
+        [SerializeField] private string _gameObjName_topicViewportLayoutElement = null;
 
         private UIButton _okayButton = null;
         private UIButton _historyButton = null;
         private GameObject _topicDivider = null;
-        private Transform _topicTypeParent = null;
-        private Transform _topicEntryParent = null;
-        private Transform _dialogueEntryParent = null;
+        private RectTransform _topicCategoryParent = null;
+        private RectTransform _topicEntryParent = null;
+        private RectTransform _dialogueEntryParent = null;
+        private LayoutElement _topicViewportLayoutElement = null;
+        private TextMeshProUGUI _pendingDialogueText = null;
+        #endregion
 
-        private List<UIButton> _topicButtonEntries = null;
-        private List<UIDialogueEntry> _dialogueEntries = null;
+
+        #region Properties
+        public RectTransform topicCategoryParent { get { return _topicCategoryParent; } }
+        public RectTransform topicEntryParent { get { return _topicEntryParent; } }
+        public RectTransform dialogueEntryParent { get { return _dialogueEntryParent; } }
         #endregion
 
 
@@ -54,17 +63,37 @@ namespace AcrealUI
         #endregion
 
 
+        #region Monobehaviour
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            StopAllCoroutines();
+        }
+        #endregion
+
+
         #region Initialization
         public override void Initialize()
         {
             base.Initialize();
 
+            _topicEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicEntryParent) as RectTransform;
+            _topicCategoryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicCategoryParent) as RectTransform;
+            _dialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_dialogueEntryParent) as RectTransform;
+
+            Transform viewportTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicViewportLayoutElement);
+            if(viewportTform != null)
+            {
+                _topicViewportLayoutElement = viewportTform.GetComponent<LayoutElement>();
+            }
+
             Transform okayTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_okayButton);
-            if(okayTform != null)
+            if (okayTform != null)
             {
                 _okayButton = okayTform.GetComponent<UIButton>();
-                if(_okayButton != null)
+                if (_okayButton != null)
                 {
+                    _okayButton.Initialize();
                     _okayButton.Event_OnClicked += (UIButton btn, PointerEventData data) =>
                     {
                         if (data.button == PointerEventData.InputButton.Left && data.clickCount == 1)
@@ -81,6 +110,7 @@ namespace AcrealUI
                 _historyButton = historyTform.GetComponent<UIButton>();
                 if (_historyButton != null)
                 {
+                    _historyButton.Initialize();
                     _historyButton.Event_OnClicked += (UIButton btn, PointerEventData data) =>
                     {
                         if (data.button == PointerEventData.InputButton.Left && data.clickCount == 1)
@@ -97,59 +127,44 @@ namespace AcrealUI
                 _topicDivider = divTform.gameObject;
             }
 
-            _topicTypeParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicTypeParent);
-            if (_topicTypeParent != null)
+            Transform pendingDialogueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_pendingDialogueText);
+            if (pendingDialogueTform != null)
             {
-                UIButton tellMeBtn = AddTopicTypeButton("Tell me about..."); // TODO(Acreal): localize string
-                if (tellMeBtn != null)
-                {
-
-                }
-
-                UIButton whereBtn = AddTopicTypeButton("Where is..."); // TODO(Acreal): localize string
-                if (whereBtn != null)
-                {
-                    
-                }
+                _pendingDialogueText = pendingDialogueTform.GetComponent<TextMeshProUGUI>();
             }
-
-            _topicEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicEntryParent);
-            _dialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_dialogueEntryParent);
         }
         #endregion
 
 
         #region Public API
+        public void SetPendingDialogue(string dialogue)
+        {
+            if (_pendingDialogueText != null)
+            {
+                _pendingDialogueText.text = dialogue;
+            }
+        }
+
         public UIDialogueEntry AddDialogueEntry(DialogueInfo dialogue)
         {
-            if (_dialogueEntries != null)
+            UIDialogueEntry dialogueEntry = Instantiate(UIManager.referenceManager.prefab_dialogueEntry, _dialogueEntryParent);
+            if (dialogueEntry != null)
             {
-                UIDialogueEntry dialogueEntry = Instantiate(UIManager.referenceManager.prefab_dialogueEntry, _dialogueEntryParent);
-                if (dialogueEntry != null)
-                {
-                    dialogueEntry.Initialize();
-                    _dialogueEntries.Add(dialogueEntry);
-                    return dialogueEntry;
-                }
+                dialogueEntry.Initialize();
             }
-            return null;
+            return dialogueEntry;
         }
 
-        public UIButton AddTopicEntry()
+        public void UpdateTopicPanelSize()
         {
-            if(_topicButtonEntries != null)
-            {
-                
-            }
-            return null;
+            StartCoroutine(UpdateSizeRoutine());
         }
-        #endregion
 
-
-        #region Topic Entry Management
-        private UIButton AddTopicTypeButton(string buttonLabel)
+        public UIButton AddTopicCategoryEntry(string buttonLabel, UIButton prefab)
         {
-            UIButton topicTypeBtn = Instantiate(UIManager.referenceManager.prefab_button, _topicTypeParent);
+            if (prefab == null) { return null; }
+
+            UIButton topicTypeBtn = Instantiate(prefab, _topicCategoryParent);
             if (topicTypeBtn != null)
             {
                 topicTypeBtn.Initialize();
@@ -166,6 +181,27 @@ namespace AcrealUI
                 }
             }
             return topicTypeBtn;
+        }
+
+        public UIButton AddTopicEntry()
+        {
+            UIButton topicEntry = Instantiate(UIManager.referenceManager.prefab_button_textOnly, _topicEntryParent);
+            if (topicEntry != null)
+            {
+                topicEntry.Initialize();
+                topicEntry.gameObject.SetActive(true);
+            }
+            return topicEntry;
+        }
+
+        private IEnumerator UpdateSizeRoutine()
+        {
+            yield return 0f;
+            if (_topicViewportLayoutElement != null)
+            {
+                float maxTopicPanelSize = Screen.height * 0.5f;
+                _topicViewportLayoutElement.minHeight = Mathf.Min(_topicEntryParent.sizeDelta.y + 4f, maxTopicPanelSize);
+            }
         }
         #endregion
     }

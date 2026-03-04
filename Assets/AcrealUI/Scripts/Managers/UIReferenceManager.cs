@@ -29,6 +29,7 @@ namespace AcrealUI
     {
         #region Variables
         public UIButton prefab_button = null;
+        public UIButton prefab_button_textOnly = null;
         public UISlider prefab_slider = null;
         public UIToggle prefab_toggle = null;
         public UIScrollListGroup prefab_scrollListGroup = null;
@@ -78,6 +79,9 @@ namespace AcrealUI
         {
             GameObject buttonObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Button");
             prefab_button = buttonObj != null ? buttonObj.GetComponent<UIButton>() : null;
+
+            GameObject textOnlyBtnObj = mod.GetAsset<GameObject>("Prefab_StandardElement_TextOnlyButton");
+            prefab_button_textOnly = textOnlyBtnObj != null ? textOnlyBtnObj.GetComponent<UIButton>() : null;
 
             GameObject sliderObj = mod.GetAsset<GameObject>("Prefab_StandardElement_Slider");
             prefab_slider = sliderObj != null ? sliderObj.GetComponent<UISlider>() : null;
