@@ -20,7 +20,6 @@ DEALINGS IN THE SOFTWARE.
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -353,6 +352,8 @@ namespace AcrealUI
                     }
                 }
             }
+
+            _conversationWindowInstance.SetTopicDividerActive(_topicEntries != null && _topicEntries.Count > 0);
         }
 
         private void RefreshTopicButtons()

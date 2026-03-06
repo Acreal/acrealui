@@ -194,13 +194,21 @@ namespace AcrealUI
             return topicEntry;
         }
 
+        public void SetTopicDividerActive(bool active)
+        {
+            _topicDivider?.SetActive(active);
+        }
+
         private IEnumerator UpdateSizeRoutine()
         {
             yield return 0f;
+
             if (_topicViewportLayoutElement != null)
             {
+                float height = _topicCategoryParent != null ? _topicCategoryParent.sizeDelta.y : 0f;
+                height += _topicEntryParent != null ? _topicEntryParent.sizeDelta.y : 0f;
                 float maxTopicPanelSize = Screen.height * 0.5f;
-                _topicViewportLayoutElement.minHeight = Mathf.Min(_topicEntryParent.sizeDelta.y + 4f, maxTopicPanelSize);
+                _topicViewportLayoutElement.minHeight = Mathf.Min(height + 4f, maxTopicPanelSize);
             }
         }
         #endregion
