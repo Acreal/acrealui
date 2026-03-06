@@ -154,4 +154,11 @@ namespace AcrealUI
         Major = 2,
         Primary = 3,
     }
+
+    public enum SpeakingStyle
+    {
+        Normal = 0,
+        Polite = 1,
+        Blunt = 2,
+    }
 }

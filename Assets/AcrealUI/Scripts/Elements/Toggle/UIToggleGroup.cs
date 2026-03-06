@@ -175,7 +175,7 @@ namespace AcrealUI
             {
                 for (int i = 0; i < _toggles.Count; i++)
                 {
-                    if(_toggles[i] == toggle) { continue; }
+                    if(_toggles[i] == null || _toggles[i] == toggle) { continue; }
                     _toggles[i].isToggledOn = false;
                 }
             }

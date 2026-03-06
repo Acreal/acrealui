@@ -162,8 +162,9 @@ GameObject:
   m_Component:
   - component: {fileID: 105431120177044101}
   - component: {fileID: 4609837728484008061}
+  - component: {fileID: 5207315161855715669}
   m_Layer: 5
-  m_Name: Parent_Polite
+  m_Name: Toggle_Polite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -210,6 +211,22 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &5207315161855715669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1113647217755311579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c74f92e7815d66041bb7e28e2869953b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
+  canBeToggledOff: 0
 --- !u!1 &1424967537146656268
 GameObject:
   m_ObjectHideFlags: 0
@@ -806,8 +823,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8446407726013485186}
   - component: {fileID: 2943990867087088266}
+  - component: {fileID: 5508917732466715894}
   m_Layer: 5
-  m_Name: Parent_Normal
+  m_Name: Toggle_Normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -854,6 +872,22 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &5508917732466715894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2234041288187204998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c74f92e7815d66041bb7e28e2869953b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
+  canBeToggledOff: 0
 --- !u!1 &2276464234222104354
 GameObject:
   m_ObjectHideFlags: 0
@@ -1308,6 +1342,7 @@ GameObject:
   - component: {fileID: 3361220926370587558}
   - component: {fileID: 1834951015579408354}
   - component: {fileID: 170813573721532788}
+  - component: {fileID: 7189283727810946516}
   m_Layer: 5
   m_Name: Image_Normal
   m_TagString: Untagged
@@ -1386,6 +1421,25 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.34901962}
   m_EffectDistance: {x: 1.5, y: -1.5}
   m_UseGraphicAlpha: 1
+--- !u!114 &7189283727810946516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2742072031330839414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d5a6adb1c68424481a7ae058573a7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _colorWhenOn: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  _colorWhenOff: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  _colorWhenOnAndPressed: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  _colorWhenOffAndPressed: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+  _colorWhenOnAndHighlighted: {r: 1, g: 1, b: 1, a: 1}
+  _colorWhenOffAndHighlighted: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  _colorOnDisable: {r: 0.5, g: 0.5, b: 0.5, a: 0.9019608}
 --- !u!1 &3053793350072198115
 GameObject:
   m_ObjectHideFlags: 0
@@ -1668,6 +1722,7 @@ GameObject:
   - component: {fileID: 2794161766664974628}
   - component: {fileID: 3366094825007262644}
   - component: {fileID: 2655692453953826201}
+  - component: {fileID: 1404218651537653925}
   m_Layer: 5
   m_Name: Image_Blunt
   m_TagString: Untagged
@@ -1746,6 +1801,25 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.34901962}
   m_EffectDistance: {x: 1.5, y: -1.5}
   m_UseGraphicAlpha: 1
+--- !u!114 &1404218651537653925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3798602902218546736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d5a6adb1c68424481a7ae058573a7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _colorWhenOn: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  _colorWhenOff: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  _colorWhenOnAndPressed: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  _colorWhenOffAndPressed: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+  _colorWhenOnAndHighlighted: {r: 1, g: 1, b: 1, a: 1}
+  _colorWhenOffAndHighlighted: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  _colorOnDisable: {r: 0.5, g: 0.5, b: 0.5, a: 0.9019608}
 --- !u!1 &3837614652295888081
 GameObject:
   m_ObjectHideFlags: 0
@@ -1872,6 +1946,10 @@ MonoBehaviour:
   _gameObjName_dialogueEntryParent: Parent_DialogueEntries
   _gameObjName_pendingDialogueText: Text_PendingDialogue
   _gameObjName_topicViewportLayoutElement: Viewport_TopicList
+  _gameObjName_speakingStyleToggleGroup: ToggleGroup_ConversationStyle
+  _gameObjName_normalSpeakingStyleToggle: Toggle_Normal
+  _gameObjName_politeSpeakingStyleToggle: Toggle_Polite
+  _gameObjName_bluntSpeakingStyleToggle: Toggle_Blunt
 --- !u!1 &4034565681894219206
 GameObject:
   m_ObjectHideFlags: 0
@@ -2054,6 +2132,7 @@ GameObject:
   - component: {fileID: 7189325833585454654}
   - component: {fileID: 4941925090855546375}
   - component: {fileID: 318710156794646559}
+  - component: {fileID: 3776377295060724068}
   m_Layer: 5
   m_Name: Image_Polite
   m_TagString: Untagged
@@ -2132,6 +2211,25 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.34901962}
   m_EffectDistance: {x: 1.5, y: -1.5}
   m_UseGraphicAlpha: 1
+--- !u!114 &3776377295060724068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4380671120816378621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d5a6adb1c68424481a7ae058573a7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _colorWhenOn: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  _colorWhenOff: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  _colorWhenOnAndPressed: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  _colorWhenOffAndPressed: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+  _colorWhenOnAndHighlighted: {r: 1, g: 1, b: 1, a: 1}
+  _colorWhenOffAndHighlighted: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  _colorOnDisable: {r: 0.5, g: 0.5, b: 0.5, a: 0.9019608}
 --- !u!1 &4409623681286329996
 GameObject:
   m_ObjectHideFlags: 0
@@ -2301,6 +2399,7 @@ GameObject:
   - component: {fileID: 5366331195186944690}
   - component: {fileID: 3421194269173088207}
   - component: {fileID: 4871919982180235554}
+  - component: {fileID: 5581428924823581711}
   m_Layer: 5
   m_Name: Image_Highlight
   m_TagString: Untagged
@@ -2364,6 +2463,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5581428924823581711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4500702959687049726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1caa23ae260eff245b6576afc11830bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameObjName_objectToToggle: 
+  _activateObjWhenOn: 1
+  _activateObjWhenOff: 0
+  _activateObjWhenOnAndPressed: 1
+  _activateObjWhenOffAndPressed: 0
+  _activateObjWhenOnAndHighlighted: 1
+  _activateObjWhenOffAndHighlighted: 0
+  _activateObjOnDisable: 0
 --- !u!1 &4927465167671369407
 GameObject:
   m_ObjectHideFlags: 0
@@ -2830,6 +2949,7 @@ GameObject:
   - component: {fileID: 7737455660091475977}
   - component: {fileID: 3011494131638785782}
   - component: {fileID: 7726944911790703835}
+  - component: {fileID: 439448346322642213}
   m_Layer: 5
   m_Name: Image_Highlight
   m_TagString: Untagged
@@ -2893,6 +3013,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &439448346322642213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5746148772326670052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1caa23ae260eff245b6576afc11830bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameObjName_objectToToggle: 
+  _activateObjWhenOn: 1
+  _activateObjWhenOff: 0
+  _activateObjWhenOnAndPressed: 1
+  _activateObjWhenOffAndPressed: 0
+  _activateObjWhenOnAndHighlighted: 1
+  _activateObjWhenOffAndHighlighted: 0
+  _activateObjOnDisable: 0
 --- !u!1 &5818474670188763842
 GameObject:
   m_ObjectHideFlags: 0
@@ -3711,8 +3851,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5769470716207653747}
   - component: {fileID: 775284504206081099}
+  - component: {fileID: 8491596366130286601}
   m_Layer: 5
-  m_Name: Parent_Blunt
+  m_Name: Toggle_Blunt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3759,6 +3900,22 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &8491596366130286601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8168258274763429649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c74f92e7815d66041bb7e28e2869953b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
+  canBeToggledOff: 0
 --- !u!1 &8213167421781060509
 GameObject:
   m_ObjectHideFlags: 0
@@ -3770,13 +3927,14 @@ GameObject:
   - component: {fileID: 591519385757080635}
   - component: {fileID: 8673492268763704598}
   - component: {fileID: 768627992302886268}
+  - component: {fileID: 7086099063757360388}
   m_Layer: 5
   m_Name: Image_Highlight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &591519385757080635
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3833,6 +3991,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7086099063757360388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8213167421781060509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1caa23ae260eff245b6576afc11830bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameObjName_objectToToggle: 
+  _activateObjWhenOn: 1
+  _activateObjWhenOff: 0
+  _activateObjWhenOnAndPressed: 1
+  _activateObjWhenOffAndPressed: 0
+  _activateObjWhenOnAndHighlighted: 1
+  _activateObjWhenOffAndHighlighted: 0
+  _activateObjOnDisable: 0
 --- !u!1 &8449409839067704410
 GameObject:
   m_ObjectHideFlags: 0
@@ -4194,8 +4372,9 @@ GameObject:
   m_Component:
   - component: {fileID: 219497275330510538}
   - component: {fileID: 4131927760152092691}
+  - component: {fileID: 5083779194081116642}
   m_Layer: 5
-  m_Name: Anchor
+  m_Name: ToggleGroup_ConversationStyle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4248,6 +4427,24 @@ MonoBehaviour:
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
+--- !u!114 &5083779194081116642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8776446045983333807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aca3a08d3c3d05c4190ea63373e92a8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameObjNameList_toggles:
+  - Toggle_Blunt
+  - Toggle_Normal
+  - Toggle_Polite
+  _gameObjName_defaultToggle: Toggle_Normal
+  canBeToggledOff: 0
 --- !u!1 &8787713813657660016
 GameObject:
   m_ObjectHideFlags: 0
@@ -4343,10 +4540,10 @@ RectTransform:
   m_Father: {fileID: 4711066663507930660}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 317, y: -68}
+  m_SizeDelta: {x: 614, y: 124}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3857372076910344175
 CanvasRenderer:

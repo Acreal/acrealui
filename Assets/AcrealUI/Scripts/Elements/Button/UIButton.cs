@@ -27,6 +27,9 @@ namespace AcrealUI
     {
         #region Events
         public event System.Action<UIButton, PointerEventData> Event_OnClicked = null;
+        public event System.Action<UIButton, int> Event_OnLeftClicked = null;
+        public event System.Action<UIButton, int> Event_OnRightClicked = null;
+        public event System.Action<UIButton, int> Event_OnMiddleClicked = null;
         #endregion
 
 
@@ -40,8 +43,16 @@ namespace AcrealUI
         public override void OnPointerClick(PointerEventData pointerData)
         {
             if (isDisabled) { return; }
+
             base.OnPointerClick(pointerData);
+
             Event_OnClicked?.Invoke(this, pointerData);
+            switch(pointerData.button)
+            {
+                case PointerEventData.InputButton.Left: Event_OnLeftClicked?.Invoke(this, pointerData.clickCount); break;
+                case PointerEventData.InputButton.Right: Event_OnRightClicked?.Invoke(this, pointerData.clickCount); break;
+                case PointerEventData.InputButton.Middle: Event_OnMiddleClicked?.Invoke(this, pointerData.clickCount); break;
+            }
         }
         #endregion
     }

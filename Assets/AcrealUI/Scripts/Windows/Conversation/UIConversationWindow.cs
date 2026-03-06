@@ -38,6 +38,10 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_dialogueEntryParent = null;
         [SerializeField] private string _gameObjName_pendingDialogueText = null;
         [SerializeField] private string _gameObjName_topicViewportLayoutElement = null;
+        [SerializeField] private string _gameObjName_speakingStyleToggleGroup = null;
+        [SerializeField] private string _gameObjName_normalSpeakingStyleToggle = null;
+        [SerializeField] private string _gameObjName_politeSpeakingStyleToggle = null;
+        [SerializeField] private string _gameObjName_bluntSpeakingStyleToggle = null;
 
         private UIButton _okayButton = null;
         private UIButton _historyButton = null;
@@ -47,6 +51,7 @@ namespace AcrealUI
         private RectTransform _dialogueEntryParent = null;
         private LayoutElement _topicViewportLayoutElement = null;
         private TextMeshProUGUI _pendingDialogueText = null;
+        private UIToggleGroup _speakingStyleToggleGroup = null;
         #endregion
 
 
@@ -54,6 +59,10 @@ namespace AcrealUI
         public RectTransform topicCategoryParent { get { return _topicCategoryParent; } }
         public RectTransform topicEntryParent { get { return _topicEntryParent; } }
         public RectTransform dialogueEntryParent { get { return _dialogueEntryParent; } }
+
+        public UIToggle normalSpeakingStyleToggle { get; private set; }
+        public UIToggle politeSpeakingStyleToggle { get; private set; }
+        public UIToggle bluntSpeakingStyleToggle { get; private set; }
         #endregion
 
 
@@ -132,6 +141,47 @@ namespace AcrealUI
             {
                 _pendingDialogueText = pendingDialogueTform.GetComponent<TextMeshProUGUI>();
             }
+
+            Transform groupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_speakingStyleToggleGroup);
+            if (groupTform != null)
+            {
+                _speakingStyleToggleGroup = groupTform.GetComponent<UIToggleGroup>();
+                if (_speakingStyleToggleGroup != null)
+                {
+                    _speakingStyleToggleGroup.Initialize();
+                }
+            }
+
+            Transform normalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_normalSpeakingStyleToggle);
+            if (normalTform != null)
+            {
+                normalSpeakingStyleToggle = normalTform.GetComponent<UIToggle>();
+                if (normalSpeakingStyleToggle != null)
+                {
+                    normalSpeakingStyleToggle.Initialize();
+                }
+            }
+
+            Transform politeTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_politeSpeakingStyleToggle);
+            if (politeTform != null)
+            {
+                politeSpeakingStyleToggle = politeTform.GetComponent<UIToggle>();
+                if (politeSpeakingStyleToggle != null)
+                {
+                    politeSpeakingStyleToggle.Initialize();
+                }
+            }
+
+            Transform bluntTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_bluntSpeakingStyleToggle);
+            if (bluntTform != null)
+            {
+                bluntSpeakingStyleToggle = bluntTform.GetComponent<UIToggle>();
+                if (bluntSpeakingStyleToggle != null)
+                {
+                    bluntSpeakingStyleToggle.Initialize();
+                }
+            }
+
         }
         #endregion
 
@@ -208,7 +258,7 @@ namespace AcrealUI
                 float height = _topicCategoryParent != null ? _topicCategoryParent.sizeDelta.y : 0f;
                 height += _topicEntryParent != null ? _topicEntryParent.sizeDelta.y : 0f;
                 float maxTopicPanelSize = Screen.height * 0.5f;
-                _topicViewportLayoutElement.minHeight = Mathf.Min(height + 4f, maxTopicPanelSize);
+                _topicViewportLayoutElement.minHeight = Mathf.Min(height, maxTopicPanelSize);
             }
         }
         #endregion

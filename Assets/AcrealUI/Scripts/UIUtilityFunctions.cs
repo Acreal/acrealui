@@ -27,6 +27,7 @@ using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.MagicAndEffects;
 using DaggerfallWorkshop.Game.Serialization;
+using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Utility;
 using System;
@@ -2030,6 +2031,19 @@ namespace AcrealUI
             InputManager.Instance.ResetDefaults();
             InputManager.Instance.SaveKeyBinds();
             ControlsConfigManager.Instance.ResetUnsavedKeybinds();
+        }
+        #endregion
+
+
+        #region Conversations
+        public static DaggerfallTalkWindow.TalkTone SpeakingStyleToTalkTone(SpeakingStyle speakingStyle)
+        {
+            switch(speakingStyle)
+            {
+                case SpeakingStyle.Polite: return DaggerfallTalkWindow.TalkTone.Polite;
+                case SpeakingStyle.Blunt: return DaggerfallTalkWindow.TalkTone.Blunt;
+                default: return DaggerfallTalkWindow.TalkTone.Normal;
+            }
         }
         #endregion
     }
