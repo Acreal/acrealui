@@ -40,7 +40,7 @@ namespace AcrealUI
 
 
         #region Initialization
-        public override void Initialize(UIInteractiveElement uiElement)
+        public override void Initialize(UIElement uiElement)
         {
             base.Initialize(uiElement);
             
@@ -59,23 +59,27 @@ namespace AcrealUI
 
             if (_graphic != null)
             {
-                if (_interactiveElement.isDisabled)
+                UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+                if (elem != null)
                 {
-                    _graphic.color = _colorOnDisable;
-                }
-                else if (toggle != null)
-                {
-                    if (toggle.isToggledOn)
+                    if (elem.isDisabled)
                     {
-                        if (_interactiveElement.isPressed) { _graphic.color = _colorWhenOnAndPressed; }
-                        else if (_interactiveElement.isHighlighted) { _graphic.color = _colorWhenOnAndHighlighted; }
-                        else { _graphic.color = _colorWhenOn; }
+                        _graphic.color = _colorOnDisable;
                     }
-                    else
+                    else if (toggle != null)
                     {
-                        if (_interactiveElement.isPressed) { _graphic.color = _colorWhenOffAndPressed; }
-                        else if (_interactiveElement.isHighlighted) { _graphic.color = _colorWhenOffAndHighlighted; }
-                        else { _graphic.color = _colorWhenOff; }
+                        if (toggle.isToggledOn)
+                        {
+                            if (elem.isPressed) { _graphic.color = _colorWhenOnAndPressed; }
+                            else if (elem.isHighlighted) { _graphic.color = _colorWhenOnAndHighlighted; }
+                            else { _graphic.color = _colorWhenOn; }
+                        }
+                        else
+                        {
+                            if (elem.isPressed) { _graphic.color = _colorWhenOffAndPressed; }
+                            else if (elem.isHighlighted) { _graphic.color = _colorWhenOffAndHighlighted; }
+                            else { _graphic.color = _colorWhenOff; }
+                        }
                     }
                 }
             }

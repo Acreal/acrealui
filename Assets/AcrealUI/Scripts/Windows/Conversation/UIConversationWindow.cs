@@ -19,6 +19,7 @@ DEALINGS IN THE SOFTWARE.
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -35,9 +36,12 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_topicDivider = null;
         [SerializeField] private string _gameObjName_topicCategoryParent = null;
         [SerializeField] private string _gameObjName_topicEntryParent = null;
-        [SerializeField] private string _gameObjName_dialogueEntryParent = null;
+        [SerializeField] private string _gameObjName_recentDialogueEntryParent = null;
+        [SerializeField] private string _gameObjName_oldDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_pendingDialogueText = null;
         [SerializeField] private string _gameObjName_topicViewportLayoutElement = null;
+        [SerializeField] private string _gameObjName_dialogueLayoutElement = null;
+        [SerializeField] private string _gameObjName_pendingDialogueLayoutElement = null;
         [SerializeField] private string _gameObjName_speakingStyleToggleGroup = null;
         [SerializeField] private string _gameObjName_normalSpeakingStyleToggle = null;
         [SerializeField] private string _gameObjName_politeSpeakingStyleToggle = null;
@@ -48,17 +52,25 @@ namespace AcrealUI
         private GameObject _topicDivider = null;
         private RectTransform _topicCategoryParent = null;
         private RectTransform _topicEntryParent = null;
-        private RectTransform _dialogueEntryParent = null;
+        private RectTransform _recentDialogueEntryParent = null;
+        private RectTransform _oldDialogueEntryParent = null;
         private LayoutElement _topicViewportLayoutElement = null;
+        private LayoutElement _dialogueLayoutElement = null;
+        private LayoutElement _pendingDialogueLayoutElement = null;
         private TextMeshProUGUI _pendingDialogueText = null;
         private UIToggleGroup _speakingStyleToggleGroup = null;
+
+        private const float _DIALOGUE_PADDING = 25f;
+
+        private Queue<UIDialogueEntry> _recentDialogueEntries = null;
+        private Queue<UIDialogueEntry> _oldDialogueEntries = null;
         #endregion
 
 
         #region Properties
         public RectTransform topicCategoryParent { get { return _topicCategoryParent; } }
         public RectTransform topicEntryParent { get { return _topicEntryParent; } }
-        public RectTransform dialogueEntryParent { get { return _dialogueEntryParent; } }
+        public RectTransform dialogueEntryParent { get { return _recentDialogueEntryParent; } }
 
         public UIToggle normalSpeakingStyleToggle { get; private set; }
         public UIToggle politeSpeakingStyleToggle { get; private set; }
@@ -86,14 +98,30 @@ namespace AcrealUI
         {
             base.Initialize();
 
+            _recentDialogueEntries = new Queue<UIDialogueEntry>(UIConstants.MAX_RECENT_DIALOGUE_ENTRIES);
+            _oldDialogueEntries = new Queue<UIDialogueEntry>(UIConstants.MAX_OLD_DIALOGUE_ENTRIES);
+
             _topicEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicEntryParent) as RectTransform;
             _topicCategoryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicCategoryParent) as RectTransform;
-            _dialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_dialogueEntryParent) as RectTransform;
+            _recentDialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_recentDialogueEntryParent) as RectTransform;
+            _oldDialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_oldDialogueEntryParent) as RectTransform;
 
             Transform viewportTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicViewportLayoutElement);
             if(viewportTform != null)
             {
                 _topicViewportLayoutElement = viewportTform.GetComponent<LayoutElement>();
+            }
+
+            Transform dialogueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_dialogueLayoutElement);
+            if (dialogueTform != null)
+            {
+                _dialogueLayoutElement = dialogueTform.GetComponent<LayoutElement>();
+            }
+
+            Transform pendingTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_pendingDialogueLayoutElement);
+            if (pendingTform != null)
+            {
+                _pendingDialogueLayoutElement = pendingTform.GetComponent<LayoutElement>();
             }
 
             Transform okayTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_okayButton);
@@ -186,6 +214,26 @@ namespace AcrealUI
         #endregion
 
 
+        #region Show/Hide
+        protected override void ShowInternal()
+        {
+            if(_dialogueLayoutElement != null)
+            {
+                float padding = _DIALOGUE_PADDING;
+                if(_pendingDialogueLayoutElement != null)
+                {
+                    padding += Mathf.Max(_pendingDialogueLayoutElement.minHeight, _pendingDialogueLayoutElement.preferredHeight);
+                }
+
+                RectTransform rt = transform as RectTransform;
+                _dialogueLayoutElement.minHeight = rt.sizeDelta.y - padding;
+            }
+
+            base.ShowInternal();
+        }
+        #endregion
+
+
         #region Public API
         public void SetPendingDialogue(string dialogue)
         {
@@ -197,12 +245,50 @@ namespace AcrealUI
 
         public UIDialogueEntry AddDialogueEntry(DialogueInfo dialogue)
         {
-            UIDialogueEntry dialogueEntry = Instantiate(UIManager.referenceManager.prefab_dialogueEntry, _dialogueEntryParent);
+            if(dialogue.entryPrefab == null) { return null; }
+
+            while(_oldDialogueEntries.Count > UIConstants.MAX_OLD_DIALOGUE_ENTRIES - 1)
+            {
+                Destroy(_oldDialogueEntries.Dequeue().gameObject);
+            }
+
+            while (_recentDialogueEntries.Count > UIConstants.MAX_RECENT_DIALOGUE_ENTRIES - 1)
+            {
+                UIDialogueEntry removedEntry = _recentDialogueEntries.Dequeue();
+                removedEntry.transform.SetParent(_oldDialogueEntryParent);
+                _oldDialogueEntries.Enqueue(removedEntry);
+            }
+
+            UIDialogueEntry dialogueEntry = Instantiate(dialogue.entryPrefab, _recentDialogueEntryParent);
             if (dialogueEntry != null)
             {
+                _recentDialogueEntries.Enqueue(dialogueEntry);
+
                 dialogueEntry.Initialize();
+                dialogueEntry.SetPortraitTexture(dialogue.speakerPortrait);
+                dialogueEntry.SetTitle(dialogue.speakerName);
+                dialogueEntry.SetDisplayValue(dialogue.dialogueText);
             }
             return dialogueEntry;
+        }
+
+        public void ClearDialogue()
+        {
+            if (_recentDialogueEntries != null)
+            {
+                while (_recentDialogueEntries.Count > 0)
+                {
+                    Destroy(_recentDialogueEntries.Dequeue().gameObject);
+                }
+            }
+
+            if(_oldDialogueEntries != null)
+            {
+                while(_oldDialogueEntries.Count > 0)
+                {
+                    Destroy(_oldDialogueEntries.Dequeue().gameObject);
+                }
+            }
         }
 
         public void UpdateTopicPanelSize()
@@ -248,7 +334,10 @@ namespace AcrealUI
         {
             _topicDivider?.SetActive(active);
         }
+        #endregion
 
+
+        #region Coroutines
         private IEnumerator UpdateSizeRoutine()
         {
             yield return 0f;

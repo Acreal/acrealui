@@ -26,6 +26,7 @@ using DaggerfallWorkshop.Game.Banking;
 using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.MagicAndEffects;
+using DaggerfallWorkshop.Game.MagicAndEffects.MagicEffects;
 using DaggerfallWorkshop.Game.Serialization;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.Utility;
@@ -487,6 +488,32 @@ namespace AcrealUI
             {
                 DaggerfallUI.Instance.PaperDollRenderer.Refresh(PaperDollRenderer.LayerFlags.All, GameManager.Instance.PlayerEntity);
                 return DaggerfallUI.Instance.PaperDollRenderer.PaperDollTexture;
+            }
+            return null;
+        }
+
+        public static Texture2D GetPaperDollHeadTexture()
+        {
+            if (GameManager.Instance != null && GameManager.Instance.PlayerEntity != null)
+            {
+                PlayerEntity entity = GameManager.Instance.PlayerEntity;
+
+                // Note(Acreal): everything below was copied from PaperDollRenderer.GetHeadImageData(PlayerEntity)
+                // Check for racial override head
+                ImageData customHead;
+                RacialOverrideEffect racialOverride = GameManager.Instance.PlayerEffectManager.GetRacialOverrideEffect();
+                if (racialOverride != null && racialOverride.GetCustomHeadImageData(entity, out customHead))
+                {
+                    return customHead.texture;
+                }
+
+                // Otherwise just get standard head based on gender and race
+                switch (entity.Gender)
+                {
+                    default:
+                    case Genders.Male: return ImageReader.GetImageData(entity.RaceTemplate.PaperDollHeadsMale, entity.FaceIndex, 0, true).texture;
+                    case Genders.Female: return ImageReader.GetImageData(entity.RaceTemplate.PaperDollHeadsFemale, entity.FaceIndex, 0, true).texture;
+                }
             }
             return null;
         }

@@ -23,11 +23,11 @@ using UnityEngine.EventSystems;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public abstract class UIInteractiveElement : UIElement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+    public class UIInteractiveElement : UIElement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         #region Variables
         protected bool _isDisabled = false;
-        protected UIInteractiveElementFeedback[] _elementFeedbackArray = null;
+        protected UIElementFeedback[] _elementFeedbackArray = null;
 
         private bool _isHighlighted = false;
         private bool _isPressed = false;
@@ -82,7 +82,7 @@ namespace AcrealUI
         {
             if(_elementFeedbackArray == null)
             {
-                _elementFeedbackArray = GetComponentsInChildren<UIInteractiveElementFeedback>(true);
+                _elementFeedbackArray = GetComponentsInChildren<UIElementFeedback>(true);
                 if(_elementFeedbackArray != null )
                 {
                     for(int i = 0; i <  _elementFeedbackArray.Length; i++)
@@ -106,7 +106,7 @@ namespace AcrealUI
 
             if (_elementFeedbackArray != null)
             {
-                foreach (UIInteractiveElementFeedback feedbackElement in _elementFeedbackArray)
+                foreach (UIElementFeedback feedbackElement in _elementFeedbackArray)
                 {
                     feedbackElement.Refresh();
                 }

@@ -18,28 +18,49 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using UnityEngine;
 
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIToggleFeedback : UIElementFeedback
+    public class UIElementFeedback_SetActiveOnHover : UIElementFeedback
     {
-        #region Properties
-        protected UIToggle toggle { get { return _uiElement as UIToggle; } }
+        #region Variables
+        [SerializeField] private string _gameObjName_ObjectToSet = null;
+
+        private GameObject _objectToSet = null;
         #endregion
 
 
         #region Initialization
         public override void Initialize(UIElement uiElement)
         {
-            base.Initialize(uiElement);
-
-            if (toggle != null)
+            Transform objTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_ObjectToSet);
+            if (objTform != null)
             {
-                toggle.Event_OnToggledOnOrOff += (UIToggle t) =>
+                _objectToSet = objTform.gameObject;
+            }
+
+            base.Initialize(uiElement);
+        }
+        #endregion
+
+
+        #region Update/Refresh
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            if(_objectToSet != null && _uiElement != null)
+            {
+                UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+                if (elem != null)
                 {
-                    Refresh();
-                };
+                    if (_objectToSet.activeSelf != (elem.isHighlighted || elem.isPressed))
+                    {
+                        _objectToSet.SetActive(elem.isHighlighted);
+                    }
+                }
             }
         }
         #endregion

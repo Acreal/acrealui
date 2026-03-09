@@ -41,28 +41,32 @@ namespace AcrealUI
         {
             base.Refresh();
 
-            if (_interactiveElement.isDisabled)
+            UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+            if (elem != null)
             {
-                transform.localScale = Vector3.one * _scaleWhenDisabled;
-            }
-            else if (toggle != null)
-            {
-                if (toggle.isToggledOn)
+                if (elem.isDisabled)
                 {
-                    if (_interactiveElement.isPressed) { transform.localScale = Vector3.one * _scaleWhenOnAndPressed; }
-                    else if (_interactiveElement.isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOnAndHighlighted; }
-                    else { transform.localScale = Vector3.one * _scaleWhenOn; }
+                    transform.localScale = Vector3.one * _scaleWhenDisabled;
+                }
+                else if (toggle != null)
+                {
+                    if (toggle.isToggledOn)
+                    {
+                        if (elem.isPressed) { transform.localScale = Vector3.one * _scaleWhenOnAndPressed; }
+                        else if (elem.isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOnAndHighlighted; }
+                        else { transform.localScale = Vector3.one * _scaleWhenOn; }
+                    }
+                    else
+                    {
+                        if (elem.isPressed) { transform.localScale = Vector3.one * _scaleWhenOffAndPressed; }
+                        else if (elem.isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOffAndHighlighted; }
+                        else { transform.localScale = Vector3.one * _scaleWhenOff; }
+                    }
                 }
                 else
                 {
-                    if (_interactiveElement.isPressed) { transform.localScale = Vector3.one * _scaleWhenOffAndPressed; }
-                    else if (_interactiveElement.isHighlighted) { transform.localScale = Vector3.one * _scaleWhenOffAndHighlighted; }
-                    else { transform.localScale = Vector3.one * _scaleWhenOff; }
+                    transform.localScale = Vector3.one * _scaleWhenOff;
                 }
-            }
-            else
-            {
-                transform.localScale = Vector3.one * _scaleWhenOff;
             }
         }
         #endregion

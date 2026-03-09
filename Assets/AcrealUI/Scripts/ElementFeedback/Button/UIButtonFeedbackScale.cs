@@ -23,7 +23,7 @@ using UnityEngine;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIButtonFeedbackScale : UIInteractiveElementFeedback
+    public class UIButtonFeedbackScale : UIElementFeedback
     {
         #region Variables
         [SerializeField] private float _defaultScale = 1.0f;
@@ -36,21 +36,25 @@ namespace AcrealUI
         #region Graphic Color
         public override void Refresh()
         {
-            if (_interactiveElement.isDisabled)
+            UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+            if (elem != null)
             {
-                transform.localScale = Vector3.one * _disabledScale;
-            }
-            else if (_interactiveElement.isPressed)
-            {
-                transform.localScale = Vector3.one * _pressedScale;
-            }
-            else if (_interactiveElement.isHighlighted)
-            {
-                transform.localScale = Vector3.one * _highlightedScale;
-            }
-            else
-            {
-                transform.localScale = Vector3.one * _defaultScale;
+                if (elem.isDisabled)
+                {
+                    transform.localScale = Vector3.one * _disabledScale;
+                }
+                else if (elem.isPressed)
+                {
+                    transform.localScale = Vector3.one * _pressedScale;
+                }
+                else if (elem.isHighlighted)
+                {
+                    transform.localScale = Vector3.one * _highlightedScale;
+                }
+                else
+                {
+                    transform.localScale = Vector3.one * _defaultScale;
+                }
             }
         }
         #endregion

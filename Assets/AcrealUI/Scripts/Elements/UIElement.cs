@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace AcrealUI
 {
-    public class UIElement : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+    public abstract class UIElement : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         #region Variables
         [SerializeField] protected bool _initializeOnAwake = false;

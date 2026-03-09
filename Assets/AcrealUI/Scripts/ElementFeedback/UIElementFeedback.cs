@@ -23,25 +23,17 @@ using UnityEngine;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIInteractiveElementFeedback : MonoBehaviour
+    public class UIElementFeedback : MonoBehaviour
     {
         #region Variables
-        protected UIInteractiveElement _interactiveElement = null;
+        protected UIElement _uiElement = null;
         #endregion
 
 
         #region Initialization
-        public virtual void Initialize(UIInteractiveElement uiElement)
+        public virtual void Initialize(UIElement uiElement)
         {
-            _interactiveElement = uiElement;
-
-            if (_interactiveElement != null)
-            {
-                _interactiveElement.Event_OnDisabledChanged += (bool disabled) =>
-                {
-                    Refresh();
-                };
-            }
+            _uiElement = uiElement;
         }
         #endregion
 

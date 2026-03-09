@@ -23,7 +23,7 @@ using UnityEngine;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIButtonFeedbackGameObjectToggle : UIInteractiveElementFeedback
+    public class UIButtonFeedbackGameObjectToggle : UIElementFeedback
     {
         #region Variables
         [SerializeField] private string _gameObjName_objectToToggle = null;
@@ -37,7 +37,7 @@ namespace AcrealUI
 
 
         #region Initialization
-        public override void Initialize(UIInteractiveElement uiElement)
+        public override void Initialize(UIElement uiElement)
         {
             base.Initialize(uiElement);
 
@@ -57,32 +57,36 @@ namespace AcrealUI
         {
             if (_objectToToggle == null) { return; }
 
-            if (_interactiveElement.isDisabled)
+            UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+            if (elem != null)
             {
-                if (_objectToToggle.activeSelf != _activateObjOnDisable)
+                if (elem.isDisabled)
                 {
-                    _objectToToggle.SetActive(_activateObjOnDisable);
+                    if (_objectToToggle.activeSelf != _activateObjOnDisable)
+                    {
+                        _objectToToggle.SetActive(_activateObjOnDisable);
+                    }
                 }
-            }
-            else if (_interactiveElement.isPressed)
-            {
-                if (_objectToToggle.activeSelf != _activateObjOnPress)
+                else if (elem.isPressed)
                 {
-                    _objectToToggle.SetActive(_activateObjOnPress);
+                    if (_objectToToggle.activeSelf != _activateObjOnPress)
+                    {
+                        _objectToToggle.SetActive(_activateObjOnPress);
+                    }
                 }
-            }
-            else if (_interactiveElement.isHighlighted)
-            {
-                if (_objectToToggle.activeSelf != _activateObjOnHighlight)
+                else if (elem.isHighlighted)
                 {
-                    _objectToToggle.SetActive(_activateObjOnHighlight);
+                    if (_objectToToggle.activeSelf != _activateObjOnHighlight)
+                    {
+                        _objectToToggle.SetActive(_activateObjOnHighlight);
+                    }
                 }
-            }
-            else
-            {
-                if (_objectToToggle.activeSelf != _activateObjByDefault)
+                else
                 {
-                    _objectToToggle.SetActive(_activateObjByDefault);
+                    if (_objectToToggle.activeSelf != _activateObjByDefault)
+                    {
+                        _objectToToggle.SetActive(_activateObjByDefault);
+                    }
                 }
             }
         }

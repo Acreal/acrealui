@@ -19,59 +19,57 @@ DEALINGS IN THE SOFTWARE.
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIButtonFeedbackColor : UIElementFeedback
+    public class UIElementFeedback_EnableScriptOnHover : UIElementFeedback
     {
         #region Variables
-        [SerializeField] private Color _defaultColor = new Color(0.9f, 0.9f, 0.9f, 1f);
-        [SerializeField] private Color _highlightedColor = new Color(1f, 1f, 1f, 1f);
-        [SerializeField] private Color _pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-        [SerializeField] private Color _disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        [SerializeField] private string _gameObjName_objWithScript = null;
+        [SerializeField] private string _scriptTypeString = null;
 
-        private Graphic _graphic = null;
+        private MonoBehaviour _scriptToSet = null;
         #endregion
 
 
         #region Initialization
         public override void Initialize(UIElement uiElement)
         {
-            base.Initialize(uiElement);
+            _scriptTypeString = _scriptTypeString.ToLower();
 
-            if (_graphic == null)
+            Transform objTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_objWithScript);
+            if(objTform == null) { objTform = transform; }
+            if (objTform != null)
             {
-                _graphic = GetComponent<Graphic>();
+                MonoBehaviour[] monoArr = objTform.GetComponents<MonoBehaviour>();
+                foreach (MonoBehaviour behaviour in monoArr)
+                {
+                    string behaviourType = behaviour.GetType().ToString().ToLower();
+                    if(behaviourType == _scriptTypeString)
+                    {
+                        _scriptToSet = behaviour;
+                        break;
+                    }
+                }
             }
+
+            base.Initialize(uiElement);
         }
         #endregion
 
 
-        #region Graphic Color
+        #region Update/Refresh
         public override void Refresh()
         {
-            if (_graphic == null) { return; }
+            base.Refresh();
 
-            UIInteractiveElement elem = _uiElement as UIInteractiveElement;
-            if (elem != null)
+            if(_scriptToSet != null)
             {
-                if (elem.isDisabled)
+                UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+                if (elem != null)
                 {
-                    _graphic.color = _disabledColor;
-                }
-                else if (elem.isPressed)
-                {
-                    _graphic.color = _pressedColor;
-                }
-                else if (elem.isHighlighted)
-                {
-                    _graphic.color = _highlightedColor;
-                }
-                else
-                {
-                    _graphic.color = _defaultColor;
+                    _scriptToSet.enabled = _uiElement != null && (elem.isHighlighted || elem.isPressed);
                 }
             }
         }

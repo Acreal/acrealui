@@ -105,7 +105,7 @@ namespace AcrealUI
 
             if (_elementFeedbackArray != null)
             {
-                foreach (UIInteractiveElementFeedback element in _elementFeedbackArray)
+                foreach (UIElementFeedback element in _elementFeedbackArray)
                 {
                     element.Refresh();
                 }

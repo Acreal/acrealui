@@ -49,7 +49,9 @@ namespace AcrealUI
         public UIInventoryWindow_ItemEntry prefab_itemEntry = null;
         public UIPlayerStatEntry prefab_playerStatEntry = null;
         public UIPlayerSkillEntry prefab_playerSkillEntry = null;
-        public UIDialogueEntry prefab_dialogueEntry = null;
+        
+        public UIDialogueEntry prefab_playerDialogueEntry = null;
+        public UIDialogueEntry prefab_npcDialogueEntry = null;
 
         public Canvas prefab_tooltipCanvas = null;
         public UITextTooltip prefab_textTooltip = null;
@@ -159,6 +161,12 @@ namespace AcrealUI
 
             GameObject conversationObj = mod.GetAsset<GameObject>("Prefab_ConversationWindow");
             prefab_conversationWindow = conversationObj != null ? conversationObj.GetComponent<UIConversationWindow>() : null;
+
+            GameObject playerDialogueEntryObj = mod.GetAsset<GameObject>("Prefab_PlayerDialogueEntry");
+            prefab_playerDialogueEntry = playerDialogueEntryObj != null ? playerDialogueEntryObj.GetComponent<UIDialogueEntry>() : null;
+
+            GameObject npcDialogueEntryObj = mod.GetAsset<GameObject>("Prefab_NpcDialogueEntry");
+            prefab_npcDialogueEntry = npcDialogueEntryObj != null ? npcDialogueEntryObj.GetComponent<UIDialogueEntry>() : null;
 
             _keyCodeToIconDict = new Dictionary<KeyCode, Sprite>()
             {

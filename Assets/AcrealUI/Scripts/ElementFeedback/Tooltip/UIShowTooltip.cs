@@ -22,7 +22,7 @@ using UnityEngine;
 
 namespace AcrealUI
 {
-    public abstract class UIShowTooltip : UIInteractiveElementFeedback
+    public abstract class UIShowTooltip : UIElementFeedback
     {
         #region Variables
         [SerializeField] private float _showDelay = 0f;

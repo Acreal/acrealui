@@ -37,5 +37,8 @@ namespace AcrealUI
         public const int ENEMY_SKILL_HIT_CHANCE_DIVISOR = 4;
 
         public const short DEFAULT_DUNGEON_WATER_LEVEL = 10000;
+
+        public const int MAX_RECENT_DIALOGUE_ENTRIES = 4;
+        public const int MAX_OLD_DIALOGUE_ENTRIES = 64 - MAX_RECENT_DIALOGUE_ENTRIES;
     }
 }

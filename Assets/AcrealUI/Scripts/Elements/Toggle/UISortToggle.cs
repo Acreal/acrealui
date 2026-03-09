@@ -72,7 +72,7 @@ namespace AcrealUI
                 {
                     _sortAscending = !_sortAscending;
 
-                    foreach (UIInteractiveElementFeedback element in _elementFeedbackArray)
+                    foreach (UIElementFeedback element in _elementFeedbackArray)
                     {
                         element?.OnPointerClick();
                     }

@@ -47,7 +47,7 @@ namespace AcrealUI
 
 
         #region Initialization
-        public override void Initialize(UIInteractiveElement uiElement)
+        public override void Initialize(UIElement uiElement)
         {
             base.Initialize(uiElement);
 
@@ -63,42 +63,46 @@ namespace AcrealUI
         #endregion
 
 
-        #region Update
+        #region Update/Refresh
         public override void Refresh()
         {
             base.Refresh();
 
             if (_image != null)
             {
-                Sprite sprite = null;
+                UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+                if (elem != null)
+                {
+                    Sprite sprite = null;
 
-                if (_interactiveElement.isDisabled)
-                {
-                    sprite = _disabledSprite;
-                }
-                else if(toggle != null)
-                {
-                    if (toggle.isToggledOn)
+                    if (elem.isDisabled)
                     {
-                        if (_interactiveElement.isPressed) { sprite = _toggledOnAndPressedSprite; }
-                        else if (_interactiveElement.isHighlighted) { sprite = _toggledOnAndHighlightedSprite; }
-                        else { sprite = _toggledOnSprite; }
+                        sprite = _disabledSprite;
+                    }
+                    else if (toggle != null)
+                    {
+                        if (toggle.isToggledOn)
+                        {
+                            if (elem.isPressed) { sprite = _toggledOnAndPressedSprite; }
+                            else if (elem.isHighlighted) { sprite = _toggledOnAndHighlightedSprite; }
+                            else { sprite = _toggledOnSprite; }
+                        }
+                        else
+                        {
+                            if (elem.isPressed) { sprite = _toggledOffAndPressedSprite; }
+                            else if (elem.isHighlighted) { sprite = _toggledOffAndHighlightedSprite; }
+                            else { sprite = _toggledOffSprite; }
+                        }
                     }
                     else
                     {
-                        if (_interactiveElement.isPressed) { sprite = _toggledOffAndPressedSprite; }
-                        else if (_interactiveElement.isHighlighted) { sprite = _toggledOffAndHighlightedSprite; }
-                        else { sprite = _toggledOffSprite; }
+                        sprite = _toggledOffSprite;
                     }
-                }
-                else
-                {
-                    sprite = _toggledOffSprite;
-                }
 
-                if (_image.sprite != sprite)
-                {
-                    _image.sprite = sprite;
+                    if (_image.sprite != sprite)
+                    {
+                        _image.sprite = sprite;
+                    }
                 }
             }
         }

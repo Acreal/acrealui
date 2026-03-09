@@ -24,7 +24,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIButtonFeedbackSpriteSwap : UIInteractiveElementFeedback
+    public class UIButtonFeedbackSpriteSwap : UIElementFeedback
     {
         #region Variables
         [SerializeField] private string _defaultSpriteName = null;
@@ -42,7 +42,7 @@ namespace AcrealUI
 
 
         #region Initialization
-        public override void Initialize(UIInteractiveElement uiElement)
+        public override void Initialize(UIElement uiElement)
         {
             base.Initialize(uiElement);
 
@@ -64,26 +64,30 @@ namespace AcrealUI
         {
             if (_image == null) { return; }
 
-            Sprite sprite = null;
+            UIInteractiveElement elem = _uiElement as UIInteractiveElement;
+            if (elem != null)
+            {
+                Sprite sprite = null;
 
-            if (_interactiveElement.isDisabled)
-            {
-                sprite = _disabledSprite;
-            }
-            else if (_interactiveElement.isPressed)
-            {
-                sprite = _pressedSprite;
-            }
-            else if (_interactiveElement.isHighlighted)
-            {
-                sprite = _highlightedSprite;
-            }
+                if (elem.isDisabled)
+                {
+                    sprite = _disabledSprite;
+                }
+                else if (elem.isPressed)
+                {
+                    sprite = _pressedSprite;
+                }
+                else if (elem.isHighlighted)
+                {
+                    sprite = _highlightedSprite;
+                }
 
-            if (sprite == null) { sprite = _defaultSprite; }
+                if (sprite == null) { sprite = _defaultSprite; }
 
-            if (sprite != null && _image.sprite != sprite)
-            {
-                _image.sprite = sprite;
+                if (sprite != null && _image.sprite != sprite)
+                {
+                    _image.sprite = sprite;
+                }
             }
         }
         #endregion

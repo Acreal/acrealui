@@ -116,8 +116,10 @@ namespace AcrealUI
     #region Conversations
     public struct DialogueInfo
     {
-        public string dialogue;
-        public Texture2D speakerTexture;
+        public UIDialogueEntry entryPrefab;
+        public Texture2D speakerPortrait;
+        public string speakerName;
+        public string dialogueText;
     }
     #endregion
 }

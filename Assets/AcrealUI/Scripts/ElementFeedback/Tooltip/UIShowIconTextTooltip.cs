@@ -37,7 +37,7 @@ namespace AcrealUI
 
 
         #region Initialization
-        public override void Initialize(UIInteractiveElement parentElement)
+        public override void Initialize(UIElement parentElement)
         {
             base.Initialize(parentElement);
 

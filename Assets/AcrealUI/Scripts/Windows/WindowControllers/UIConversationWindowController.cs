@@ -49,11 +49,11 @@ namespace AcrealUI
         private bool _isDisplayingSubList = false;
         private List<UIButton> _topicButtonEntries = null;
         private List<UIButton> _topicEntries = null;
-        private List<UIDialogueEntry> _dialogueEntries = null;
         private Dictionary<int, TalkManager.ListItem> _instanceIdToTopicListItemDict = null;
         private int _selectedTopicInstanceId = 0;
         private TopicState _currentState = TopicState.Default;
         private SpeakingStyle _currentSpeakingStyle = SpeakingStyle.Normal;
+        private DialogueInfo _pendingDialogueInfo = new DialogueInfo();
 
         #endregion
 
@@ -73,6 +73,7 @@ namespace AcrealUI
                 // WINDOW INSTANCE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 {
                     _conversationWindowInstance.Initialize();
+                    _conversationWindowInstance.SetHeaderText("Conversation History"); // TODO(Acreal): localize string
                     _conversationWindowInstance.Hide();
 
                     _conversationWindowInstance.normalSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Normal; };
@@ -83,13 +84,33 @@ namespace AcrealUI
                     _conversationWindowInstance.politeSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Polite); };
                     _conversationWindowInstance.bluntSpeakingStyleToggle.Event_OnToggledOn  += (_) => { SetSpeakingStyle(SpeakingStyle.Blunt); };
 
+                    _conversationWindowInstance.Event_ButtonClick_CloseWindow += () =>
+                    {
+                        CancelWindow();
+                    };
+
                     _conversationWindowInstance.OnSubmitDialogueEntry += () =>
                     {
-                        if (_selectedTopicInstanceId != 0)
+                        if (!string.IsNullOrWhiteSpace(_pendingDialogueInfo.dialogueText))
                         {
+                            UIDialogueEntry dialogueEntry = _conversationWindowInstance.AddDialogueEntry(_pendingDialogueInfo);
+
+                            if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                            {
+                                DialogueInfo reply = new DialogueInfo
+                                {
+                                    entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                                    speakerPortrait = texturePortrait,
+                                    speakerName = TalkManager.Instance.NameNPC,
+                                    dialogueText = TalkManager.Instance.GetAnswerText(listItem),
+                                };
+                                UIDialogueEntry replyEntry = _conversationWindowInstance.AddDialogueEntry(reply);
+                            }
+
                             _selectedTopicInstanceId = 0;
+                            _pendingDialogueInfo.dialogueText = null;
+                            _conversationWindowInstance.SetPendingDialogue(null);
                         }
-                        _conversationWindowInstance.SetPendingDialogue(null);
                     };
                 }
 
@@ -249,8 +270,21 @@ namespace AcrealUI
         {
             RefreshTopicButtons();
 
+            _pendingDialogueInfo.entryPrefab = UIManager.referenceManager.prefab_playerDialogueEntry;
+            _pendingDialogueInfo.speakerName = GameManager.Instance.PlayerEntity.Name;
+            _pendingDialogueInfo.speakerPortrait = UIUtilityFunctions.GetPaperDollHeadTexture();
+            _pendingDialogueInfo.dialogueText = null;
+
             if (_conversationWindowInstance != null)
             {
+                DialogueInfo greeting = new DialogueInfo
+                {
+                    entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                    speakerPortrait = texturePortrait,
+                    speakerName = TalkManager.Instance.NameNPC,
+                    dialogueText = TalkManager.Instance.NPCGreetingText,
+                };
+                UIDialogueEntry greetingEntry = _conversationWindowInstance.AddDialogueEntry(greeting);
                 _conversationWindowInstance.SetPendingDialogue(null);
                 _conversationWindowInstance.Show();
             }
@@ -260,6 +294,7 @@ namespace AcrealUI
         {
             if (_conversationWindowInstance != null)
             {
+                _conversationWindowInstance.ClearDialogue();
                 _conversationWindowInstance.Hide();
             }
         }
@@ -362,7 +397,8 @@ namespace AcrealUI
 
                             if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
                             {
-                                _conversationWindowInstance.SetPendingDialogue(TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle)));
+                                _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
+                                _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
                             }
                         };
 
@@ -414,7 +450,8 @@ namespace AcrealUI
             {
                 if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
                 {
-                    _conversationWindowInstance.SetPendingDialogue(TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle)));
+                    _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
+                    _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
                 }
             }
         }
