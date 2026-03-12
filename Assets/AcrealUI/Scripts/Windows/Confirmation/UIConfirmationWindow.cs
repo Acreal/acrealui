@@ -62,7 +62,7 @@ namespace AcrealUI
                 if (_confirmButton != null)
                 {
                     _confirmButton.Initialize();
-                    _confirmButton.Event_OnClicked += (_, _1) =>
+                    _confirmButton.Event_OnAnyClick += (_, _1) =>
                     {
                         Event_OnConfirm?.Invoke();
                     };
@@ -76,7 +76,7 @@ namespace AcrealUI
                 if (_cancelButton != null)
                 {
                     _cancelButton.Initialize();
-                    _cancelButton.Event_OnClicked += (_, _1) =>
+                    _cancelButton.Event_OnAnyClick += (_, _1) =>
                     {
                         Event_OnCancel?.Invoke();
                     };

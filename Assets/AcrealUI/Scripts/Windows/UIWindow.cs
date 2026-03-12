@@ -119,7 +119,7 @@ namespace AcrealUI
                 if (_closeWindowButton != null)
                 {
                     _closeWindowButton.Initialize();
-                    _closeWindowButton.Event_OnClicked += (_, _1) =>
+                    _closeWindowButton.Event_OnAnyClick += (_, _1) =>
                     {
                         Event_ButtonClick_CloseWindow?.Invoke();
                     };
@@ -135,7 +135,7 @@ namespace AcrealUI
                 if (_backButton != null)
                 {
                     _backButton.Initialize();
-                    _backButton.Event_OnClicked += (_, _1) =>
+                    _backButton.Event_OnAnyClick += (_, _1) =>
                     {
                         Event_ButtonClick_PrevWindow?.Invoke();
                     };

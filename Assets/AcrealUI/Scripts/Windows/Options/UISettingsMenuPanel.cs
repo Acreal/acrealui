@@ -58,7 +58,7 @@ namespace AcrealUI
                 if (button_generalSettings != null)
                 {
                     button_generalSettings.Initialize();
-                    button_generalSettings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_GeneralSettings?.Invoke(); };
+                    button_generalSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_GeneralSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_generalSettings + "\""); }
             }
@@ -70,7 +70,7 @@ namespace AcrealUI
                 if (button_videoSettings != null)
                 {
                     button_videoSettings.Initialize();
-                    button_videoSettings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_VideoSettings?.Invoke(); };
+                    button_videoSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_VideoSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_videoSettings + "\""); }
             }
@@ -82,7 +82,7 @@ namespace AcrealUI
                 if (button_audioSettings != null)
                 {
                     button_audioSettings.Initialize();
-                    button_audioSettings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_AudioSettings?.Invoke(); };
+                    button_audioSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_AudioSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_audioSettings + "\""); }
             }
@@ -94,7 +94,7 @@ namespace AcrealUI
                 if (button_controlSettings != null)
                 {
                     button_controlSettings.Initialize();
-                    button_controlSettings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_ControlSettings?.Invoke(); };
+                    button_controlSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_ControlSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_controlSettings + "\""); }
             }

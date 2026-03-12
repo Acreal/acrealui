@@ -34,6 +34,15 @@ namespace AcrealUI
         public virtual void Initialize(UIElement uiElement)
         {
             _uiElement = uiElement;
+
+            UIInteractiveElement interactiveElement = _uiElement as UIInteractiveElement;
+            if(interactiveElement != null)
+            {
+                interactiveElement.Event_OnDisabledChanged += (_) =>
+                {
+                    Refresh();
+                };
+            }
         }
         #endregion
 

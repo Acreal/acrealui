@@ -29,6 +29,8 @@ namespace AcrealUI
         #region Variables
         [SerializeField] private string _gameObjName_canvasGroup = null;
         [SerializeField] private float _fadeDuration = 0.2f;
+        [SerializeField] private float _fadeInDelay = 0f;
+        [SerializeField] private float _fadeOutDelay = 0f;
 
         private CanvasGroup _canvasGroup = null;
         private Coroutine _fadeRoutine = null;
@@ -41,7 +43,7 @@ namespace AcrealUI
         {
             Transform canvasGroupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_canvasGroup);
             if(canvasGroupTForm == null) { canvasGroupTForm = transform; }
-            _canvasGroup = GetComponent<CanvasGroup>();
+            _canvasGroup = canvasGroupTForm.GetComponent<CanvasGroup>();
 
             base.Initialize(uiElement);
         }
@@ -71,8 +73,8 @@ namespace AcrealUI
                         float targetFade = _isFadedIn ? 1f : 0f;
                         if (Mathf.Abs(_canvasGroup.alpha - targetFade) >= float.Epsilon)
                         {
-                            float delay = _isFadedIn ? 0.5f : 0.1f;
-                            _fadeRoutine = StartCoroutine(FadeRoutine(_canvasGroup.alpha, targetFade, _fadeDuration, 0.5f));
+                            float delay = _isFadedIn ? _fadeInDelay : _fadeOutDelay;
+                            _fadeRoutine = StartCoroutine(FadeRoutine(_canvasGroup.alpha, targetFade, _fadeDuration, delay));
                         }
                     }
                 }
@@ -82,7 +84,7 @@ namespace AcrealUI
 
 
         #region Coroutines
-        private IEnumerator<float> FadeRoutine(float from, float to, float duration, float delay = 0f)
+        private IEnumerator<float> FadeRoutine(float from, float to, float duration, float delay)
         {
             if (_canvasGroup != null)
             {

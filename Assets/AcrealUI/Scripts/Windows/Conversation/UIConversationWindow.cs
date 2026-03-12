@@ -31,46 +31,51 @@ namespace AcrealUI
     public class UIConversationWindow : UIWindow
     {
         #region Variables
-        [SerializeField] private string _gameObjName_okayButton = null;
-        [SerializeField] private string _gameObjName_historyButton = null;
-        [SerializeField] private string _gameObjName_topicDivider = null;
-        [SerializeField] private string _gameObjName_topicCategoryParent = null;
+        [Header("Topics")]
+        [SerializeField] private string _gameObjName_topicViewportLayoutElement = null;
         [SerializeField] private string _gameObjName_topicEntryParent = null;
+        [SerializeField] private string _gameObjName_prevTopicButton = null;
+
+        [Header("Player/NPC Dialogue")]
         [SerializeField] private string _gameObjName_recentDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_oldDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_pendingDialogueText = null;
-        [SerializeField] private string _gameObjName_topicViewportLayoutElement = null;
         [SerializeField] private string _gameObjName_dialogueLayoutElement = null;
         [SerializeField] private string _gameObjName_pendingDialogueLayoutElement = null;
+        [SerializeField] private string _gameObjName_okayButton = null;
+
+        [Header("Speaking Style/Talk Mode")]
         [SerializeField] private string _gameObjName_speakingStyleToggleGroup = null;
         [SerializeField] private string _gameObjName_normalSpeakingStyleToggle = null;
         [SerializeField] private string _gameObjName_politeSpeakingStyleToggle = null;
         [SerializeField] private string _gameObjName_bluntSpeakingStyleToggle = null;
 
-        private UIButton _okayButton = null;
-        private UIButton _historyButton = null;
-        private GameObject _topicDivider = null;
-        private RectTransform _topicCategoryParent = null;
+
+        private const float _TOPIC_PADDING = 8f;
+        private const float _DIALOGUE_PADDING = 24f;
+
+        private LayoutElement _topicViewportLayoutElement = null;
         private RectTransform _topicEntryParent = null;
+        private UIButton _previousTopicButton = null;
         private RectTransform _recentDialogueEntryParent = null;
         private RectTransform _oldDialogueEntryParent = null;
-        private LayoutElement _topicViewportLayoutElement = null;
         private LayoutElement _dialogueLayoutElement = null;
         private LayoutElement _pendingDialogueLayoutElement = null;
+        private UIButton _okayButton = null;
         private TextMeshProUGUI _pendingDialogueText = null;
         private UIToggleGroup _speakingStyleToggleGroup = null;
 
-        private const float _DIALOGUE_PADDING = 25f;
-
         private Queue<UIDialogueEntry> _recentDialogueEntries = null;
         private Queue<UIDialogueEntry> _oldDialogueEntries = null;
+        private List<UIButton> _topicEntries = null;
         #endregion
 
 
         #region Properties
-        public RectTransform topicCategoryParent { get { return _topicCategoryParent; } }
         public RectTransform topicEntryParent { get { return _topicEntryParent; } }
         public RectTransform dialogueEntryParent { get { return _recentDialogueEntryParent; } }
+
+        public UIButton previousTopicButton { get { return _previousTopicButton; } }
 
         public UIToggle normalSpeakingStyleToggle { get; private set; }
         public UIToggle politeSpeakingStyleToggle { get; private set; }
@@ -80,7 +85,6 @@ namespace AcrealUI
 
         #region Events
         public event System.Action OnSubmitDialogueEntry = null;
-        public event System.Action OnOpenDialogueHistory = null;
         #endregion
 
 
@@ -100,9 +104,9 @@ namespace AcrealUI
 
             _recentDialogueEntries = new Queue<UIDialogueEntry>(UIConstants.MAX_RECENT_DIALOGUE_ENTRIES);
             _oldDialogueEntries = new Queue<UIDialogueEntry>(UIConstants.MAX_OLD_DIALOGUE_ENTRIES);
+            _topicEntries = new List<UIButton>();
 
             _topicEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicEntryParent) as RectTransform;
-            _topicCategoryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicCategoryParent) as RectTransform;
             _recentDialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_recentDialogueEntryParent) as RectTransform;
             _oldDialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_oldDialogueEntryParent) as RectTransform;
 
@@ -131,7 +135,7 @@ namespace AcrealUI
                 if (_okayButton != null)
                 {
                     _okayButton.Initialize();
-                    _okayButton.Event_OnClicked += (UIButton btn, PointerEventData data) =>
+                    _okayButton.Event_OnAnyClick += (UIButton btn, PointerEventData data) =>
                     {
                         if (data.button == PointerEventData.InputButton.Left && data.clickCount == 1)
                         {
@@ -141,27 +145,14 @@ namespace AcrealUI
                 }
             }
 
-            Transform historyTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_historyButton);
-            if (historyTform != null)
+            Transform prevTopicTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_prevTopicButton);
+            if (prevTopicTform != null)
             {
-                _historyButton = historyTform.GetComponent<UIButton>();
-                if (_historyButton != null)
+                _previousTopicButton = prevTopicTform.GetComponent<UIButton>();
+                if (_previousTopicButton != null)
                 {
-                    _historyButton.Initialize();
-                    _historyButton.Event_OnClicked += (UIButton btn, PointerEventData data) =>
-                    {
-                        if (data.button == PointerEventData.InputButton.Left && data.clickCount == 1)
-                        {
-                            OnOpenDialogueHistory?.Invoke();
-                        }
-                    };
+                    _previousTopicButton.Initialize();
                 }
-            }
-
-            Transform divTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicDivider);
-            if (divTform != null)
-            {
-                _topicDivider = divTform.gameObject;
             }
 
             Transform pendingDialogueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_pendingDialogueText);
@@ -291,18 +282,15 @@ namespace AcrealUI
             }
         }
 
-        public void UpdateTopicPanelSize()
-        {
-            StartCoroutine(UpdateSizeRoutine());
-        }
-
-        public UIButton AddTopicCategoryEntry(string buttonLabel, UIButton prefab)
+        public UIButton AddTopicEntry(string buttonLabel, UIButton prefab)
         {
             if (prefab == null) { return null; }
 
-            UIButton topicTypeBtn = Instantiate(prefab, _topicCategoryParent);
+            UIButton topicTypeBtn = Instantiate(prefab, _topicEntryParent);
             if (topicTypeBtn != null)
             {
+                _topicEntries.Add(topicTypeBtn);
+
                 topicTypeBtn.Initialize();
                 topicTypeBtn.SetDisplayValue(buttonLabel);
                 topicTypeBtn.SetDisplayValueTextSize(28);
@@ -319,20 +307,21 @@ namespace AcrealUI
             return topicTypeBtn;
         }
 
-        public UIButton AddTopicEntry()
+        public void ClearTopics()
         {
-            UIButton topicEntry = Instantiate(UIManager.referenceManager.prefab_button_textOnly, _topicEntryParent);
-            if (topicEntry != null)
+            if (_topicEntries != null)
             {
-                topicEntry.Initialize();
-                topicEntry.gameObject.SetActive(true);
+                for (int i = _topicEntries.Count - 1; i > -1; i--)
+                {
+                    Destroy(_topicEntries[i].gameObject);
+                }
+                _topicEntries.Clear();
             }
-            return topicEntry;
         }
 
-        public void SetTopicDividerActive(bool active)
+        public void UpdateTopicPanelSize()
         {
-            _topicDivider?.SetActive(active);
+            StartCoroutine(UpdateSizeRoutine());
         }
         #endregion
 
@@ -344,10 +333,9 @@ namespace AcrealUI
 
             if (_topicViewportLayoutElement != null)
             {
-                float height = _topicCategoryParent != null ? _topicCategoryParent.sizeDelta.y : 0f;
-                height += _topicEntryParent != null ? _topicEntryParent.sizeDelta.y : 0f;
+                float height = _topicEntryParent != null ? _topicEntryParent.sizeDelta.y : 0f;
                 float maxTopicPanelSize = Screen.height * 0.5f;
-                _topicViewportLayoutElement.minHeight = Mathf.Min(height, maxTopicPanelSize);
+                _topicViewportLayoutElement.minHeight = Mathf.Min(height + _TOPIC_PADDING, maxTopicPanelSize);
             }
         }
         #endregion

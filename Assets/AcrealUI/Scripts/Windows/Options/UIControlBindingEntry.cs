@@ -102,7 +102,7 @@ namespace AcrealUI
                 if (_button_bindPrimary != null)
                 {
                     _button_bindPrimary.Initialize();
-                    _button_bindPrimary.Event_OnClicked += OnClick_PrimaryBinding;
+                    _button_bindPrimary.Event_OnAnyClick += OnClick_PrimaryBinding;
                 }
             }
 
@@ -113,7 +113,7 @@ namespace AcrealUI
                 if (_button_bindSecondary != null)
                 {
                     _button_bindSecondary.Initialize();
-                    _button_bindSecondary.Event_OnClicked += OnClick_SecondaryBinding;
+                    _button_bindSecondary.Event_OnAnyClick += OnClick_SecondaryBinding;
                 }
             }
 

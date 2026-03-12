@@ -164,7 +164,7 @@ namespace AcrealUI
                 if (_showPanelButton != null)
                 {
                     _showPanelButton.Initialize();
-                    _showPanelButton.Event_OnClicked += (_, _1) =>
+                    _showPanelButton.Event_OnAnyClick += (_, _1) =>
                     {
                         Show();
                     };
@@ -178,7 +178,7 @@ namespace AcrealUI
                 if (_hidePanelButton != null)
                 {
                     _hidePanelButton.Initialize();
-                    _hidePanelButton.Event_OnClicked += (_, _1) =>
+                    _hidePanelButton.Event_OnAnyClick += (_, _1) =>
                     {
                         Hide();
                     };

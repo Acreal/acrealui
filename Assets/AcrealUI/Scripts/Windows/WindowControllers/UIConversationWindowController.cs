@@ -29,52 +29,34 @@ namespace AcrealUI
 {
     public class UIConversationWindowController : DaggerfallTalkWindow, IWindowController
     {
-        #region Definitions
-        public enum TopicState
-        {
-            Default = 0,
-            TellMeAbout = 1,
-            WhereIs = 2,
-            Location = 3,
-            People = 4,
-            Things = 5,
-            Work = 6,
-        }
-        #endregion
-
-
         #region Variables
-        private UIConversationWindow _conversationWindowInstance = null;
-
-        private bool _isDisplayingSubList = false;
-        private List<UIButton> _topicButtonEntries = null;
-        private List<UIButton> _topicEntries = null;
         private Dictionary<int, TalkManager.ListItem> _instanceIdToTopicListItemDict = null;
-        private int _selectedTopicInstanceId = 0;
-        private TopicState _currentState = TopicState.Default;
+        private UIConversationWindow _conversationWindowInstance = null;
+        private Stack<List<TalkManager.ListItem>> _topicListStack = null;
         private SpeakingStyle _currentSpeakingStyle = SpeakingStyle.Normal;
         private DialogueInfo _pendingDialogueInfo = new DialogueInfo();
-
+        private int _selectedTopicInstanceId = 0;
         #endregion
 
 
         #region Constructor
         public UIConversationWindowController(IUserInterfaceManager uiManager, DaggerfallBaseWindow previous = null) : base(uiManager, previous)
         {
-            _topicButtonEntries = new List<UIButton>();
-            _topicEntries = new List<UIButton>();
+            _topicListStack = new Stack<List<TalkManager.ListItem>>();
             _instanceIdToTopicListItemDict = new Dictionary<int, TalkManager.ListItem>();
+
+            _selectedTopicInstanceId = 0;
 
             _conversationWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_conversationWindow);
             if (_conversationWindowInstance != null)
             {
-                _selectedTopicInstanceId = 0;
-
                 // WINDOW INSTANCE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 {
                     _conversationWindowInstance.Initialize();
                     _conversationWindowInstance.SetHeaderText("Conversation History"); // TODO(Acreal): localize string
                     _conversationWindowInstance.Hide();
+
+                    _conversationWindowInstance.Event_ButtonClick_CloseWindow += () => { CancelWindow(); };
 
                     _conversationWindowInstance.normalSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Normal; };
                     _conversationWindowInstance.politeSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Polite; };
@@ -84,9 +66,10 @@ namespace AcrealUI
                     _conversationWindowInstance.politeSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Polite); };
                     _conversationWindowInstance.bluntSpeakingStyleToggle.Event_OnToggledOn  += (_) => { SetSpeakingStyle(SpeakingStyle.Blunt); };
 
-                    _conversationWindowInstance.Event_ButtonClick_CloseWindow += () =>
+                    _conversationWindowInstance.previousTopicButton.DataSource_IsDisabled = (_) => { return _topicListStack == null || _topicListStack.Count <= 1; };
+                    _conversationWindowInstance.previousTopicButton.Event_OnLeftClick += (_, _1) =>
                     {
-                        CancelWindow();
+                        PopTopicList();
                     };
 
                     _conversationWindowInstance.OnSubmitDialogueEntry += () =>
@@ -113,153 +96,6 @@ namespace AcrealUI
                         }
                     };
                 }
-
-                // TOPIC CATEGORY BUTTONS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                {
-                    UIButton backBtn = _conversationWindowInstance.AddTopicCategoryEntry("Back", UIManager.referenceManager.prefab_button_textOnly); // TODO(Acreal): localize string
-                    if (backBtn != null)
-                    {
-                        _topicButtonEntries.Add(backBtn);
-
-                        backBtn.DataSource_GameObjectActive = (_) => { return _currentState != TopicState.Default; };
-
-                        backBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                if (_isDisplayingSubList)
-                                {
-                                    SetTopicState(_currentState);
-                                    _isDisplayingSubList = false;
-                                }
-                                else
-                                {
-                                    switch (_currentState)
-                                    {
-                                        case TopicState.TellMeAbout:
-                                        case TopicState.WhereIs:
-                                            SetTopicState(TopicState.Default);
-                                            break;
-
-                                        case TopicState.Location:
-                                        case TopicState.People:
-                                        case TopicState.Things:
-                                        case TopicState.Work:
-                                            SetTopicState(TopicState.WhereIs);
-                                            break;
-                                    }
-                                }
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-
-                    UIButton tellMeBtn = _conversationWindowInstance.AddTopicCategoryEntry("Tell me about...", UIManager.referenceManager.prefab_button); // TODO(Acreal): localize string
-                    if (tellMeBtn != null)
-                    {
-                        _topicButtonEntries.Add(tellMeBtn);
-
-                        tellMeBtn.DataSource_IsDisabled = (_) => { return TalkManager.Instance.ListTopicTellMeAbout.Count <= 1; };
-                        tellMeBtn.DataSource_GameObjectActive = (_) => { return _currentState == TopicState.Default; };
-
-                        tellMeBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                SetTopicState(TopicState.TellMeAbout);
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-
-                    UIButton whereBtn = _conversationWindowInstance.AddTopicCategoryEntry("Where is...", UIManager.referenceManager.prefab_button); // TODO(Acreal): localize string
-                    if (whereBtn != null)
-                    {
-                        _topicButtonEntries.Add(whereBtn);
-
-                        whereBtn.DataSource_GameObjectActive = (_) => { return _currentState == TopicState.Default; };
-
-                        whereBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                SetTopicState(TopicState.WhereIs);
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-
-                    UIButton locationBtn = _conversationWindowInstance.AddTopicCategoryEntry("Location", UIManager.referenceManager.prefab_button); // TODO(Acreal): localize string
-                    if (locationBtn != null)
-                    {
-                        _topicButtonEntries.Add(locationBtn);
-
-                        locationBtn.DataSource_IsDisabled = (_) => { return TalkManager.Instance.ListTopicLocation.Count <= 1; };
-                        locationBtn.DataSource_GameObjectActive = (_) => { return _currentState == TopicState.WhereIs; };
-
-                        locationBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                SetTopicState(TopicState.Location);
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-
-                    UIButton peopleBtn = _conversationWindowInstance.AddTopicCategoryEntry("People", UIManager.referenceManager.prefab_button); // TODO(Acreal): localize string
-                    if (peopleBtn != null)
-                    {
-                        _topicButtonEntries.Add(peopleBtn);
-
-                        peopleBtn.DataSource_IsDisabled = (_) => { return TalkManager.Instance.ListTopicPerson.Count <= 1; };
-                        peopleBtn.DataSource_GameObjectActive = (_) => { return _currentState == TopicState.WhereIs; };
-
-                        peopleBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                SetTopicState(TopicState.People);
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-
-                    UIButton thingsBtn = _conversationWindowInstance.AddTopicCategoryEntry("Things", UIManager.referenceManager.prefab_button); // TODO(Acreal): localize string
-                    if (thingsBtn != null)
-                    {
-                        _topicButtonEntries.Add(thingsBtn);
-
-                        thingsBtn.DataSource_IsDisabled = (_) => { return TalkManager.Instance.ListTopicThings.Count <= 1; };
-                        thingsBtn.DataSource_GameObjectActive = (_) => { return _currentState == TopicState.WhereIs; };
-
-                        thingsBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                SetTopicState(TopicState.Things);
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-
-                    UIButton workBtn = _conversationWindowInstance.AddTopicCategoryEntry("Work", UIManager.referenceManager.prefab_button); // TODO(Acreal): localize string
-                    if (workBtn != null)
-                    {
-                        _topicButtonEntries.Add(workBtn);
-
-                        workBtn.DataSource_GameObjectActive = (_) => { return _currentState == TopicState.WhereIs; };
-
-                        workBtn.Event_OnClicked += (UIButton btn, PointerEventData pointerData) =>
-                        {
-                            if (pointerData.button == PointerEventData.InputButton.Left && pointerData.clickCount == 1)
-                            {
-                                SetTopicState(TopicState.Work);
-                                RefreshTopicButtons();
-                            }
-                        };
-                    }
-                }
             }
         }
         #endregion
@@ -268,7 +104,7 @@ namespace AcrealUI
         #region Show/Hide Window
         public void ShowWindow()
         {
-            RefreshTopicButtons();
+            TalkManager.Instance.ForceTopicListsUpdate();
 
             _pendingDialogueInfo.entryPrefab = UIManager.referenceManager.prefab_playerDialogueEntry;
             _pendingDialogueInfo.speakerName = GameManager.Instance.PlayerEntity.Name;
@@ -277,16 +113,82 @@ namespace AcrealUI
 
             if (_conversationWindowInstance != null)
             {
-                DialogueInfo greeting = new DialogueInfo
+                // TOPIC BUTTONS //////////////////////////////////////////////////////////////////////////////////
                 {
-                    entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
-                    speakerPortrait = texturePortrait,
-                    speakerName = TalkManager.Instance.NameNPC,
-                    dialogueText = TalkManager.Instance.NPCGreetingText,
-                };
-                UIDialogueEntry greetingEntry = _conversationWindowInstance.AddDialogueEntry(greeting);
-                _conversationWindowInstance.SetPendingDialogue(null);
+                    TalkManager.ListItem tellMeAbt = new TalkManager.ListItem
+                    {
+                        type = TalkManager.ListItemType.ItemGroup,
+                        caption = "Tell Me About",//UIUtilityFunctions.GetLocalizedText("button_tellmeabout"),
+                        listChildItems = TalkManager.Instance.ListTopicTellMeAbout,
+                    };
+
+                    TalkManager.ListItem location = new TalkManager.ListItem
+                    {
+                        type = TalkManager.ListItemType.ItemGroup,
+                        caption = "Location",//UIUtilityFunctions.GetLocalizedText("button_location"),
+                        listChildItems = TalkManager.Instance.ListTopicLocation,
+                    };
+
+                    TalkManager.ListItem people = new TalkManager.ListItem
+                    {
+                        type = TalkManager.ListItemType.ItemGroup,
+                        caption = "People",//UIUtilityFunctions.GetLocalizedText("button_people"),
+                        listChildItems = TalkManager.Instance.ListTopicPerson,
+                    };
+
+                    TalkManager.ListItem things = new TalkManager.ListItem
+                    {
+                        type = TalkManager.ListItemType.ItemGroup,
+                        caption = "Things",//UIUtilityFunctions.GetLocalizedText("button_things"),
+                        listChildItems = TalkManager.Instance.ListTopicThings,
+                    };
+
+                    TalkManager.ListItem work = new TalkManager.ListItem
+                    {
+                        type = TalkManager.ListItemType.Item,
+                        questionType = TalkManager.QuestionType.Work,
+                        caption = "Work",//UIUtilityFunctions.GetLocalizedText("button_work"),
+                    };
+
+                    List<TalkManager.ListItem> whereIsList = new List<TalkManager.ListItem>
+                    {
+                        location,
+                        people,
+                        things,
+                        work,
+                    };
+
+                    TalkManager.ListItem whereIs = new TalkManager.ListItem
+                    {
+                        type = TalkManager.ListItemType.ItemGroup,
+                        caption = "Where Is",//UIUtilityFunctions.GetLocalizedText("button_whereis"),
+                        listChildItems = whereIsList,
+                    };
+
+                    List<TalkManager.ListItem> defaultTopicList = new List<TalkManager.ListItem>
+                    {
+                        tellMeAbt,
+                        whereIs,
+                    };
+
+                    PushTopicList(defaultTopicList);
+                }
+
+                // INITIAL DIALOGUE ////////////////////////////////////////////////////////////////////////////
+                {
+                    DialogueInfo greeting = new DialogueInfo
+                    {
+                        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                        speakerPortrait = texturePortrait,
+                        speakerName = TalkManager.Instance.NameNPC,
+                        dialogueText = TalkManager.Instance.NPCGreetingText,
+                    };
+                    UIDialogueEntry greetingEntry = _conversationWindowInstance.AddDialogueEntry(greeting);
+                    _conversationWindowInstance.SetPendingDialogue(null);
+                }
+
                 _conversationWindowInstance.Show();
+                _conversationWindowInstance.UpdateTopicPanelSize();
             }
         }
 
@@ -294,6 +196,7 @@ namespace AcrealUI
         {
             if (_conversationWindowInstance != null)
             {
+                _conversationWindowInstance.ClearTopics();
                 _conversationWindowInstance.ClearDialogue();
                 _conversationWindowInstance.Hide();
             }
@@ -314,56 +217,43 @@ namespace AcrealUI
             HideWindow();
         }
 
+        //public override void Update() { }
+        protected override void Setup() { }
         public override void Draw() { }
         #endregion
 
 
-        #region Topic Categories
-        private void SetTopicState(TopicState state)
+        #region Topics
+        public void PushTopicList(List<TalkManager.ListItem> topics)
         {
-            _currentState = state;
-            switch (_currentState)
+            if (topics != null)
             {
-                case TopicState.Default:
-                case TopicState.WhereIs:
-                    SetTopicList(null);
-                    break;
-
-                case TopicState.TellMeAbout:
-                    SetTopicList(TalkManager.Instance.ListTopicTellMeAbout);
-                    break;
-
-                case TopicState.Location:
-                    SetTopicList(TalkManager.Instance.ListTopicLocation);
-                    break;
-
-                case TopicState.People:
-                    SetTopicList(TalkManager.Instance.ListTopicPerson);
-                    break;
-
-                case TopicState.Things:
-                    SetTopicList(TalkManager.Instance.ListTopicThings);
-                    break;
-
-                case TopicState.Work:
-                    SetTopicList(null);
-                    break;
+                _selectedTopicInstanceId = 0;
+                _topicListStack.Push(topics);
+                PopulateTopicsFromList(topics);
+                _conversationWindowInstance.previousTopicButton.Refresh();
             }
-
-            _selectedTopicInstanceId = 0;
-            RefreshTopicButtons();
         }
 
-        public void SetTopicList(List<TalkManager.ListItem> topics)
+        private void PopTopicList()
         {
-            if (_topicEntries == null) { return; }
-
-            for (int i = _topicEntries.Count - 1; i > -1; i--)
+            if (_topicListStack.Count > 1)
             {
-                Object.Destroy(_topicEntries[i].gameObject);
+                _selectedTopicInstanceId = 0;
+                _topicListStack.Pop();
+                PopulateTopicsFromList(_topicListStack.Peek());
+                _conversationWindowInstance.previousTopicButton.Refresh();
             }
-            _topicEntries.Clear();
+        }
 
+        private void PopulateTopicsFromList(List<TalkManager.ListItem> topics)
+        {
+            if(_conversationWindowInstance == null) { return; }
+
+            _conversationWindowInstance.ClearTopics();
+            _instanceIdToTopicListItemDict.Clear();
+
+            listCurrentTopics = topics;
             if (topics != null)
             {
                 foreach (TalkManager.ListItem item in topics)
@@ -383,53 +273,63 @@ namespace AcrealUI
                         item.caption = TextManager.Instance.GetLocalizedText("resolvingError");
                     }
 
-                    UIButton topicBtn = _conversationWindowInstance.AddTopicEntry();
-                    if (topicBtn != null)
+
+                    UIButton btnPrefab = (item.type == TalkManager.ListItemType.ItemGroup || item.questionType == TalkManager.QuestionType.Work) ? 
+                                         UIManager.referenceManager.prefab_button : UIManager.referenceManager.prefab_button_textOnly;
+
+                    if (btnPrefab != null)
                     {
-                        topicBtn.SetDisplayValue(item.caption);
-                        topicBtn.SetDisplayValueTextSize(28);
-
-                        _instanceIdToTopicListItemDict.Add(topicBtn.gameObject.GetInstanceID(), item);
-
-                        topicBtn.Event_OnClicked += (UIButton btn, PointerEventData data) =>
+                        UIButton topicBtn = _conversationWindowInstance.AddTopicEntry(item.caption, btnPrefab);
+                        if (topicBtn != null)
                         {
-                            _selectedTopicInstanceId = btn.gameObject.GetInstanceID();
+                            _instanceIdToTopicListItemDict.Add(topicBtn.gameObject.GetInstanceID(), item);
 
-                            if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                            topicBtn.SetDisplayValue(item.caption);
+                            topicBtn.SetDisplayValueTextSize(28);
+                            
+                            topicBtn.DataSource_IsDisabled = (GameObject btnObj) =>
                             {
-                                _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
-                                _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
+                                _instanceIdToTopicListItemDict.TryGetValue(btnObj.GetInstanceID(), out TalkManager.ListItem listItem);
+                                return listItem == null || (listItem.type == TalkManager.ListItemType.ItemGroup && (listItem.listChildItems == null || listItem.listChildItems.Count == 0));
+                            };
+
+                            topicBtn.Event_OnAnyClick += (UIButton btn, PointerEventData data) =>
+                            {
+                                _selectedTopicInstanceId = btn.gameObject.GetInstanceID();
+
+                                if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                                {
+                                    if (listItem.type == TalkManager.ListItemType.ItemGroup)
+                                    {
+                                        List<TalkManager.ListItem> topicList = listItem.listChildItems;
+                                        if (topicList != null)
+                                        {
+                                            PushTopicList(topicList);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
+                                        _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
+                                    }
+                                }
+                            };
+
+                            LayoutElement layoutElem = topicBtn.GetComponent<LayoutElement>();
+                            if (layoutElem != null)
+                            {
+                                layoutElem.minWidth = 0;
+                                layoutElem.minHeight = 42;
+                                layoutElem.flexibleWidth = 1f;
+                                layoutElem.flexibleHeight = 0f;
                             }
-                        };
 
-                        LayoutElement layoutElem = topicBtn.GetComponent<LayoutElement>();
-                        if (layoutElem != null)
-                        {
-                            layoutElem.minWidth = 0;
-                            layoutElem.minHeight = 42;
-                            layoutElem.flexibleWidth = 1f;
-                            layoutElem.flexibleHeight = 0f;
+                            topicBtn.Refresh();
                         }
-
-                        _topicEntries.Add(topicBtn);
                     }
                 }
+                _conversationWindowInstance.UpdateTopicPanelSize();
             }
-
-            _conversationWindowInstance.SetTopicDividerActive(_topicEntries != null && _topicEntries.Count > 0);
-        }
-
-        private void RefreshTopicButtons()
-        {
-            if (_topicButtonEntries != null)
-            {
-                foreach (UIButton btn in _topicButtonEntries)
-                {
-                    btn.Refresh();
-                }
-            }
-
-            _conversationWindowInstance.UpdateTopicPanelSize();
         }
         #endregion
 

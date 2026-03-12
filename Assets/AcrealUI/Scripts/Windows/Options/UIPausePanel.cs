@@ -61,7 +61,7 @@ namespace AcrealUI
                 if (_button_continue != null)
                 {
                     _button_continue.Initialize();
-                    _button_continue.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Continue?.Invoke(); };
+                    _button_continue.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_Continue?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (continueTform != null ? continueTform.name : "NULL") + "\""); }
             }
@@ -73,7 +73,7 @@ namespace AcrealUI
                 if (_button_saveGame != null)
                 {
                     _button_saveGame.Initialize();
-                    _button_saveGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_SaveGame?.Invoke(); };
+                    _button_saveGame.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_SaveGame?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (saveTform != null ? saveTform.name : "NULL") + "\""); }
             }
@@ -85,7 +85,7 @@ namespace AcrealUI
                 if (_button_loadGame != null)
                 {
                     _button_loadGame.Initialize();
-                    _button_loadGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_LoadGame?.Invoke(); };
+                    _button_loadGame.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_LoadGame?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (loadTform != null ? loadTform.name : "NULL") + "\""); }
             }
@@ -97,7 +97,7 @@ namespace AcrealUI
                 if (_button_exitGame != null)
                 {
                     _button_exitGame.Initialize();
-                    _button_exitGame.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_ExitGame?.Invoke(); };
+                    _button_exitGame.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_ExitGame?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (exitTform != null ? exitTform.name : "NULL") + "\""); }
             }
@@ -109,7 +109,7 @@ namespace AcrealUI
                 if (_button_settings != null)
                 {
                     _button_settings.Initialize();
-                    _button_settings.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Settings?.Invoke(); };
+                    _button_settings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_Settings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (settingsTform != null ? settingsTform.name : "NULL") + "\""); }
             }

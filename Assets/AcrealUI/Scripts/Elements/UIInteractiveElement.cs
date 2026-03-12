@@ -77,6 +77,15 @@ namespace AcrealUI
         #endregion
 
 
+        #region MonoBehaviour
+        private void OnDisable()
+        {
+            _isHighlighted = false;
+            _isPressed = false;
+        }
+        #endregion
+
+
         #region Initialization
         public override void Initialize()
         {
@@ -102,7 +111,10 @@ namespace AcrealUI
         {
             base.Refresh();
 
-            _isDisabled = DataSource_IsDisabled != null ? DataSource_IsDisabled(gameObject) : false;
+            if (DataSource_IsDisabled != null)
+            {
+                isDisabled = DataSource_IsDisabled(gameObject);
+            }
 
             if (_elementFeedbackArray != null)
             {

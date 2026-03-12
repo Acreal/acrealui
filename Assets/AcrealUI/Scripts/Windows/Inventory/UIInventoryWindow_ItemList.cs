@@ -197,7 +197,6 @@ namespace AcrealUI
             _lootPileIcon = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
             #endregion
 
-
             #region ItemFilter Toggle References
             _toggle_filterAll = InitializeItemFilterToggle(_gameObjName_toggle_filterAll, ItemFilter.All);
             _toggle_filterFavorited = InitializeItemFilterToggle(_gameObjName_toggle_filterFavorited, ItemFilter.Favorite);
@@ -261,7 +260,7 @@ namespace AcrealUI
             if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
             if(_goldButton != null)
             {
-                _goldButton.Event_OnClicked += (_, _1) =>
+                _goldButton.Event_OnAnyClick += (_, _1) =>
                 {
                     Event_OnGoldButtonClicked?.Invoke();
                 };
@@ -284,52 +283,6 @@ namespace AcrealUI
                 }
                 _uidToItemEntryDict.Clear();
             }
-        }
-
-        private UIToggle InitializeItemFilterToggle(string transformName, ItemFilter filter)
-        {
-            Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
-            UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
-            if (toggle != null)
-            {
-                toggle.Initialize();
-
-                toggle.Event_OnToggledOn += (_) =>
-                {
-                    _currentItemFilter = filter;
-                    SetItemFilterText(UIUtilityFunctions.ItemFilterToString(filter));
-                    SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
-                    Event_OnItemFilterChanged?.Invoke();
-                };
-
-                return toggle;
-            }
-            return null;
-        }
-
-        private UISortToggle InitializeSortItemsToggle(string transformName, ItemColumnFlags sortColumn)
-        {
-            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
-            UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;
-            if (sortToggle != null)
-            {
-                sortToggle.Initialize();
-
-                sortToggle.Event_OnToggledOn += (UIToggle toggle) => 
-                {
-                    _sortItemsColumn = sortColumn;
-                    _activeSortToggle = toggle as UISortToggle;
-                    Event_OnSortItemsColumnChanged?.Invoke();
-                };
-
-                sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) => 
-                {
-                    Event_OnSortAscendingChanged?.Invoke();
-                };
-
-                return sortToggle;
-            }
-            return null;
         }
         #endregion
 
@@ -461,94 +414,87 @@ namespace AcrealUI
 
         public void SetFilterToggleDisabled(ItemFilter filter, bool disabled)
         {
-            switch(filter)
+            UIToggle toggle = GetFilterToggle(filter);
+            if (toggle != null)
             {
-                case ItemFilter.All:
-                    if (_toggle_filterAll != null) { _toggle_filterAll.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.Favorite:
-                    if (_toggle_filterFavorited != null) { _toggle_filterFavorited.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.Weapons:
-                    if (_toggle_filterWeapons != null) { _toggle_filterWeapons.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.Armor:
-                    if (_toggle_filterArmor != null) { _toggle_filterArmor.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.Potions:
-                    if (_toggle_filterPotions != null) { _toggle_filterPotions.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.MagicItems:
-                    if (_toggle_filterMagic != null) { _toggle_filterMagic.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.Books:
-                    if (_toggle_filterBooks != null) { _toggle_filterBooks.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.QuestItems:
-                    if (_toggle_filterQuestItems != null) { _toggle_filterQuestItems.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.MiscItems:
-                    if (_toggle_filterMisc != null) { _toggle_filterMisc.isDisabled = disabled; }
-                    break;
-
-                case ItemFilter.Ingredients:
-                    if (_toggle_filterIngredients != null) { _toggle_filterIngredients.isDisabled = disabled; }
-                    break;
+                toggle.isDisabled = disabled;
             }
         }
 
         public void SetActiveFilter(ItemFilter filter)
         {
+            UIToggle toggle = GetFilterToggle(filter);
+            if (toggle != null)
+            {
+                toggle.isToggledOn = true;
+            }
+        }
+        #endregion
+
+
+        #region Filter/Sorting Toggles
+        private UIToggle GetFilterToggle(ItemFilter filter)
+        {
             switch (filter)
             {
-                case ItemFilter.All:
-                    if (_toggle_filterAll != null) { _toggle_filterAll.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.Favorite:
-                    if (_toggle_filterFavorited != null) { _toggle_filterFavorited.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.Weapons:
-                    if (_toggle_filterWeapons != null) { _toggle_filterWeapons.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.Armor:
-                    if (_toggle_filterArmor != null) { _toggle_filterArmor.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.Potions:
-                    if (_toggle_filterPotions != null) { _toggle_filterPotions.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.MagicItems:
-                    if (_toggle_filterMagic != null) { _toggle_filterMagic.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.Books:
-                    if (_toggle_filterBooks != null) { _toggle_filterBooks.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.QuestItems:
-                    if (_toggle_filterQuestItems != null) { _toggle_filterQuestItems.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.MiscItems:
-                    if (_toggle_filterMisc != null) { _toggle_filterMisc.isToggledOn = true; }
-                    break;
-
-                case ItemFilter.Ingredients:
-                    if (_toggle_filterIngredients != null) { _toggle_filterIngredients.isToggledOn = true; }
-                    break;
+                case ItemFilter.All: return _toggle_filterAll;
+                case ItemFilter.Favorite: return _toggle_filterFavorited;
+                case ItemFilter.Weapons: return _toggle_filterWeapons;
+                case ItemFilter.Armor: return _toggle_filterArmor;
+                case ItemFilter.Potions: return _toggle_filterPotions;
+                case ItemFilter.Ingredients: return _toggle_filterIngredients;
+                case ItemFilter.MagicItems: return _toggle_filterMagic;
+                case ItemFilter.Books: return _toggle_filterBooks;
+                case ItemFilter.QuestItems: return _toggle_filterQuestItems;
+                case ItemFilter.MiscItems: return _toggle_filterMisc;
             }
+            return null;
+        }
+
+        private UIToggle InitializeItemFilterToggle(string transformName, ItemFilter filter)
+        {
+            Transform toggleTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
+            UIToggle toggle = toggleTform != null ? toggleTform.GetComponent<UIToggle>() : null;
+            if (toggle != null)
+            {
+                toggle.Initialize();
+
+                toggle.Event_OnToggledOn += (_) =>
+                {
+                    _currentItemFilter = filter;
+                    SetItemFilterText(UIUtilityFunctions.ItemFilterToString(filter));
+                    SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
+                    Event_OnItemFilterChanged?.Invoke();
+                };
+
+                return toggle;
+            }
+            return null;
+        }
+
+        private UISortToggle InitializeSortItemsToggle(string transformName, ItemColumnFlags sortColumn)
+        {
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
+            UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;
+            if (sortToggle != null)
+            {
+                sortToggle.Initialize();
+
+                sortToggle.Event_OnToggledOn += (UIToggle toggle) =>
+                {
+                    _sortItemsColumn = sortColumn;
+                    _activeSortToggle = toggle as UISortToggle;
+                    Event_OnSortItemsColumnChanged?.Invoke();
+                };
+
+                sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) =>
+                {
+                    Event_OnSortAscendingChanged?.Invoke();
+                };
+
+                return sortToggle;
+            }
+            return null;
         }
         #endregion
 

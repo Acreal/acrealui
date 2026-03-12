@@ -17,7 +17,9 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop.AudioSynthesis.Bank.Components.Effects;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AcrealUI
@@ -27,8 +29,11 @@ namespace AcrealUI
     {
         #region Variables
         [SerializeField] private string _gameObjName_ObjectToSet = null;
+        [SerializeField] private float _activateDelay = 0f;
+        [SerializeField] private float _deactivateDelay = 0f;
 
         private GameObject _objectToSet = null;
+        private Coroutine _activateRoutine = null;
         #endregion
 
 
@@ -56,11 +61,43 @@ namespace AcrealUI
                 UIInteractiveElement elem = _uiElement as UIInteractiveElement;
                 if (elem != null)
                 {
-                    if (_objectToSet.activeSelf != (elem.isHighlighted || elem.isPressed))
+                    bool activate = (elem.isHighlighted || elem.isPressed);
+                    if (_objectToSet.activeSelf != activate)
                     {
-                        _objectToSet.SetActive(elem.isHighlighted);
+                        if (_activateRoutine != null)
+                        {
+                            StopCoroutine(_activateRoutine);
+                        }
+
+                        float delay = activate ? _activateDelay : _deactivateDelay;
+                        if (delay > 0f)
+                        {
+                            _activateRoutine = StartCoroutine(ActivateRoutine(activate, delay));
+                        }
+                        else
+                        {
+                            _objectToSet.SetActive(elem.isHighlighted);
+                        }
                     }
                 }
+            }
+        }
+        #endregion
+
+
+        #region Coroutines
+        private IEnumerator<float> ActivateRoutine(bool setActive, float delay)
+        {
+            float t = delay;
+            while (t > 0f)
+            {
+                t -= Time.unscaledDeltaTime;
+                yield return 0f;
+            }
+
+            if (_objectToSet != null)
+            {
+                _objectToSet.SetActive(setActive);
             }
         }
         #endregion

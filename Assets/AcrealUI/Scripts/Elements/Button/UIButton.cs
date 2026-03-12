@@ -26,10 +26,10 @@ namespace AcrealUI
     public class UIButton : UIInteractiveElement
     {
         #region Events
-        public event System.Action<UIButton, PointerEventData> Event_OnClicked = null;
-        public event System.Action<UIButton, int> Event_OnLeftClicked = null;
-        public event System.Action<UIButton, int> Event_OnRightClicked = null;
-        public event System.Action<UIButton, int> Event_OnMiddleClicked = null;
+        public event System.Action<UIButton, PointerEventData> Event_OnAnyClick = null;
+        public event System.Action<UIButton, int> Event_OnLeftClick = null;
+        public event System.Action<UIButton, int> Event_OnRightClick = null;
+        public event System.Action<UIButton, int> Event_OnMiddleClick = null;
         #endregion
 
 
@@ -46,12 +46,12 @@ namespace AcrealUI
 
             base.OnPointerClick(pointerData);
 
-            Event_OnClicked?.Invoke(this, pointerData);
+            Event_OnAnyClick?.Invoke(this, pointerData);
             switch(pointerData.button)
             {
-                case PointerEventData.InputButton.Left: Event_OnLeftClicked?.Invoke(this, pointerData.clickCount); break;
-                case PointerEventData.InputButton.Right: Event_OnRightClicked?.Invoke(this, pointerData.clickCount); break;
-                case PointerEventData.InputButton.Middle: Event_OnMiddleClicked?.Invoke(this, pointerData.clickCount); break;
+                case PointerEventData.InputButton.Left: Event_OnLeftClick?.Invoke(this, pointerData.clickCount); break;
+                case PointerEventData.InputButton.Right: Event_OnRightClick?.Invoke(this, pointerData.clickCount); break;
+                case PointerEventData.InputButton.Middle: Event_OnMiddleClick?.Invoke(this, pointerData.clickCount); break;
             }
         }
         #endregion

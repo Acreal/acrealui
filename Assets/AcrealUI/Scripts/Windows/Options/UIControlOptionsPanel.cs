@@ -50,7 +50,7 @@ namespace AcrealUI
                 if (_button_default != null)
                 {
                     _button_default.Initialize();
-                    _button_default.Event_OnClicked += (_, _1) => { Event_OnButtonClicked_Default?.Invoke(); };
+                    _button_default.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_Default?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_default + "\""); }
             }
