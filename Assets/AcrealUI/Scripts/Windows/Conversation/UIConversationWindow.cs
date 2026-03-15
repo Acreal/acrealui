@@ -35,6 +35,7 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_topicViewportLayoutElement = null;
         [SerializeField] private string _gameObjName_topicEntryParent = null;
         [SerializeField] private string _gameObjName_prevTopicButton = null;
+        [SerializeField] private string _gameObjName_topicDivider = null;
 
         [Header("Player/NPC Dialogue")]
         [SerializeField] private string _gameObjName_recentDialogueEntryParent = null;
@@ -51,12 +52,15 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_bluntSpeakingStyleToggle = null;
 
 
-        private const float _TOPIC_PADDING = 8f;
-        private const float _DIALOGUE_PADDING = 24f;
+        private const float _TOPIC_PADDING = 12f;
+        private const float _TOPIC_HEADER_PADDING = 38f;
+        private const float _TOPIC_FOOTER_PADDING = 64f;
+        private const float _EMPTY_SPACE_PADDING = 24f;
 
         private LayoutElement _topicViewportLayoutElement = null;
         private RectTransform _topicEntryParent = null;
         private UIButton _previousTopicButton = null;
+        private GameObject _topicDivider;
         private RectTransform _recentDialogueEntryParent = null;
         private RectTransform _oldDialogueEntryParent = null;
         private LayoutElement _dialogueLayoutElement = null;
@@ -126,6 +130,12 @@ namespace AcrealUI
             if (pendingTform != null)
             {
                 _pendingDialogueLayoutElement = pendingTform.GetComponent<LayoutElement>();
+            }
+
+            Transform dividerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicDivider);
+            if (dividerTform != null)
+            {
+                _topicDivider = dividerTform.gameObject;
             }
 
             Transform okayTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_okayButton);
@@ -200,7 +210,6 @@ namespace AcrealUI
                     bluntSpeakingStyleToggle.Initialize();
                 }
             }
-
         }
         #endregion
 
@@ -210,7 +219,7 @@ namespace AcrealUI
         {
             if(_dialogueLayoutElement != null)
             {
-                float padding = _DIALOGUE_PADDING;
+                float padding = _EMPTY_SPACE_PADDING;
                 if(_pendingDialogueLayoutElement != null)
                 {
                     padding += Mathf.Max(_pendingDialogueLayoutElement.minHeight, _pendingDialogueLayoutElement.preferredHeight);
@@ -323,6 +332,27 @@ namespace AcrealUI
         {
             StartCoroutine(UpdateSizeRoutine());
         }
+
+        public void ActivateTopicDividerWithSiblingIndex(int siblingIndex)
+        {
+            StartCoroutine(ActivateDividerWithSiblingIndexRoutine(siblingIndex));
+        }
+
+        public void DeactivateTopicDivider()
+        {
+            if (_topicDivider != null)
+            {
+                _topicDivider.SetActive(false);
+            }
+        }
+
+        public void SetTopicDividerSiblingIndex(int index)
+        {
+            if(_topicDivider != null)
+            {
+                _topicDivider.transform.SetSiblingIndex(index);
+            }
+        }
         #endregion
 
 
@@ -330,12 +360,31 @@ namespace AcrealUI
         private IEnumerator UpdateSizeRoutine()
         {
             yield return 0f;
+            yield return 0f;
 
             if (_topicViewportLayoutElement != null)
             {
                 float height = _topicEntryParent != null ? _topicEntryParent.sizeDelta.y : 0f;
-                float maxTopicPanelSize = Screen.height * 0.5f;
+                float maxTopicPanelSize = height;
+
+                if (_canvasComponent != null)
+                {
+                    RectTransform rt = transform as RectTransform;
+                    maxTopicPanelSize = rt.sizeDelta.y - _TOPIC_HEADER_PADDING - _TOPIC_FOOTER_PADDING - _EMPTY_SPACE_PADDING;
+                }
+
                 _topicViewportLayoutElement.minHeight = Mathf.Min(height + _TOPIC_PADDING, maxTopicPanelSize);
+            }
+        }
+
+        private IEnumerator<float> ActivateDividerWithSiblingIndexRoutine(int siblingIndex)
+        {
+            yield return 0f;
+
+            if (_topicDivider != null)
+            {
+                _topicDivider.SetActive(true);
+                _topicDivider.transform.SetSiblingIndex(siblingIndex);
             }
         }
         #endregion

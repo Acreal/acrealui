@@ -113,7 +113,7 @@ namespace AcrealUI
 
             if (_conversationWindowInstance != null)
             {
-                // TOPIC BUTTONS //////////////////////////////////////////////////////////////////////////////////
+                // TOPICS ///////////////////////////////////////////////////////////////////////////////////////////
                 {
                     TalkManager.ListItem tellMeAbt = new TalkManager.ListItem
                     {
@@ -254,81 +254,113 @@ namespace AcrealUI
             _instanceIdToTopicListItemDict.Clear();
 
             listCurrentTopics = topics;
-            if (topics != null)
+            if (topics != null && topics.Count > 0)
             {
-                foreach (TalkManager.ListItem item in topics)
+                List<TalkManager.ListItem> allGroupItems = new List<TalkManager.ListItem>();
+                List<TalkManager.ListItem> allSingleItems = new List<TalkManager.ListItem>();
+
+                for (int i = 0; i < topics.Count; i++)
                 {
-                    if (item.type == TalkManager.ListItemType.NavigationBack) { continue; }
-
-                    if (item.caption == null) // this is a check to detect problems arising from old save data - where caption end up as null
+                    if (topics[i].type == TalkManager.ListItemType.ItemGroup)
                     {
-                        item.caption = item.key; //  just try to take key as caption then (answers might still be broken)
-                        if (item.caption == string.Empty)
-                        {
-                            item.caption = TextManager.Instance.GetLocalizedText("resolvingError");
-                        }
+                        allGroupItems.Add(topics[i]);
                     }
-                    else if (item.caption == string.Empty)
+                    else if(topics[i].type == TalkManager.ListItemType.Item)
                     {
-                        item.caption = TextManager.Instance.GetLocalizedText("resolvingError");
-                    }
-
-
-                    UIButton btnPrefab = (item.type == TalkManager.ListItemType.ItemGroup || item.questionType == TalkManager.QuestionType.Work) ? 
-                                         UIManager.referenceManager.prefab_button : UIManager.referenceManager.prefab_button_textOnly;
-
-                    if (btnPrefab != null)
-                    {
-                        UIButton topicBtn = _conversationWindowInstance.AddTopicEntry(item.caption, btnPrefab);
-                        if (topicBtn != null)
-                        {
-                            _instanceIdToTopicListItemDict.Add(topicBtn.gameObject.GetInstanceID(), item);
-
-                            topicBtn.SetDisplayValue(item.caption);
-                            topicBtn.SetDisplayValueTextSize(28);
-                            
-                            topicBtn.DataSource_IsDisabled = (GameObject btnObj) =>
-                            {
-                                _instanceIdToTopicListItemDict.TryGetValue(btnObj.GetInstanceID(), out TalkManager.ListItem listItem);
-                                return listItem == null || (listItem.type == TalkManager.ListItemType.ItemGroup && (listItem.listChildItems == null || listItem.listChildItems.Count == 0));
-                            };
-
-                            topicBtn.Event_OnAnyClick += (UIButton btn, PointerEventData data) =>
-                            {
-                                _selectedTopicInstanceId = btn.gameObject.GetInstanceID();
-
-                                if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
-                                {
-                                    if (listItem.type == TalkManager.ListItemType.ItemGroup)
-                                    {
-                                        List<TalkManager.ListItem> topicList = listItem.listChildItems;
-                                        if (topicList != null)
-                                        {
-                                            PushTopicList(topicList);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
-                                        _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
-                                    }
-                                }
-                            };
-
-                            LayoutElement layoutElem = topicBtn.GetComponent<LayoutElement>();
-                            if (layoutElem != null)
-                            {
-                                layoutElem.minWidth = 0;
-                                layoutElem.minHeight = 42;
-                                layoutElem.flexibleWidth = 1f;
-                                layoutElem.flexibleHeight = 0f;
-                            }
-
-                            topicBtn.Refresh();
-                        }
+                        allSingleItems.Add(topics[i]);
                     }
                 }
+
+                foreach (TalkManager.ListItem item in allGroupItems)
+                {
+                    CreateTopicButton(item);
+                }
+
+                foreach (TalkManager.ListItem item in allSingleItems)
+                {
+                    CreateTopicButton(item);
+                }
+
+                if(allGroupItems.Count > 0 && allSingleItems.Count > 0)
+                {
+                    _conversationWindowInstance.ActivateTopicDividerWithSiblingIndex(allGroupItems.Count);
+                }
+                else
+                {
+                    _conversationWindowInstance.DeactivateTopicDivider();
+                }
+
                 _conversationWindowInstance.UpdateTopicPanelSize();
+            }
+        }
+
+        private void CreateTopicButton(TalkManager.ListItem item)
+        {
+            if (item.caption == null) // this is a check to detect problems arising from old save data - where caption end up as null
+            {
+                item.caption = item.key; //  just try to take key as caption then (answers might still be broken)
+                if (item.caption == string.Empty)
+                {
+                    item.caption = TextManager.Instance.GetLocalizedText("resolvingError");
+                }
+            }
+            else if (item.caption == string.Empty)
+            {
+                item.caption = TextManager.Instance.GetLocalizedText("resolvingError");
+            }
+
+            UIButton btnPrefab = (item.type == TalkManager.ListItemType.ItemGroup) ?
+                                 UIManager.referenceManager.prefab_button : UIManager.referenceManager.prefab_button_textOnly;
+
+            if (btnPrefab != null)
+            {
+                UIButton topicBtn = _conversationWindowInstance.AddTopicEntry(item.caption, btnPrefab);
+                if (topicBtn != null)
+                {
+                    _instanceIdToTopicListItemDict.Add(topicBtn.gameObject.GetInstanceID(), item);
+
+                    topicBtn.SetDisplayValue(item.caption);
+                    topicBtn.SetDisplayValueTextSize(28);
+
+                    topicBtn.DataSource_IsDisabled = (GameObject btnObj) =>
+                    {
+                        _instanceIdToTopicListItemDict.TryGetValue(btnObj.GetInstanceID(), out TalkManager.ListItem listItem);
+                        return listItem == null || (listItem.type == TalkManager.ListItemType.ItemGroup && (listItem.listChildItems == null || listItem.listChildItems.Count == 0));
+                    };
+
+                    topicBtn.Event_OnAnyClick += (UIButton btn, PointerEventData data) =>
+                    {
+                        _selectedTopicInstanceId = btn.gameObject.GetInstanceID();
+
+                        if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                        {
+                            if (listItem.type == TalkManager.ListItemType.ItemGroup)
+                            {
+                                List<TalkManager.ListItem> topicList = listItem.listChildItems;
+                                if (topicList != null)
+                                {
+                                    PushTopicList(topicList);
+                                }
+                            }
+                            else
+                            {
+                                _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
+                                _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
+                            }
+                        }
+                    };
+
+                    LayoutElement layoutElem = topicBtn.GetComponent<LayoutElement>();
+                    if (layoutElem != null)
+                    {
+                        layoutElem.minWidth = 0;
+                        layoutElem.minHeight = 42;
+                        layoutElem.flexibleWidth = 1f;
+                        layoutElem.flexibleHeight = 0f;
+                    }
+
+                    topicBtn.Refresh();
+                }
             }
         }
         #endregion
