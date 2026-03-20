@@ -268,6 +268,7 @@ namespace AcrealUI
                 dialogueEntry.SetPortraitTexture(dialogue.speakerPortrait);
                 dialogueEntry.SetTitle(dialogue.speakerName);
                 dialogueEntry.SetDisplayValue(dialogue.dialogueText);
+                dialogueEntry.PlaySlideInAnim();
             }
             return dialogueEntry;
         }

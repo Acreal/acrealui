@@ -47,23 +47,42 @@ NOTES(Acreal):
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+#if UNITY_EDITOR
 using Wenzil.Console;
+#endif
 
 namespace AcrealUI
 {
     public class UIManager : MonoBehaviour
     {
+        #region Definitions
+        private struct CoroutineContainer
+        {
+            public int objectId;
+            public int instanceId;
+            public IEnumerator<float> coroutine;
+            public System.Action<bool> endCallback;
+        }
+        #endregion
+
+
         #region Variables
         public static Mod mod = null;
 
         private static UIManager _instance = null;
-        private static UIConfirmationWindowController _confirmationWindowController = null;
+
+        private UIConfirmationWindowController _confirmationWindowController = null;
+        private List<CoroutineContainer> _runningCoroutines = null;
+        private bool _runningMasterRoutine = false;
         #endregion
 
 
         #region Properties
+        public static UIManager Instance { get { return _instance; } }
         public static UIReferenceManager referenceManager { get; private set; }
         public static UITooltipManager tooltipManager { get; private set; }
         #endregion
@@ -86,6 +105,8 @@ namespace AcrealUI
         #region MonoBehaviour
         private void Awake()
         {
+            _runningCoroutines = new List<CoroutineContainer>(16);
+
             UISpriteManager.Initialize();
 
             if (referenceManager == null)
@@ -105,6 +126,7 @@ namespace AcrealUI
                 _confirmationWindowController = new UIConfirmationWindowController();
             }
 
+            #if UNITY_EDITOR
             ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset All Keybinds to Defaults", string.Empty, (_) =>
             {
                 try
@@ -117,6 +139,7 @@ namespace AcrealUI
                     return "Something went terribly wrong resetting the keybinds. :(";
                 }
             });
+            #endif
 
 
             mod.IsReady = true;
@@ -185,6 +208,8 @@ namespace AcrealUI
 
         private void OnDestroy()
         {
+            StopAllCoroutines();
+
             if(tooltipManager != null)
             {
                 tooltipManager.Shutdown();
@@ -203,15 +228,80 @@ namespace AcrealUI
 
 
         #region Public API
-        public static void ExecuteDelayed(float delay, System.Action funcToExecute)
+        public void ExecuteDelayed(int objectId, int instanceId, float delay, System.Action funcToExecute)
         {
-            if(_instance != null && funcToExecute != null)
+            if(funcToExecute != null)
             {
-                _instance.StartCoroutine(ExecuteDelayedRoutine(delay, funcToExecute));
+                RunCoroutine(objectId, instanceId, ExecuteDelayedRoutine(delay, funcToExecute));
             }
         }
 
-        public static void ShowConfirmationWindow(string title, string message, System.Action onConfirm, System.Action onCancel)
+        public void RunCoroutine(int objectId, int instanceId, IEnumerator<float> coroutine)
+        {
+            if (coroutine != null)
+            {
+                CoroutineContainer routineContainer = new CoroutineContainer
+                {
+                    objectId = objectId,
+                    instanceId = instanceId,
+                    coroutine = coroutine,
+                };
+
+                bool overwrote = false;
+                for(int i = 0; i < _runningCoroutines.Count; i++)
+                {
+                    int objId = _runningCoroutines[i].objectId;
+                    int instId = _runningCoroutines[i].instanceId;
+
+                    if (objId == objectId && instId == instanceId)
+                    {
+                        _runningCoroutines[i].endCallback?.Invoke(true);
+                        _runningCoroutines[i] = new CoroutineContainer
+                        {
+                            objectId = objId,
+                            instanceId = instId,
+                            coroutine = coroutine,
+                        };
+                        overwrote = true;
+                        break;
+                    }
+                }
+
+                if (!overwrote)
+                {
+                    _runningCoroutines.Add(routineContainer);
+                }
+
+                if(!_runningMasterRoutine)
+                {
+                    _runningMasterRoutine = true;
+                    StartCoroutine(MasterRoutine());
+                }
+            }
+        }
+
+        public void StopCoroutine(int objectId, int instanceId)
+        {
+            for (int i = 0; i < _runningCoroutines.Count; i++)
+            {
+                int objId = _runningCoroutines[i].objectId;
+                int instId = _runningCoroutines[i].instanceId;
+
+                if (objId == objectId && instId == instanceId)
+                {
+                    _runningCoroutines[i].endCallback?.Invoke(true);
+                    _runningCoroutines[i] = new CoroutineContainer
+                    {
+                        objectId = objId,
+                        instanceId = instId,
+                        coroutine = null,
+                    };
+                    break;
+                }
+            }
+        }
+
+        public void ShowConfirmationWindow(string title, string message, System.Action onConfirm, System.Action onCancel)
         {
             if(_confirmationWindowController != null)
             {
@@ -223,7 +313,7 @@ namespace AcrealUI
             }
         }
 
-        public static void HideConfirmationWindow()
+        public void HideConfirmationWindow()
         {
             if(_confirmationWindowController != null)
             {
@@ -235,6 +325,24 @@ namespace AcrealUI
 
 
         #region Coroutines
+        private IEnumerator<float> MasterRoutine()
+        {
+            while (_runningCoroutines != null && _runningCoroutines.Count > 0)
+            {
+                for (int i = 0; i < _runningCoroutines.Count; i++)
+                {
+                    if (_runningCoroutines[i].coroutine == null || !_runningCoroutines[i].coroutine.MoveNext())
+                    {
+                        _runningCoroutines[i].endCallback?.Invoke(false);
+                        _runningCoroutines.RemoveAt(i);
+                        i--;
+                    }
+                }
+                yield return 0f;
+            }
+            _runningMasterRoutine = false;
+        }
+
         private static IEnumerator<float> ExecuteDelayedRoutine(float delay, System.Action funcToExecute)
         {
             float t = delay;

@@ -202,7 +202,7 @@ namespace AcrealUI
                             TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRSCTokens(1069);
                             string msg = DaggerfallStringTableImporter.ConvertRSCTokensToString(1069, tokens).Split('[')[0];
 
-                            UIManager.ShowConfirmationWindow(null, msg,
+                            UIManager.Instance.ShowConfirmationWindow(null, msg,
                                 () => 
                                 {
                                     DaggerfallUI.PostMessage(DaggerfallUIMessages.dfuiExitGame);
@@ -210,7 +210,7 @@ namespace AcrealUI
                                 () =>
                                 {
                                     AllowCancel = true;
-                                    UIManager.HideConfirmationWindow();
+                                    UIManager.Instance.HideConfirmationWindow();
                                 });
                         };
                     }
@@ -1724,7 +1724,7 @@ namespace AcrealUI
                         _pauseWindowInstance.panelControlSettings.Event_OnButtonClicked_Default += () =>
                         {
                             AllowCancel = false;
-                            UIManager.ShowConfirmationWindow("Set Defaults",
+                            UIManager.Instance.ShowConfirmationWindow("Set Defaults",
                                                              "Reset keybinds to default values?",
                                                              
                                                              () => // Confirm
@@ -1733,14 +1733,14 @@ namespace AcrealUI
                                                                  ResetKeybindDict();
                                                                  CheckDuplicates();
                                                                  _pauseWindowInstance.panelControlSettings.Refresh();
-                                                                 UIManager.HideConfirmationWindow();
-                                                                 UIManager.ExecuteDelayed(0.2f, () => { AllowCancel = true; });
+                                                                 UIManager.Instance.HideConfirmationWindow();
+                                                                 UIManager.Instance.ExecuteDelayed(GetHashCode(), 0, 0.2f, () => { AllowCancel = true; });
                                                              },
 
                                                              () => // Cancel
                                                              {
-                                                                 UIManager.HideConfirmationWindow();
-                                                                 UIManager.ExecuteDelayed(0.2f, () => { AllowCancel = true; });
+                                                                 UIManager.Instance.HideConfirmationWindow();
+                                                                 UIManager.Instance.ExecuteDelayed(GetHashCode(), 0, 0.2f, () => { AllowCancel = true; });
                                                              });
                         };
 
@@ -2280,10 +2280,10 @@ namespace AcrealUI
         {
             // TODO(Acreal): localize strings
             string msg = string.Format("Do you want to clear the binding for '{0}'?", entry.actionEnumAsString); 
-            UIManager.ShowConfirmationWindow("Clear Binding", msg,
+            UIManager.Instance.ShowConfirmationWindow("Clear Binding", msg,
                 () => 
                 {
-                    UIManager.HideConfirmationWindow();
+                    UIManager.Instance.HideConfirmationWindow();
                     
                     if(entry is UIKeyCodeBindingEntry) { InputManager.Instance.ClearBinding(((UIKeyCodeBindingEntry)entry).boundAction); }
                     else if(entry is UIJoystickKeyBindingEntry) { InputManager.Instance.ClearJoystickUIBinding(((UIJoystickKeyBindingEntry)entry).boundAction); }
@@ -2297,7 +2297,7 @@ namespace AcrealUI
                 },
                 () =>
                 {
-                    UIManager.HideConfirmationWindow();
+                    UIManager.Instance.HideConfirmationWindow();
                 });
         }
 
@@ -2506,7 +2506,7 @@ namespace AcrealUI
 
             // TODO(Acreal): localize strings
             string primOrSec = isPrimaryBinding ? "Primary" : "Secondary";
-            UIManager.ShowConfirmationWindow("Waiting For Input", 
+            UIManager.Instance.ShowConfirmationWindow("Waiting For Input", 
                                              "Rebinding " + primOrSec + " Action: " + bindingEntry.actionEnumAsString + "\nPress Any Key...\n('Esc' to Cancel)", 
                                              null, null);
 
@@ -2524,7 +2524,7 @@ namespace AcrealUI
                 yield return 0f;
             }
 
-            UIManager.HideConfirmationWindow();
+            UIManager.Instance.HideConfirmationWindow();
 
             if (code != KeyCode.Escape && InputManager.Instance.ReservedKeys.FirstOrDefault(x => x == code) == KeyCode.None)
             {
@@ -2580,18 +2580,18 @@ namespace AcrealUI
 
                             // TODO(Acreal): localize strings
                             string msg = string.Format("'{0}' is already bound to '{1}'. Do you want to duplicate this binding?\n(Warning: This could cause unintended behaviour.)", newBindingString, otherActionBinding);
-                            UIManager.ShowConfirmationWindow("Duplicate Bind", msg,
+                            UIManager.Instance.ShowConfirmationWindow("Duplicate Bind", msg,
                                 () =>
                                 {
                                     AllowCancel = true;
-                                    UIManager.HideConfirmationWindow();
+                                    UIManager.Instance.HideConfirmationWindow();
                                     SetKeyBind(bindingEntry, newBindingCode, newBindingString, isPrimaryBinding);
                                     _pauseWindowInstance?.panelControlSettings?.UpdateDuplicateBindings(duplicateSet);
                                 },
                                 () =>
                                 {
                                     AllowCancel = true;
-                                    UIManager.HideConfirmationWindow();
+                                    UIManager.Instance.HideConfirmationWindow();
                                     if (isPrimaryBinding) { _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = prevBindingString; }
                                     else { _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = prevBindingString; }
                                 });

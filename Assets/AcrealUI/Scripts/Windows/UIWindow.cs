@@ -205,6 +205,15 @@ namespace AcrealUI
             }
         }
 
+        public void SetInputEnabled(bool enabled)
+        {
+            if(_canvasGroup != null)
+            {
+                _canvasGroup.blocksRaycasts = enabled;
+                _canvasGroup.interactable = enabled;
+            }
+        }
+
         public void SetHeaderText(string header)
         {
             if (_headerText != null)

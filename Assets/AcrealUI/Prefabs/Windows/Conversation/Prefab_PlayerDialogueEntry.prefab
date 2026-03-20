@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4838584066314427913}
   - component: {fileID: 4838584066314427918}
+  - component: {fileID: 8303589948380053615}
   m_Layer: 5
   m_Name: Parent_Dialogue
   m_TagString: Untagged
@@ -35,11 +36,11 @@ RectTransform:
   m_Father: {fileID: 4838584066578395768}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 86, y: 76}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &4838584066314427918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65,6 +66,26 @@ MonoBehaviour:
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
+--- !u!114 &8303589948380053615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4838584066314427912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 1
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &4838584066578395771
 GameObject:
   m_ObjectHideFlags: 0
@@ -77,6 +98,7 @@ GameObject:
   - component: {fileID: 4838584066578395772}
   - component: {fileID: 4838584066578395774}
   - component: {fileID: 4838584066578395769}
+  - component: {fileID: 3950750615368876072}
   - component: {fileID: -1990013266069142205}
   m_Layer: 5
   m_Name: Prefab_PlayerDialogueEntry
@@ -100,11 +122,11 @@ RectTransform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 200, y: 76}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &4838584066578395772
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -127,7 +149,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: -1
-  m_MinHeight: -1
+  m_MinHeight: 76
   m_PreferredWidth: -1
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
@@ -158,6 +180,18 @@ MonoBehaviour:
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
+--- !u!225 &3950750615368876072
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4838584066578395771}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &-1990013266069142205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,6 +208,12 @@ MonoBehaviour:
   _gameObjName_titleText: Text_SpeakerName
   _gameObjName_valueText: Text_Dialogue
   _gameObjName_portraitRawImage: RawImage_Portrait
+  _gameObjName_slideTransform: Parent_Dialogue
+  _slideFromAlpha: 0
+  _slideToAlpha: 1
+  _slideInDuration: 0.2
+  _slideInDelay: 0.05
+  _slideInFromRightSide: 0
 --- !u!1 &4838584066874070521
 GameObject:
   m_ObjectHideFlags: 0

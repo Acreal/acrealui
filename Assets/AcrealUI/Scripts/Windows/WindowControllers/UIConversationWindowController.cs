@@ -36,6 +36,7 @@ namespace AcrealUI
         private SpeakingStyle _currentSpeakingStyle = SpeakingStyle.Normal;
         private DialogueInfo _pendingDialogueInfo = new DialogueInfo();
         private int _selectedTopicInstanceId = 0;
+        private bool _speakingInProgress = false;
         #endregion
 
 
@@ -76,7 +77,8 @@ namespace AcrealUI
                     {
                         if (!string.IsNullOrWhiteSpace(_pendingDialogueInfo.dialogueText))
                         {
-                            UIDialogueEntry dialogueEntry = _conversationWindowInstance.AddDialogueEntry(_pendingDialogueInfo);
+                            _speakingInProgress = true;
+                            UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
 
                             if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
                             {
@@ -87,7 +89,7 @@ namespace AcrealUI
                                     speakerName = TalkManager.Instance.NameNPC,
                                     dialogueText = TalkManager.Instance.GetAnswerText(listItem),
                                 };
-                                UIDialogueEntry replyEntry = _conversationWindowInstance.AddDialogueEntry(reply);
+                                UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
                             }
 
                             _selectedTopicInstanceId = 0;
@@ -217,7 +219,6 @@ namespace AcrealUI
             HideWindow();
         }
 
-        //public override void Update() { }
         protected override void Setup() { }
         public override void Draw() { }
         #endregion
@@ -309,9 +310,7 @@ namespace AcrealUI
                 item.caption = TextManager.Instance.GetLocalizedText("resolvingError");
             }
 
-            UIButton btnPrefab = (item.type == TalkManager.ListItemType.ItemGroup) ?
-                                 UIManager.referenceManager.prefab_button : UIManager.referenceManager.prefab_button_textOnly;
-
+            UIButton btnPrefab = item.type == TalkManager.ListItemType.ItemGroup ? UIManager.referenceManager.prefab_button : UIManager.referenceManager.prefab_button_textOnly;
             if (btnPrefab != null)
             {
                 UIButton topicBtn = _conversationWindowInstance.AddTopicEntry(item.caption, btnPrefab);
@@ -386,6 +385,68 @@ namespace AcrealUI
                     _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
                 }
             }
+        }
+        #endregion
+
+
+        #region Dialogue
+        private IEnumerator<float> DisplayDialogueRoutine(DialogueInfo dialogueInfo)
+        {
+            int charsPerSecond = 64;
+            float startTime = Time.unscaledTime;
+
+            //disable input while your character is speaking
+            _conversationWindowInstance.SetInputEnabled(false);
+
+            UIDialogueEntry entry = _conversationWindowInstance.AddDialogueEntry(dialogueInfo);
+
+            int charIdx = 0;
+            int lastCharIdx = 0;
+            int maxIdx = dialogueInfo.dialogueText.Length;
+            while(charIdx < maxIdx)
+            {
+                //handle displaying text with a "typewriter" style
+                charIdx = Mathf.Min(Mathf.RoundToInt((Time.unscaledTime - startTime) * charsPerSecond), maxIdx);
+                if (lastCharIdx != charIdx)
+                {
+                    lastCharIdx = charIdx;
+                    string displayValue = dialogueInfo.dialogueText.Substring(0, charIdx);
+                    entry.SetDisplayValue(displayValue);
+                }
+                yield return 0f;
+            }
+
+            _speakingInProgress = false;
+            _conversationWindowInstance.SetInputEnabled(true);
+        }
+
+        private IEnumerator<float> RespondToPlayerRoutine(DialogueInfo dialogue, float delay)
+        {
+            while(_speakingInProgress)
+            {
+                yield return 0f;
+            }
+
+            //disable input until NPC responds
+            _conversationWindowInstance.SetInputEnabled(false);
+
+            float t = delay;
+            while(t > 0f)
+            {
+                t -= Time.unscaledDeltaTime;
+                yield return 0f;
+            }
+
+            //add response and re-enable input
+            _speakingInProgress = true;
+            UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(dialogue));
+
+            while (_speakingInProgress)
+            {
+                yield return 0f;
+            }
+
+            _conversationWindowInstance.SetInputEnabled(true);
         }
         #endregion
     }
