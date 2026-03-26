@@ -17,7 +17,6 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
-using DaggerfallWorkshop.AudioSynthesis.Bank.Components.Effects;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,7 +32,7 @@ namespace AcrealUI
         [SerializeField] private float _deactivateDelay = 0f;
 
         private GameObject _objectToSet = null;
-        private Coroutine _activateRoutine = null;
+        private bool _isRunningRoutine = false;
         #endregion
 
 
@@ -45,8 +44,14 @@ namespace AcrealUI
             {
                 _objectToSet = objTform.gameObject;
             }
+            else
+            {
+                _objectToSet = gameObject;
+            }
 
             base.Initialize(uiElement);
+
+            _objectToSet?.SetActive(false);
         }
         #endregion
 
@@ -64,15 +69,16 @@ namespace AcrealUI
                     bool activate = (elem.isHighlighted || elem.isPressed);
                     if (_objectToSet.activeSelf != activate)
                     {
-                        if (_activateRoutine != null)
+                        if (_isRunningRoutine)
                         {
-                            StopCoroutine(_activateRoutine);
+                            UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), 1);
                         }
+                        _isRunningRoutine = false;
 
                         float delay = activate ? _activateDelay : _deactivateDelay;
                         if (delay > 0f)
                         {
-                            _activateRoutine = StartCoroutine(ActivateRoutine(activate, delay));
+                            UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), 1, ActivateRoutine(activate, delay));
                         }
                         else
                         {
@@ -88,6 +94,8 @@ namespace AcrealUI
         #region Coroutines
         private IEnumerator<float> ActivateRoutine(bool setActive, float delay)
         {
+            _isRunningRoutine = true;
+
             float t = delay;
             while (t > 0f)
             {
@@ -99,6 +107,8 @@ namespace AcrealUI
             {
                 _objectToSet.SetActive(setActive);
             }
+
+            _isRunningRoutine = false;
         }
         #endregion
     }

@@ -31,10 +31,11 @@ namespace AcrealUI
         [SerializeField] private float _fadeDuration = 0.2f;
         [SerializeField] private float _fadeInDelay = 0f;
         [SerializeField] private float _fadeOutDelay = 0f;
+        [SerializeField] private bool _controlActiveState = false;
 
         private CanvasGroup _canvasGroup = null;
-        private Coroutine _fadeRoutine = null;
         private bool _isFadedIn = false;
+        private bool _isRunningFadeRoutine = true;
         #endregion
 
 
@@ -44,6 +45,11 @@ namespace AcrealUI
             Transform canvasGroupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_canvasGroup);
             if(canvasGroupTForm == null) { canvasGroupTForm = transform; }
             _canvasGroup = canvasGroupTForm.GetComponent<CanvasGroup>();
+
+            if (_controlActiveState)
+            {
+                _canvasGroup?.gameObject.SetActive(false);
+            }
 
             base.Initialize(uiElement);
         }
@@ -63,18 +69,33 @@ namespace AcrealUI
                     bool fadeIn = elem.isHighlighted || elem.isPressed;
                     if (_isFadedIn != fadeIn)
                     {
-                        if (_fadeRoutine != null)
+                        if (_isRunningFadeRoutine)
                         {
-                            StopCoroutine(_fadeRoutine);
+                            UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), 0);
                         }
-                        _fadeRoutine = null;
+                        _isRunningFadeRoutine = false;
 
                         _isFadedIn = fadeIn;
                         float targetFade = _isFadedIn ? 1f : 0f;
                         if (Mathf.Abs(_canvasGroup.alpha - targetFade) >= float.Epsilon)
                         {
                             float delay = _isFadedIn ? _fadeInDelay : _fadeOutDelay;
-                            _fadeRoutine = StartCoroutine(FadeRoutine(_canvasGroup.alpha, targetFade, _fadeDuration, delay));
+                            if (delay + _fadeDuration < float.Epsilon)
+                            {
+                                if (_canvasGroup != null)
+                                {
+                                    _canvasGroup.alpha = _isFadedIn ? 1f : 0f;
+
+                                    if (_controlActiveState)
+                                    {
+                                        _canvasGroup.gameObject.SetActive(_isFadedIn);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), 0, FadeRoutine(_canvasGroup.alpha, targetFade, _fadeDuration, delay));
+                            }
                         }
                     }
                 }
@@ -86,9 +107,16 @@ namespace AcrealUI
         #region Coroutines
         private IEnumerator<float> FadeRoutine(float from, float to, float duration, float delay)
         {
+            _isRunningFadeRoutine = true;
+
             if (_canvasGroup != null)
             {
                 _canvasGroup.alpha = from;
+
+                if(_controlActiveState && to > float.Epsilon)
+                {
+                    _canvasGroup.gameObject.SetActive(true);
+                }
             }
 
             float t = delay;
@@ -112,7 +140,14 @@ namespace AcrealUI
             if (_canvasGroup != null)
             {
                 _canvasGroup.alpha = to;
+
+                if (_controlActiveState && to <= float.Epsilon)
+                {
+                    _canvasGroup.gameObject.SetActive(false);
+                }
             }
+
+            _isRunningFadeRoutine = false;
         }
         #endregion
     }

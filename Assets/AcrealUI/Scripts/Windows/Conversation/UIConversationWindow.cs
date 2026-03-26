@@ -69,6 +69,7 @@ namespace AcrealUI
         private TextMeshProUGUI _pendingDialogueText = null;
         private UIToggleGroup _speakingStyleToggleGroup = null;
 
+        private List<UIDialogueEntry> _allDialogueEntries = null;
         private Queue<UIDialogueEntry> _recentDialogueEntries = null;
         private Queue<UIDialogueEntry> _oldDialogueEntries = null;
         private List<UIButton> _topicEntries = null;
@@ -78,17 +79,17 @@ namespace AcrealUI
         #region Properties
         public RectTransform topicEntryParent { get { return _topicEntryParent; } }
         public RectTransform dialogueEntryParent { get { return _recentDialogueEntryParent; } }
-
         public UIButton previousTopicButton { get { return _previousTopicButton; } }
-
         public UIToggle normalSpeakingStyleToggle { get; private set; }
         public UIToggle politeSpeakingStyleToggle { get; private set; }
         public UIToggle bluntSpeakingStyleToggle { get; private set; }
+        public int numDialogueEntries { get { return _allDialogueEntries.Count; } }
         #endregion
 
 
         #region Events
-        public event System.Action OnSubmitDialogueEntry = null;
+        public event System.Action Event_ButtonClicked_OnSubmitDialogueEntry = null;
+        public event System.Action<UIDialogueEntry, int> Event_OnCopyDialogueToNotebook = null;
         #endregion
 
 
@@ -106,6 +107,7 @@ namespace AcrealUI
         {
             base.Initialize();
 
+            _allDialogueEntries = new List<UIDialogueEntry>();
             _recentDialogueEntries = new Queue<UIDialogueEntry>(UIConstants.MAX_RECENT_DIALOGUE_ENTRIES);
             _oldDialogueEntries = new Queue<UIDialogueEntry>(UIConstants.MAX_OLD_DIALOGUE_ENTRIES);
             _topicEntries = new List<UIButton>();
@@ -149,7 +151,7 @@ namespace AcrealUI
                     {
                         if (data.button == PointerEventData.InputButton.Left && data.clickCount == 1)
                         {
-                            OnSubmitDialogueEntry?.Invoke();
+                            Event_ButtonClicked_OnSubmitDialogueEntry?.Invoke();
                         }
                     };
                 }
@@ -243,13 +245,20 @@ namespace AcrealUI
             }
         }
 
+        public UIDialogueEntry GetDialogueEntryByIndex(int idx)
+        {
+            return idx >= 0 && idx < _allDialogueEntries.Count ? _allDialogueEntries[idx] : null;
+        }
+
         public UIDialogueEntry AddDialogueEntry(DialogueInfo dialogue)
         {
             if(dialogue.entryPrefab == null) { return null; }
 
             while(_oldDialogueEntries.Count > UIConstants.MAX_OLD_DIALOGUE_ENTRIES - 1)
             {
-                Destroy(_oldDialogueEntries.Dequeue().gameObject);
+                UIDialogueEntry entry = _oldDialogueEntries.Dequeue();
+                _allDialogueEntries.Remove(entry);
+                Destroy(entry.gameObject);
             }
 
             while (_recentDialogueEntries.Count > UIConstants.MAX_RECENT_DIALOGUE_ENTRIES - 1)
@@ -262,6 +271,7 @@ namespace AcrealUI
             UIDialogueEntry dialogueEntry = Instantiate(dialogue.entryPrefab, _recentDialogueEntryParent);
             if (dialogueEntry != null)
             {
+                _allDialogueEntries.Add(dialogueEntry);
                 _recentDialogueEntries.Enqueue(dialogueEntry);
 
                 dialogueEntry.Initialize();
@@ -269,27 +279,28 @@ namespace AcrealUI
                 dialogueEntry.SetTitle(dialogue.speakerName);
                 dialogueEntry.SetDisplayValue(dialogue.dialogueText);
                 dialogueEntry.PlaySlideInAnim();
+
+                dialogueEntry.Event_OnButtonClicked_CopyToNotebook += (UIDialogueEntry entry) =>
+                {
+                    int entryIndex = _allDialogueEntries.IndexOf(entry);
+                    Event_OnCopyDialogueToNotebook?.Invoke(entry, entryIndex);
+                };
             }
             return dialogueEntry;
         }
 
         public void ClearDialogue()
         {
-            if (_recentDialogueEntries != null)
+            for(int i = _allDialogueEntries.Count - 1; i >= 0; i--)
             {
-                while (_recentDialogueEntries.Count > 0)
+                if (_allDialogueEntries[i] != null)
                 {
-                    Destroy(_recentDialogueEntries.Dequeue().gameObject);
+                    Destroy(_allDialogueEntries[i].gameObject);
                 }
             }
-
-            if(_oldDialogueEntries != null)
-            {
-                while(_oldDialogueEntries.Count > 0)
-                {
-                    Destroy(_oldDialogueEntries.Dequeue().gameObject);
-                }
-            }
+            _allDialogueEntries.Clear();
+            _recentDialogueEntries.Clear();
+            _oldDialogueEntries.Clear();
         }
 
         public UIButton AddTopicEntry(string buttonLabel, UIButton prefab)
@@ -352,6 +363,14 @@ namespace AcrealUI
             if(_topicDivider != null)
             {
                 _topicDivider.transform.SetSiblingIndex(index);
+            }
+        }
+
+        public void SetOkayButtonEnabled(bool enabled)
+        {
+            if (_okayButton != null)
+            {
+                _okayButton.isDisabled = !enabled;
             }
         }
         #endregion

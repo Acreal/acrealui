@@ -84,6 +84,17 @@ namespace AcrealUI
             //}
             return null;
         }
+
+        public static T GetComponentInParent<T>(Transform transform) where T : MonoBehaviour
+        {
+            while(transform != null)
+            {
+                T comp = transform.GetComponent<T>();
+                if(comp != null) { return  comp; }
+                else { transform = transform.parent; }
+            }
+            return null;
+        }
         #endregion
 
 
@@ -152,6 +163,11 @@ namespace AcrealUI
         public static bool PlayerHasShip()
         {
             return DaggerfallBankManager.OwnsShip || GameManager.Instance.GuildManager.FreeShipTravel();
+        }
+
+        public static Texture2D GetPlayerPortrait()
+        {
+            return GetPaperDollHeadTexture();
         }
         #endregion
 

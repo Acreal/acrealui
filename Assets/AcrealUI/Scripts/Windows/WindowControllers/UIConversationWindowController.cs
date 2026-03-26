@@ -17,6 +17,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
@@ -30,13 +31,13 @@ namespace AcrealUI
     public class UIConversationWindowController : DaggerfallTalkWindow, IWindowController
     {
         #region Variables
-        private Dictionary<int, TalkManager.ListItem> _instanceIdToTopicListItemDict = null;
         private UIConversationWindow _conversationWindowInstance = null;
+        private Dictionary<int, TalkManager.ListItem> _instanceIdToTopicListItemDict = null;
         private Stack<List<TalkManager.ListItem>> _topicListStack = null;
         private SpeakingStyle _currentSpeakingStyle = SpeakingStyle.Normal;
-        private DialogueInfo _pendingDialogueInfo = new DialogueInfo();
+        private string _pendingDialogueText = null;
         private int _selectedTopicInstanceId = 0;
-        private bool _speakingInProgress = false;
+        //private bool _speakingInProgress = false;
         #endregion
 
 
@@ -45,6 +46,8 @@ namespace AcrealUI
         {
             _topicListStack = new Stack<List<TalkManager.ListItem>>();
             _instanceIdToTopicListItemDict = new Dictionary<int, TalkManager.ListItem>();
+
+            listboxConversation = new ListBox();
 
             _selectedTopicInstanceId = 0;
 
@@ -73,28 +76,49 @@ namespace AcrealUI
                         PopTopicList();
                     };
 
-                    _conversationWindowInstance.OnSubmitDialogueEntry += () =>
+                    _conversationWindowInstance.Event_ButtonClicked_OnSubmitDialogueEntry += () =>
                     {
-                        if (!string.IsNullOrWhiteSpace(_pendingDialogueInfo.dialogueText))
+                        if (!string.IsNullOrWhiteSpace(_pendingDialogueText))
                         {
-                            _speakingInProgress = true;
-                            UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
-
+                            string answer = string.Empty;
                             if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
                             {
-                                DialogueInfo reply = new DialogueInfo
-                                {
-                                    entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
-                                    speakerPortrait = texturePortrait,
-                                    speakerName = TalkManager.Instance.NameNPC,
-                                    dialogueText = TalkManager.Instance.GetAnswerText(listItem),
-                                };
-                                UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
+                                answer = TalkManager.Instance.GetAnswerText(listItem);
                             }
+                            SetQuestionAnswerPairInConversationListbox(_pendingDialogueText, answer);
+
+                            //_speakingInProgress = true;
+                            //UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
+
+                            //if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                            //{
+                            //    DialogueInfo reply = new DialogueInfo
+                            //    {
+                            //        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                            //        speakerPortrait = texturePortrait,
+                            //        speakerName = TalkManager.Instance.NameNPC,
+                            //        dialogueText = TalkManager.Instance.GetAnswerText(listItem),
+                            //    };
+                            //    UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
+                            //}
 
                             _selectedTopicInstanceId = 0;
-                            _pendingDialogueInfo.dialogueText = null;
+                            _pendingDialogueText = null;
                             _conversationWindowInstance.SetPendingDialogue(null);
+                        }
+                    };
+
+                    _conversationWindowInstance.Event_OnCopyDialogueToNotebook += (UIDialogueEntry dialogueEntry, int dialogueEntryIndex) =>
+                    {
+                        if (copyIndexes.Remove(dialogueEntryIndex))
+                        {
+                            if (dialogueEntry.isPlayerDialogue) { dialogueEntry.SetBorderColor(textcolorQuestionBackgroundModernConversationStyle); }
+                            else { dialogueEntry.SetBorderColor(textcolorAnswerBackgroundModernConversationStyle); }
+                        }
+                        else
+                        {
+                            copyIndexes.Add(dialogueEntryIndex);
+                            dialogueEntry.SetBorderColor(textcolorHighlighted);
                         }
                     };
                 }
@@ -107,11 +131,6 @@ namespace AcrealUI
         public void ShowWindow()
         {
             TalkManager.Instance.ForceTopicListsUpdate();
-
-            _pendingDialogueInfo.entryPrefab = UIManager.referenceManager.prefab_playerDialogueEntry;
-            _pendingDialogueInfo.speakerName = GameManager.Instance.PlayerEntity.Name;
-            _pendingDialogueInfo.speakerPortrait = UIUtilityFunctions.GetPaperDollHeadTexture();
-            _pendingDialogueInfo.dialogueText = null;
 
             if (_conversationWindowInstance != null)
             {
@@ -176,19 +195,8 @@ namespace AcrealUI
                     PushTopicList(defaultTopicList);
                 }
 
-                // INITIAL DIALOGUE ////////////////////////////////////////////////////////////////////////////
-                {
-                    DialogueInfo greeting = new DialogueInfo
-                    {
-                        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
-                        speakerPortrait = texturePortrait,
-                        speakerName = TalkManager.Instance.NameNPC,
-                        dialogueText = TalkManager.Instance.NPCGreetingText,
-                    };
-                    UIDialogueEntry greetingEntry = _conversationWindowInstance.AddDialogueEntry(greeting);
-                    _conversationWindowInstance.SetPendingDialogue(null);
-                }
-
+                SetQuestionAnswerPairInConversationListbox(null, TalkManager.Instance.NPCGreetingText);
+                _conversationWindowInstance.SetPendingDialogue(null);
                 _conversationWindowInstance.Show();
                 _conversationWindowInstance.UpdateTopicPanelSize();
             }
@@ -217,6 +225,37 @@ namespace AcrealUI
         {
             base.OnPop();
             HideWindow();
+        }
+
+        protected override void SetQuestionAnswerPairInConversationListbox(string question, string answer)
+        {
+            if (!string.IsNullOrWhiteSpace(question))
+            {
+                DialogueInfo questionInfo = new DialogueInfo
+                {
+                    dialogueText = question,
+                    entryPrefab = UIManager.referenceManager.prefab_playerDialogueEntry,
+                    speakerName = UIUtilityFunctions.GetPlayerName(),
+                    speakerPortrait = UIUtilityFunctions.GetPlayerPortrait(),
+                };
+
+                _conversationWindowInstance.AddDialogueEntry(questionInfo).SetBorderColor(textcolorQuestionBackgroundModernConversationStyle);
+                listboxConversation.AddItem(question, out ListBox.ListItem textLabelQuestion);
+                textLabelQuestion.textColor = DaggerfallUI.DaggerfallQuestionTextColor; //used in base.OnPop() to determine if this was the player or NPC talking
+            }
+
+            if (!string.IsNullOrWhiteSpace(answer))
+            {
+                DialogueInfo answerInfo = new DialogueInfo
+                {
+                    dialogueText = answer,
+                    entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                    speakerName = TalkManager.Instance.NameNPC,
+                    speakerPortrait = texturePortrait,
+                };
+                _conversationWindowInstance.AddDialogueEntry(answerInfo).SetBorderColor(textcolorAnswerBackgroundModernConversationStyle);
+                listboxConversation.AddItem(answer, out ListBox.ListItem textLabelAnswer);
+            }
         }
 
         protected override void Setup() { }
@@ -343,8 +382,8 @@ namespace AcrealUI
                             }
                             else
                             {
-                                _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
-                                _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
+                                _pendingDialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
+                                _conversationWindowInstance.SetPendingDialogue(_pendingDialogueText);
                             }
                         }
                     };
@@ -381,8 +420,8 @@ namespace AcrealUI
             {
                 if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
                 {
-                    _pendingDialogueInfo.dialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
-                    _conversationWindowInstance.SetPendingDialogue(_pendingDialogueInfo.dialogueText);
+                    _pendingDialogueText = TalkManager.Instance.GetQuestionText(listItem, UIUtilityFunctions.SpeakingStyleToTalkTone(_currentSpeakingStyle));
+                    _conversationWindowInstance.SetPendingDialogue(_pendingDialogueText);
                 }
             }
         }
@@ -390,64 +429,84 @@ namespace AcrealUI
 
 
         #region Dialogue
-        private IEnumerator<float> DisplayDialogueRoutine(DialogueInfo dialogueInfo)
-        {
-            int charsPerSecond = 64;
-            float startTime = Time.unscaledTime;
+        //private IEnumerator<float> DisplayDialogueRoutine(DialogueInfo dialogueInfo)
+        //{
+        //    int charsPerSecond = 32;
+        //    float startTime = Time.unscaledTime;
 
-            //disable input while your character is speaking
-            _conversationWindowInstance.SetInputEnabled(false);
+        //    //disable input while your character is speaking
+        //    _conversationWindowInstance.SetOkayButtonEnabled(false);
+        //    _conversationWindowInstance.SetInputEnabled(false);
 
-            UIDialogueEntry entry = _conversationWindowInstance.AddDialogueEntry(dialogueInfo);
+        //    yield return 0f; //give input a chance to clear
 
-            int charIdx = 0;
-            int lastCharIdx = 0;
-            int maxIdx = dialogueInfo.dialogueText.Length;
-            while(charIdx < maxIdx)
-            {
-                //handle displaying text with a "typewriter" style
-                charIdx = Mathf.Min(Mathf.RoundToInt((Time.unscaledTime - startTime) * charsPerSecond), maxIdx);
-                if (lastCharIdx != charIdx)
-                {
-                    lastCharIdx = charIdx;
-                    string displayValue = dialogueInfo.dialogueText.Substring(0, charIdx);
-                    entry.SetDisplayValue(displayValue);
-                }
-                yield return 0f;
-            }
+        //    UIDialogueEntry entry = _conversationWindowInstance.AddDialogueEntry(dialogueInfo);
 
-            _speakingInProgress = false;
-            _conversationWindowInstance.SetInputEnabled(true);
-        }
+        //    int charIdx = 0;
+        //    int lastCharIdx = 0;
+        //    int maxIdx = dialogueInfo.dialogueText.Length;
+        //    while(charIdx < maxIdx)
+        //    {
+        //        //handle displaying text with a "typewriter" style
+        //        charIdx = Mathf.Min(Mathf.RoundToInt((Time.unscaledTime - startTime) * charsPerSecond), maxIdx);
+        //        if (lastCharIdx != charIdx)
+        //        {
+        //            lastCharIdx = charIdx;
+        //            string displayValue = dialogueInfo.dialogueText.Substring(0, charIdx);
+        //            entry.SetDisplayValue(displayValue);
+        //        }
 
-        private IEnumerator<float> RespondToPlayerRoutine(DialogueInfo dialogue, float delay)
-        {
-            while(_speakingInProgress)
-            {
-                yield return 0f;
-            }
+        //        if(InputManager.Instance.GetKeyDown(InputManager.Instance.GetBinding(InputManager.Actions.ActivateCenterObject)))
+        //        {
+        //            break;
+        //        }
 
-            //disable input until NPC responds
-            _conversationWindowInstance.SetInputEnabled(false);
+        //        yield return 0f;
+        //    }
 
-            float t = delay;
-            while(t > 0f)
-            {
-                t -= Time.unscaledDeltaTime;
-                yield return 0f;
-            }
+        //    _speakingInProgress = false;
+        //    entry.SetDisplayValue(dialogueInfo.dialogueText);
+        //    _conversationWindowInstance.SetOkayButtonEnabled(true);
+        //    _conversationWindowInstance.SetInputEnabled(true);
+        //}
 
-            //add response and re-enable input
-            _speakingInProgress = true;
-            UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(dialogue));
+        //private IEnumerator<float> RespondToPlayerRoutine(DialogueInfo dialogue, float delay)
+        //{
+        //    while(_speakingInProgress)
+        //    {
+        //        yield return 0f;
+        //    }
 
-            while (_speakingInProgress)
-            {
-                yield return 0f;
-            }
+        //    //disable input until NPC responds
+        //    _conversationWindowInstance.SetOkayButtonEnabled(false);
+        //    _conversationWindowInstance.SetInputEnabled(false);
 
-            _conversationWindowInstance.SetInputEnabled(true);
-        }
+        //    yield return 0f; //give input a chance to clear
+
+        //    float t = delay;
+        //    while(t > 0f)
+        //    {
+        //        if (InputManager.Instance.GetKeyDown(InputManager.Instance.GetBinding(InputManager.Actions.ActivateCenterObject)))
+        //        {
+        //            break;
+        //        }
+
+        //        t -= Time.unscaledDeltaTime;
+        //        yield return 0f;
+        //    }
+
+        //    //add response and re-enable input
+        //    _speakingInProgress = true;
+        //    UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(dialogue));
+
+        //    while (_speakingInProgress)
+        //    {
+        //        yield return 0f;
+        //    }
+
+        //    _conversationWindowInstance.SetOkayButtonEnabled(true);
+        //    _conversationWindowInstance.SetInputEnabled(true);
+        //}
         #endregion
     }
 }

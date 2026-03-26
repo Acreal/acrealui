@@ -64,10 +64,6 @@ namespace AcrealUI
                     gameObject.SetActive(active);
                 }
             }
-            else if(!gameObject.activeSelf)
-            {
-                gameObject.SetActive(true);
-            }
 
             if(DataSource_ValueDisplayString != null)
             {
@@ -119,22 +115,22 @@ namespace AcrealUI
 
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
-
+            //Debug.Log(gameObject.name + "." + gameObject.GetInstanceID() + ".UIElement.OnPointerEnter()");
         }
 
         public virtual void OnPointerExit(PointerEventData eventData)
         {
-
+            //Debug.Log(gameObject.name + "." + gameObject.GetInstanceID() + ".UIElement.OnPointerExit()");
         }
 
         public virtual void OnPointerDown(PointerEventData eventData)
         {
-
+            //Debug.Log(gameObject.name + "." + gameObject.GetInstanceID() + ".UIElement.OnPointerDown()");
         }
 
         public virtual void OnPointerUp(PointerEventData eventData)
         {
-
+            //Debug.Log(gameObject.name + "." + gameObject.GetInstanceID() + ".UIElement.OnPointerUp()");
         }
         #endregion
     }

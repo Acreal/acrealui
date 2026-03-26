@@ -18,6 +18,7 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System.Collections.Generic;
 using UnityEngine.EventSystems;
 
 namespace AcrealUI
@@ -91,11 +92,22 @@ namespace AcrealUI
         {
             if(_elementFeedbackArray == null)
             {
-                _elementFeedbackArray = GetComponentsInChildren<UIElementFeedback>(true);
-                if(_elementFeedbackArray != null )
+                UIElementFeedback[] tempArr = GetComponentsInChildren<UIElementFeedback>(true);
+                if(tempArr != null )
                 {
-                    for(int i = 0; i <  _elementFeedbackArray.Length; i++)
+                    List<UIElementFeedback> feedbackElementList = new List<UIElementFeedback>();
+                    for(int i = 0; i < tempArr.Length; i++)
                     {
+                        if (UIUtilityFunctions.GetComponentInParent<UIInteractiveElement>(tempArr[i].transform) == this)
+                        {
+                            feedbackElementList.Add(tempArr[i]);
+                        }
+                    }
+
+                    _elementFeedbackArray = new UIElementFeedback[feedbackElementList.Count];
+                    for (int i = 0; i < feedbackElementList.Count; i++)
+                    {
+                        _elementFeedbackArray[i] = feedbackElementList[i];
                         _elementFeedbackArray[i].Initialize(this);
                     }
                 }
