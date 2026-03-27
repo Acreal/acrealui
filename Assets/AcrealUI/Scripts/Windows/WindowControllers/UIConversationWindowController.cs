@@ -43,85 +43,83 @@ namespace AcrealUI
         #region Constructor
         public UIConversationWindowController(IUserInterfaceManager uiManager, DaggerfallBaseWindow previous = null) : base(uiManager, previous)
         {
-            _topicListStack = new Stack<List<TalkManager.ListItem>>();
-            _instanceIdToTopicListItemDict = new Dictionary<int, TalkManager.ListItem>();
-
             listboxConversation = new ListBox();
 
+            _topicListStack = new Stack<List<TalkManager.ListItem>>();
+            _instanceIdToTopicListItemDict = new Dictionary<int, TalkManager.ListItem>();
             _selectedTopicInstanceId = 0;
 
+            #region Setup Window Instance
             _conversationWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_conversationWindow);
             if (_conversationWindowInstance != null)
             {
-                // WINDOW INSTANCE //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                _conversationWindowInstance.Initialize();
+                _conversationWindowInstance.SetHeaderText("Conversation History"); // TODO(Acreal): localize string
+                _conversationWindowInstance.Hide();
+
+                _conversationWindowInstance.Event_ButtonClick_CloseWindow += () => { CancelWindow(); };
+
+                _conversationWindowInstance.normalSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Normal; };
+                _conversationWindowInstance.politeSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Polite; };
+                _conversationWindowInstance.bluntSpeakingStyleToggle.DataSource_IsToggledOn  = (_) => { return _currentSpeakingStyle == SpeakingStyle.Blunt; };
+
+                _conversationWindowInstance.normalSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Normal); };
+                _conversationWindowInstance.politeSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Polite); };
+                _conversationWindowInstance.bluntSpeakingStyleToggle.Event_OnToggledOn  += (_) => { SetSpeakingStyle(SpeakingStyle.Blunt); };
+
+                _conversationWindowInstance.previousTopicButton.DataSource_IsDisabled = (_) => { return _topicListStack == null || _topicListStack.Count <= 1; };
+                _conversationWindowInstance.previousTopicButton.Event_OnLeftClick += (_, _1) =>
                 {
-                    _conversationWindowInstance.Initialize();
-                    _conversationWindowInstance.SetHeaderText("Conversation History"); // TODO(Acreal): localize string
-                    _conversationWindowInstance.Hide();
+                    PopTopicList();
+                };
 
-                    _conversationWindowInstance.Event_ButtonClick_CloseWindow += () => { CancelWindow(); };
-
-                    _conversationWindowInstance.normalSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Normal; };
-                    _conversationWindowInstance.politeSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Polite; };
-                    _conversationWindowInstance.bluntSpeakingStyleToggle.DataSource_IsToggledOn  = (_) => { return _currentSpeakingStyle == SpeakingStyle.Blunt; };
-
-                    _conversationWindowInstance.normalSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Normal); };
-                    _conversationWindowInstance.politeSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Polite); };
-                    _conversationWindowInstance.bluntSpeakingStyleToggle.Event_OnToggledOn  += (_) => { SetSpeakingStyle(SpeakingStyle.Blunt); };
-
-                    _conversationWindowInstance.previousTopicButton.DataSource_IsDisabled = (_) => { return _topicListStack == null || _topicListStack.Count <= 1; };
-                    _conversationWindowInstance.previousTopicButton.Event_OnLeftClick += (_, _1) =>
+                _conversationWindowInstance.Event_ButtonClicked_OnSubmitDialogueEntry += () =>
+                {
+                    if (!string.IsNullOrWhiteSpace(_pendingDialogueText))
                     {
-                        PopTopicList();
-                    };
+                        string answer = string.Empty;
+                        if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                        {
+                            answer = TalkManager.Instance.GetAnswerText(listItem);
+                        }
+                        SetQuestionAnswerPairInConversationListbox(_pendingDialogueText, answer);
 
-                    _conversationWindowInstance.Event_ButtonClicked_OnSubmitDialogueEntry += () =>
+                        //_speakingInProgress = true;
+                        //UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
+
+                        //if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                        //{
+                        //    DialogueInfo reply = new DialogueInfo
+                        //    {
+                        //        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                        //        speakerPortrait = texturePortrait,
+                        //        speakerName = TalkManager.Instance.NameNPC,
+                        //        dialogueText = TalkManager.Instance.GetAnswerText(listItem),
+                        //    };
+                        //    UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
+                        //}
+
+                        _selectedTopicInstanceId = 0;
+                        _pendingDialogueText = null;
+                        _conversationWindowInstance.SetPendingDialogue(null);
+                    }
+                };
+
+                _conversationWindowInstance.Event_OnCopyDialogueToNotebook += (UIDialogueEntry dialogueEntry, int dialogueEntryIndex) =>
+                {
+                    if (copyIndexes.Remove(dialogueEntryIndex))
                     {
-                        if (!string.IsNullOrWhiteSpace(_pendingDialogueText))
-                        {
-                            string answer = string.Empty;
-                            if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
-                            {
-                                answer = TalkManager.Instance.GetAnswerText(listItem);
-                            }
-                            SetQuestionAnswerPairInConversationListbox(_pendingDialogueText, answer);
-
-                            //_speakingInProgress = true;
-                            //UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
-
-                            //if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
-                            //{
-                            //    DialogueInfo reply = new DialogueInfo
-                            //    {
-                            //        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
-                            //        speakerPortrait = texturePortrait,
-                            //        speakerName = TalkManager.Instance.NameNPC,
-                            //        dialogueText = TalkManager.Instance.GetAnswerText(listItem),
-                            //    };
-                            //    UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
-                            //}
-
-                            _selectedTopicInstanceId = 0;
-                            _pendingDialogueText = null;
-                            _conversationWindowInstance.SetPendingDialogue(null);
-                        }
-                    };
-
-                    _conversationWindowInstance.Event_OnCopyDialogueToNotebook += (UIDialogueEntry dialogueEntry, int dialogueEntryIndex) =>
+                        if (dialogueEntry.isPlayerDialogue) { dialogueEntry.SetBorderColor(textcolorQuestionBackgroundModernConversationStyle); }
+                        else { dialogueEntry.SetBorderColor(textcolorAnswerBackgroundModernConversationStyle); }
+                    }
+                    else
                     {
-                        if (copyIndexes.Remove(dialogueEntryIndex))
-                        {
-                            if (dialogueEntry.isPlayerDialogue) { dialogueEntry.SetBorderColor(textcolorQuestionBackgroundModernConversationStyle); }
-                            else { dialogueEntry.SetBorderColor(textcolorAnswerBackgroundModernConversationStyle); }
-                        }
-                        else
-                        {
-                            copyIndexes.Add(dialogueEntryIndex);
-                            dialogueEntry.SetBorderColor(textcolorHighlighted);
-                        }
-                    };
-                }
+                        copyIndexes.Add(dialogueEntryIndex);
+                        dialogueEntry.SetBorderColor(textcolorHighlighted);
+                    }
+                };
             }
+            #endregion
         }
         #endregion
 
@@ -259,13 +257,14 @@ namespace AcrealUI
             }
         }
 
-        protected override void Setup() { }
+        //unused functions
         public override void Draw() { }
+        protected override void Setup() { }
         #endregion
 
 
         #region Topics
-        public void PushTopicList(List<TalkManager.ListItem> topics)
+        private void PushTopicList(List<TalkManager.ListItem> topics)
         {
             if (topics != null)
             {
@@ -429,7 +428,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Dialogue
+        #region Dialogue Routine
         //private IEnumerator<float> DisplayDialogueRoutine(DialogueInfo dialogueInfo)
         //{
         //    int charsPerSecond = 32;

@@ -872,7 +872,6 @@ namespace AcrealUI
                         bool clearInventoryBeforeUpdate = false;
 
                         //contextual behavior based on item type
-                        ItemType itemType = UIUtilityFunctions.ItemToItemType(item);
                         if (UIUtilityFunctions.ItemIsEquippable(item))
                         {
                             if (item.IsEquipped)
@@ -884,7 +883,7 @@ namespace AcrealUI
                                 LocalItemListScroller_OnItemClick(item, ActionModes.Equip);
                             }
                         }
-                        else if (UIUtilityFunctions.ItemTypeIsUseable(itemType))
+                        else if (UIUtilityFunctions.ItemTypeIsUseable(UIUtilityFunctions.ItemToItemType(item)))
                         {
                             LocalItemListScroller_OnItemClick(item, ActionModes.Use);
 
@@ -896,7 +895,7 @@ namespace AcrealUI
                         }
                         else
                         {
-                            Debug.LogWarning("No idea what to do with item of type: " + itemType);
+                            Debug.LogWarning("[ACREALUI] No idea what to do with item of type: " + UIUtilityFunctions.ItemToItemType(item));
                         }
 
 
