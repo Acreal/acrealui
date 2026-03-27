@@ -17,7 +17,6 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
-using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
@@ -134,66 +133,68 @@ namespace AcrealUI
 
             if (_conversationWindowInstance != null)
             {
-                // TOPICS ///////////////////////////////////////////////////////////////////////////////////////////
+                #region Populate Topics
+                //NOTE(Acreal): since the topics are dynamic and based on the NPC you're talking to,
+                //this list has to be created when the conversation is started, and cannot be cached
+                //at Initialization time
+                TalkManager.ListItem tellMeAbt = new TalkManager.ListItem
                 {
-                    TalkManager.ListItem tellMeAbt = new TalkManager.ListItem
-                    {
-                        type = TalkManager.ListItemType.ItemGroup,
-                        caption = "Tell Me About",//UIUtilityFunctions.GetLocalizedText("button_tellmeabout"),
-                        listChildItems = TalkManager.Instance.ListTopicTellMeAbout,
-                    };
+                    type = TalkManager.ListItemType.ItemGroup,
+                    caption = "Tell Me About",//UIUtilityFunctions.GetLocalizedText("button_tellmeabout"),
+                    listChildItems = TalkManager.Instance.ListTopicTellMeAbout,
+                };
 
-                    TalkManager.ListItem location = new TalkManager.ListItem
-                    {
-                        type = TalkManager.ListItemType.ItemGroup,
-                        caption = "Location",//UIUtilityFunctions.GetLocalizedText("button_location"),
-                        listChildItems = TalkManager.Instance.ListTopicLocation,
-                    };
+                TalkManager.ListItem location = new TalkManager.ListItem
+                {
+                    type = TalkManager.ListItemType.ItemGroup,
+                    caption = "Location",//UIUtilityFunctions.GetLocalizedText("button_location"),
+                    listChildItems = TalkManager.Instance.ListTopicLocation,
+                };
 
-                    TalkManager.ListItem people = new TalkManager.ListItem
-                    {
-                        type = TalkManager.ListItemType.ItemGroup,
-                        caption = "People",//UIUtilityFunctions.GetLocalizedText("button_people"),
-                        listChildItems = TalkManager.Instance.ListTopicPerson,
-                    };
+                TalkManager.ListItem people = new TalkManager.ListItem
+                {
+                    type = TalkManager.ListItemType.ItemGroup,
+                    caption = "People",//UIUtilityFunctions.GetLocalizedText("button_people"),
+                    listChildItems = TalkManager.Instance.ListTopicPerson,
+                };
 
-                    TalkManager.ListItem things = new TalkManager.ListItem
-                    {
-                        type = TalkManager.ListItemType.ItemGroup,
-                        caption = "Things",//UIUtilityFunctions.GetLocalizedText("button_things"),
-                        listChildItems = TalkManager.Instance.ListTopicThings,
-                    };
+                TalkManager.ListItem things = new TalkManager.ListItem
+                {
+                    type = TalkManager.ListItemType.ItemGroup,
+                    caption = "Things",//UIUtilityFunctions.GetLocalizedText("button_things"),
+                    listChildItems = TalkManager.Instance.ListTopicThings,
+                };
 
-                    TalkManager.ListItem work = new TalkManager.ListItem
-                    {
-                        type = TalkManager.ListItemType.Item,
-                        questionType = TalkManager.QuestionType.Work,
-                        caption = "Work",//UIUtilityFunctions.GetLocalizedText("button_work"),
-                    };
+                TalkManager.ListItem work = new TalkManager.ListItem
+                {
+                    type = TalkManager.ListItemType.Item,
+                    questionType = TalkManager.QuestionType.Work,
+                    caption = "Work",//UIUtilityFunctions.GetLocalizedText("button_work"),
+                };
 
-                    List<TalkManager.ListItem> whereIsList = new List<TalkManager.ListItem>
-                    {
-                        location,
-                        people,
-                        things,
-                        work,
-                    };
+                List<TalkManager.ListItem> whereIsList = new List<TalkManager.ListItem>
+                {
+                    location,
+                    people,
+                    things,
+                    work,
+                };
 
-                    TalkManager.ListItem whereIs = new TalkManager.ListItem
-                    {
-                        type = TalkManager.ListItemType.ItemGroup,
-                        caption = "Where Is",//UIUtilityFunctions.GetLocalizedText("button_whereis"),
-                        listChildItems = whereIsList,
-                    };
+                TalkManager.ListItem whereIs = new TalkManager.ListItem
+                {
+                    type = TalkManager.ListItemType.ItemGroup,
+                    caption = "Where Is",//UIUtilityFunctions.GetLocalizedText("button_whereis"),
+                    listChildItems = whereIsList,
+                };
 
-                    List<TalkManager.ListItem> defaultTopicList = new List<TalkManager.ListItem>
-                    {
-                        tellMeAbt,
-                        whereIs,
-                    };
+                List<TalkManager.ListItem> defaultTopicList = new List<TalkManager.ListItem>
+                {
+                    tellMeAbt,
+                    whereIs,
+                };
 
-                    PushTopicList(defaultTopicList);
-                }
+                PushTopicList(defaultTopicList);
+                #endregion
 
                 SetQuestionAnswerPairInConversationListbox(null, TalkManager.Instance.NPCGreetingText);
                 _conversationWindowInstance.SetPendingDialogue(null);

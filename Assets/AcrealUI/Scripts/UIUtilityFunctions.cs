@@ -842,6 +842,7 @@ namespace AcrealUI
                 case ItemType.Food:
                 case ItemType.Potion:
                 case ItemType.Readable:
+                case ItemType.QuestItem:
                     return true;
 
                 default:

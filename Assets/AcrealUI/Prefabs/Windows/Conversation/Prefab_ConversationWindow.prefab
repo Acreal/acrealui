@@ -2959,6 +2959,7 @@ MonoBehaviour:
   _gameObjName_topicEntryParent: VerticalLayout_Topics
   _gameObjName_prevTopicButton: Button_PrevTopic
   _gameObjName_topicDivider: LayoutElem_TopicDivider
+  _gameObjName_dialogueScrollViewCanvasGroup: ScrollView_DialogueList
   _gameObjName_recentDialogueEntryParent: Parent_RecentDialogueEntries
   _gameObjName_oldDialogueEntryParent: Parent_OldDialogueEntries
   _gameObjName_pendingDialogueText: Text_PendingDialogue
@@ -6369,6 +6370,7 @@ GameObject:
   - component: {fileID: 9219817291070945281}
   - component: {fileID: 8170534074205116079}
   - component: {fileID: 2006656122472970710}
+  - component: {fileID: 3905746893110454559}
   - component: {fileID: 7310341108672943085}
   m_Layer: 5
   m_Name: ScrollView_DialogueList
@@ -6449,6 +6451,18 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!225 &3905746893110454559
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8685528614453196205}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &7310341108672943085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6986,7 +7000,7 @@ MonoBehaviour:
     m_Left: 12
     m_Right: 20
     m_Top: 32
-    m_Bottom: 4
+    m_Bottom: 12
   m_ChildAlignment: 7
   m_Spacing: 10
   m_ChildForceExpandWidth: 0

@@ -38,6 +38,7 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_topicDivider = null;
 
         [Header("Player/NPC Dialogue")]
+        [SerializeField] private string _gameObjName_dialogueScrollViewCanvasGroup = null;
         [SerializeField] private string _gameObjName_recentDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_oldDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_pendingDialogueText = null;
@@ -61,6 +62,7 @@ namespace AcrealUI
         private RectTransform _topicEntryParent = null;
         private UIButton _previousTopicButton = null;
         private GameObject _topicDivider;
+        private CanvasGroup _dialogueScrollViewCanvasGroup = null;
         private RectTransform _recentDialogueEntryParent = null;
         private RectTransform _oldDialogueEntryParent = null;
         private LayoutElement _dialogueLayoutElement = null;
@@ -115,6 +117,12 @@ namespace AcrealUI
             _topicEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicEntryParent) as RectTransform;
             _recentDialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_recentDialogueEntryParent) as RectTransform;
             _oldDialogueEntryParent = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_oldDialogueEntryParent) as RectTransform;
+
+            Transform scrollGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_dialogueScrollViewCanvasGroup);
+            if (scrollGroupTform != null)
+            {
+                _dialogueScrollViewCanvasGroup = scrollGroupTform.GetComponent<CanvasGroup>();
+            }
 
             Transform viewportTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_topicViewportLayoutElement);
             if(viewportTform != null)
@@ -231,6 +239,11 @@ namespace AcrealUI
                 _dialogueLayoutElement.minHeight = rt.sizeDelta.y - padding;
             }
 
+            if(_dialogueScrollViewCanvasGroup != null)
+            {
+                _dialogueScrollViewCanvasGroup.blocksRaycasts = false;
+            }
+
             base.ShowInternal();
         }
         #endregion
@@ -285,6 +298,11 @@ namespace AcrealUI
                     int entryIndex = _allDialogueEntries.IndexOf(entry);
                     Event_OnCopyDialogueToNotebook?.Invoke(entry, entryIndex);
                 };
+
+                if (_dialogueScrollViewCanvasGroup != null)
+                {
+                    _dialogueScrollViewCanvasGroup.blocksRaycasts = _allDialogueEntries.Count > 1;
+                }
             }
             return dialogueEntry;
         }

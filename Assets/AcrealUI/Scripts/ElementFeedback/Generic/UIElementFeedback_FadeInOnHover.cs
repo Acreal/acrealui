@@ -35,7 +35,7 @@ namespace AcrealUI
 
         private CanvasGroup _canvasGroup = null;
         private bool _isFadedIn = false;
-        private bool _isRunningFadeRoutine = true;
+        private bool _isRunningFadeRoutine = false;
         #endregion
 
 
@@ -44,11 +44,16 @@ namespace AcrealUI
         {
             Transform canvasGroupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_canvasGroup);
             if(canvasGroupTForm == null) { canvasGroupTForm = transform; }
+            
             _canvasGroup = canvasGroupTForm.GetComponent<CanvasGroup>();
-
-            if (_controlActiveState)
+            if(_canvasGroup != null)
             {
-                _canvasGroup?.gameObject.SetActive(false);
+                _canvasGroup.alpha = 0f;
+
+                if (_controlActiveState)
+                {
+                    _canvasGroup.gameObject.SetActive(false);
+                }
             }
 
             base.Initialize(uiElement);
