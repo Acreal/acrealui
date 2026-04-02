@@ -868,37 +868,7 @@ namespace AcrealUI
                 DaggerfallUnityItem item = localItems.GetItem(itemEntry.itemUID);
                 if (item != null)
                 {
-                    bool splitting = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-                    if(splitting)
-                    {
-                        if (item.IsAStack() && item.stackCount >= 2)
-                        {
-                            DaggerfallUnityItem stackItem = item;
-                            int maxCount = item.stackCount - 1;
-                            int defaultValue = item.stackCount / 2;
-                            
-                            // TODO(Acreal): localize "Split Stack" string
-                            UIManager.popupManager.PushSliderConfirmationWindow("Split Stack", String.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
-                                                                          0, item.stackCount-1, true, //slider params
-                                                                          new object[2] { localItems, stackItem }, //additional meta data to pass along
-                                                                          (float sliderValue, object[] dataPayload) => //on confirm
-                                                                          {
-                                                                              UIManager.popupManager.PopWindow();
-
-                                                                              ItemCollection collection = dataPayload[0] as ItemCollection;
-                                                                              DaggerfallUnityItem itemToSplit = dataPayload[1] as DaggerfallUnityItem;
-                                                                              if (collection != null && itemToSplit != null)
-                                                                              {
-                                                                                  int splitSize = (int)sliderValue;
-                                                                                  DaggerfallUnityItem splitItem = collection.SplitStack(stackItem, splitSize);
-                                                                                  collection.AddItem(splitItem, noStack:true);
-                                                                                  UpdatePlayerInventory(true);
-                                                                              }
-                                                                          },
-                                                                          null);
-                        }
-                    }
-                    else if (usingWagon)
+                    if (usingWagon)
                     {
                         //when using the wagon, left click function
                         //changes to swapping item over to the dropped
@@ -961,38 +931,73 @@ namespace AcrealUI
                 DaggerfallUnityItem item = localItems.GetItem(itemEntry.itemUID);
                 if (item != null)
                 {
-                    ItemType itemType = UIUtilityFunctions.ItemToItemType(item);
-
-                    //unequip the item if we have it equipped before transferring it
-                    if (UIUtilityFunctions.ItemIsEquippable(item))
+                    bool splitting = item.IsAStack() && item.stackCount >= 2 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+                    if (splitting)
                     {
-                        if (item.IsEquipped)
-                        {
-                            UnequipItem(item);
-                            UpdateVitalStats();
-                            UpdatePaperDoll();
-                            UpdateEquipmentStats();
-                        }
+                        int maxCount = item.stackCount - 1;
+                        int defaultValue = item.stackCount / 2;
+
+                        // TODO(Acreal): localize "Split Stack" string
+                        UIManager.popupManager.PushSliderConfirmationWindow("Split Stack", String.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
+                                                                        0, item.stackCount - 1, true, //slider params
+                                                                        new object[3] { localItems, remoteItems, item }, //additional meta data to pass along
+                                                                        (float sliderValue, object[] dataPayload) => //on confirm
+                                                                        {
+                                                                            UIManager.popupManager.PopWindow();
+
+                                                                            ItemCollection sourceCollection = dataPayload[0] as ItemCollection;
+                                                                            ItemCollection destCollection = dataPayload[1] as ItemCollection;
+                                                                            DaggerfallUnityItem itemToSplit = dataPayload[2] as DaggerfallUnityItem;
+                                                                            if (sourceCollection != null && itemToSplit != null)
+                                                                            {
+                                                                                int splitSize = (int)sliderValue;
+                                                                                DaggerfallUnityItem splitItem = sourceCollection.SplitStack(itemToSplit, splitSize);
+                                                                                HandleLocalItemClick(splitItem);
+                                                                            }
+                                                                        },
+                                                                        (_) => { UIManager.popupManager.PopWindow(); });
                     }
-
-                    LocalItemListScroller_OnItemClick(item, ActionModes.Remove);
-
-                    //item removed successfully
-                    if (!localItems.Contains(item))
+                    else
                     {
-                        _inventoryWindowInstance.itemList_playerInventory.RemoveItemEntry(itemEntry.itemUID);
-                        UpdatePlayerFilterToggles();
-
-                        _inventoryWindowInstance.itemList_container.EnableOrDisableTabs(false, false, false, LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
-                        UpdateContainerFilterToggles();
-                        UpdateContainerInventory();
-
-                        _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
-
-                        UIManager.tooltipManager.HideActiveTooltip();
-
-                        _inventoryWindowInstance.ShowContainerPanel();
+                        HandleLocalItemClick(item);
                     }
+                }
+            }
+        }
+
+        private void HandleLocalItemClick(DaggerfallUnityItem item)
+        {
+            ItemType itemType = UIUtilityFunctions.ItemToItemType(item);
+
+            //unequip the item if we have it equipped before transferring it
+            if (UIUtilityFunctions.ItemIsEquippable(item))
+            {
+                if (item.IsEquipped)
+                {
+                    UnequipItem(item);
+                    UpdateVitalStats();
+                    UpdatePaperDoll();
+                    UpdateEquipmentStats();
+                }
+            }
+
+            LocalItemListScroller_OnItemClick(item, ActionModes.Remove);
+
+            //item removed successfully
+            if (!localItems.Contains(item))
+            {
+                UpdatePlayerFilterToggles();
+                UpdateContainerFilterToggles();
+                UpdatePlayerInventory(true);
+                UpdateContainerInventory();
+
+                UIManager.tooltipManager.HideActiveTooltip();
+
+                if (_inventoryWindowInstance != null)
+                {
+                    _inventoryWindowInstance.itemList_container.EnableOrDisableTabs(false, false, false, LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
+                    _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
+                    _inventoryWindowInstance.ShowContainerPanel();
                 }
             }
         }
@@ -1004,56 +1009,93 @@ namespace AcrealUI
                 DaggerfallUnityItem item = remoteItems.GetItem(itemEntry.itemUID);
                 if (item != null)
                 {
-                    if (usingWagon)
+                    bool splitting = item.IsAStack() && item.stackCount >= 2 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+                    if (splitting)
                     {
-                        //this is a small workaround for allowing the base class's
-                        //code to handle this case appropriately, despite moving
-                        //the wagon display to where the player's inventory is
-                        //(in base class the wagon's inventory would be kept in "remoteItems")
-                        ItemCollection prevLocalItems = localItems;
-                        ItemCollection prevRemoteItems = remoteItems;
+                        int maxCount = item.stackCount - 1;
+                        int defaultValue = item.stackCount / 2;
 
-                        localItems = remoteItems;
-                        remoteItems = playerEntity.WagonItems;
+                        // TODO(Acreal): localize "Split Stack" string
+                        UIManager.popupManager.PushSliderConfirmationWindow("Split Stack", String.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
+                                                                        0, item.stackCount - 1, true, //slider params
+                                                                        new object[3] { localItems, remoteItems, item }, //additional meta data to pass along
+                                                                        (float sliderValue, object[] dataPayload) => //on confirm
+                                                                        {
+                                                                            UIManager.popupManager.PopWindow();
 
-                        LocalItemListScroller_OnItemClick(item, ActionModes.Remove);
-
-                        localItems = prevLocalItems;
-                        remoteItems = prevRemoteItems;
+                                                                            ItemCollection localCollection = dataPayload[0] as ItemCollection;
+                                                                            ItemCollection remoteCollection = dataPayload[1] as ItemCollection;
+                                                                            DaggerfallUnityItem itemToSplit = dataPayload[2] as DaggerfallUnityItem;
+                                                                            if (remoteCollection != null && localCollection != null && itemToSplit != null)
+                                                                            {
+                                                                                int splitSize = (int)sliderValue;
+                                                                                DaggerfallUnityItem splitItem = remoteCollection.SplitStack(item, splitSize);
+                                                                                HandleContainerItemClick(splitItem);
+                                                                                UpdateContainerInventory(true);
+                                                                            }
+                                                                        },
+                                                                        (_) => { UIManager.popupManager.PopWindow(); });
                     }
                     else
                     {
-                        RemoteItemListScroller_OnItemClick(item, ActionModes.Remove);
+                        HandleContainerItemClick(item);
+                    }
+                }
+            }
+        }
+
+        private void HandleContainerItemClick(DaggerfallUnityItem item)
+        {
+            if (item != null)
+            {
+                if (usingWagon)
+                {
+                    //this is a small workaround for allowing the base class's
+                    //code to handle this case appropriately, despite moving
+                    //the wagon display to where the player's inventory is
+                    //(in base class the wagon's inventory would be kept in "remoteItems")
+                    ItemCollection prevLocalItems = localItems;
+                    ItemCollection prevRemoteItems = remoteItems;
+
+                    localItems = remoteItems;
+                    remoteItems = playerEntity.WagonItems;
+
+                    LocalItemListScroller_OnItemClick(item, ActionModes.Remove);
+
+                    localItems = prevLocalItems;
+                    remoteItems = prevRemoteItems;
+                }
+                else
+                {
+                    RemoteItemListScroller_OnItemClick(item, ActionModes.Remove);
+                }
+
+                //item was successfully transferred to player
+                if (!remoteItems.Contains(item))
+                {
+                    UpdateContainerFilterToggles();
+                    UpdateContainerInventory(true);
+                    UpdatePlayerFilterToggles();
+                    UpdatePlayerInventory();
+
+                    UIManager.tooltipManager.HideActiveTooltip();
+
+                    if (UIUtilityFunctions.ItemIsGold(item))
+                    {
+                        _inventoryWindowInstance.itemList_playerInventory.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
                     }
 
-                    //item was successfully transferred to player
-                    if (!remoteItems.Contains(item))
+                    _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
+
+                    if (remoteItems.Count == 0)
                     {
-                        UpdateContainerFilterToggles();
-                        _inventoryWindowInstance.itemList_container.RemoveItemEntry(item.UID);
-
-                        UpdatePlayerFilterToggles();
-                        UpdatePlayerInventory();
-
-                        UIManager.tooltipManager.HideActiveTooltip();
-
-                        if (UIUtilityFunctions.ItemIsGold(item))
+                        if (lootTarget != null)
                         {
-                            _inventoryWindowInstance.itemList_playerInventory.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+                            PopWindow();
                         }
-
-                        _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
-
-                        if (remoteItems.Count == 0)
+                        else
                         {
-                            if (lootTarget != null)
-                            {
-                                PopWindow();
-                            }
-                            else
-                            {
-                                _inventoryWindowInstance.HideContainerPanel();
-                            }
+                            _inventoryWindowInstance.HideContainerPanel();
                         }
                     }
                 }
