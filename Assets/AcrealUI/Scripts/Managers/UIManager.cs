@@ -316,7 +316,7 @@ namespace AcrealUI
             }
         }
 
-        public void RunCoroutine(int objectId, int instanceId, IEnumerator<float> coroutine)
+        public void RunCoroutine(int objectId, int instanceId, IEnumerator<float> coroutine, Action<bool> onEndCallback = null)
         {
             if (coroutine != null)
             {
@@ -325,6 +325,7 @@ namespace AcrealUI
                     objectId = objectId,
                     instanceId = instanceId,
                     coroutine = coroutine,
+                    endCallback = onEndCallback,
                 };
 
                 bool overwrote = false;
@@ -341,6 +342,7 @@ namespace AcrealUI
                             objectId = objId,
                             instanceId = instId,
                             coroutine = coroutine,
+                            endCallback = onEndCallback,
                         };
                         overwrote = true;
                         break;
@@ -375,6 +377,7 @@ namespace AcrealUI
                         objectId = objId,
                         instanceId = instId,
                         coroutine = null,
+                        endCallback = null,
                     };
                     break;
                 }

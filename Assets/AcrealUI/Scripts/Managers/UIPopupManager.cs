@@ -45,7 +45,7 @@ namespace AcrealUI
             UISliderConfirmationWindowController windowController = new UISliderConfirmationWindowController();
             if (windowController != null)
             {
-                _windowStack.Push(windowController);
+                _windowStack.Push((IWindowController)windowController);
 
                 windowController.SetText(title, message);
                 windowController.SetSliderMinMax(minSliderValue, maxSliderValue, useWholeNumbers);
@@ -60,7 +60,7 @@ namespace AcrealUI
             UIConfirmationWindowController windowController = new UIConfirmationWindowController();
             if (windowController != null)
             {
-                _windowStack.Push(windowController);
+                _windowStack.Push((IWindowController)windowController);
 
                 windowController.SetText(title, message);
                 windowController.SetDataPayload(dataPayload);

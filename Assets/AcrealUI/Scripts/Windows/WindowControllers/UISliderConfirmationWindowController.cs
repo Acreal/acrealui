@@ -43,7 +43,7 @@ namespace AcrealUI
 
         public void CreateWindow()
         {
-            if (_sliderConfirmationWindow == null && UIManager.referenceManager.prefab_confirmationWindow != null)
+            if (_sliderConfirmationWindow == null && UIManager.referenceManager.prefab_sliderConfirmationWindow != null)
             {
                 _sliderConfirmationWindow = Object.Instantiate(UIManager.referenceManager.prefab_sliderConfirmationWindow);
                 _sliderConfirmationWindow.Initialize();

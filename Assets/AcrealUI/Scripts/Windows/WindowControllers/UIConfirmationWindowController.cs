@@ -38,7 +38,7 @@ namespace AcrealUI
         #region Initialization
         public UIConfirmationWindowController()
         {
-            
+            CreateWindow();
         }
         #endregion
 
