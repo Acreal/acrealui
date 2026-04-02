@@ -25,55 +25,48 @@ namespace AcrealUI
     {
         #region Variables
         private UIConfirmationWindow _confirmationWindow = null;
+        private object[] _dataPayload = null;
         #endregion
 
 
         #region Events
-        public event System.Action Event_ButtonClick_OnConfirm = null;
-        public event System.Action Event_ButtonClick_OnCancel = null;
+        private event System.Action<object[]> Event_ButtonClick_OnConfirm = null;
+        private event System.Action<object[]> Event_ButtonClick_OnCancel = null;
         #endregion
 
 
         #region Initialization
         public UIConfirmationWindowController()
         {
-            if (UIManager.referenceManager.prefab_confirmationWindow != null)
-            {
-                _confirmationWindow = Object.Instantiate(UIManager.referenceManager.prefab_confirmationWindow);
-                _confirmationWindow.Initialize();
-                _confirmationWindow.Hide();
-                _confirmationWindow.SetBackButtonActive(false);
-                _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(); };
-                _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(); };
-                _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(); };
-                _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(); };
-            }
+            
         }
         #endregion
 
 
         #region Public API
-        public void ResetEvents()
-        {
-            Event_ButtonClick_OnConfirm = null;
-            Event_ButtonClick_OnCancel = null;
-        }
-
-        public void UpdateButtons()
-        {
-            if(_confirmationWindow != null)
-            {
-                _confirmationWindow.SetConfirmButtonActive(Event_ButtonClick_OnConfirm != null);
-                _confirmationWindow.SetCancelButtonActive(Event_ButtonClick_OnCancel != null);
-            }
-        }
-
         public void SetText(string title, string message)
         {
-            if(_confirmationWindow != null)
+            if (_confirmationWindow != null)
             {
                 _confirmationWindow.SetHeaderText(title);
                 _confirmationWindow.SetMessageText(message);
+            }
+        }
+
+        public void SetDataPayload(object[] data)
+        {
+            _dataPayload = data;
+        }
+
+        public void RegisterEvents(System.Action<object[]> onConfirm, System.Action<object[]> onCancel)
+        {
+            Event_ButtonClick_OnConfirm = onConfirm;
+            Event_ButtonClick_OnCancel = onCancel;
+
+            if (_confirmationWindow != null)
+            {
+                _confirmationWindow.SetConfirmButtonActive(Event_ButtonClick_OnConfirm != null);
+                _confirmationWindow.SetCancelButtonActive(Event_ButtonClick_OnCancel != null);
             }
         }
         #endregion
@@ -90,10 +83,37 @@ namespace AcrealUI
 
         public void HideWindow()
         {
+            Event_ButtonClick_OnConfirm = null;
+            Event_ButtonClick_OnCancel = null;
+
             if (_confirmationWindow != null)
             {
                 _confirmationWindow.Hide();
             }
+        }
+
+        public void CreateWindow()
+        {
+            if (_confirmationWindow == null && UIManager.referenceManager.prefab_confirmationWindow != null)
+            {
+                _confirmationWindow = Object.Instantiate(UIManager.referenceManager.prefab_confirmationWindow);
+                _confirmationWindow.Initialize();
+                _confirmationWindow.Hide();
+                _confirmationWindow.SetBackButtonActive(false);
+                _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+                _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+                _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(_dataPayload); };
+                _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+            }
+        }
+
+        public void DestroyWindow()
+        {
+            if (_confirmationWindow != null)
+            {
+                Object.Destroy(_confirmationWindow.gameObject);
+            }
+            _confirmationWindow = null;
         }
         #endregion
     }

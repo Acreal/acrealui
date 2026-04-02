@@ -23,5 +23,8 @@ namespace AcrealUI
     {
         void ShowWindow();
         void HideWindow();
+
+        void CreateWindow();
+        void DestroyWindow();
     }
 }

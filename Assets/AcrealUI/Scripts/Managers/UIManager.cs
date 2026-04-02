@@ -35,18 +35,13 @@ NOTES(Acreal):
              all the way back to the root object. future instances could then use that list
              of indexes to find their way to the target transform using transform.GetChild(int)
              instead of Transform.Find(string)
-                -need to compare performance of both options in a test script first
-
-        -UI data should always flow from Object -> Controller -> UI
-        -Player Input should always flow from UI -> Controller -> Object
-        -UI scripts should not contain any Daggerfall scripts or namespaces
-            -they are only used to take in basic data and put it on the screen
-            -excludes 'DaggerfallWorkshop.Game.Utility.ModSupport' which is needed by [ImportedComponent]
 */
 
 using DaggerfallWorkshop.Game;
+using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -64,7 +59,7 @@ namespace AcrealUI
             public int objectId;
             public int instanceId;
             public IEnumerator<float> coroutine;
-            public System.Action<bool> endCallback;
+            public Action<bool> endCallback;
         }
         #endregion
 
@@ -74,7 +69,8 @@ namespace AcrealUI
 
         private static UIManager _instance = null;
 
-        private UIConfirmationWindowController _confirmationWindowController = null;
+        private Dictionary<UIWindowType, Type> _originalWindowTypesDict = null;
+        private Dictionary<UIWindowType, bool> _enabledWindowsDict = null;
         private List<CoroutineContainer> _runningCoroutines = null;
         private bool _runningMasterRoutine = false;
         #endregion
@@ -84,6 +80,7 @@ namespace AcrealUI
         public static UIManager Instance { get { return _instance; } }
         public static UIReferenceManager referenceManager { get; private set; }
         public static UITooltipManager tooltipManager { get; private set; }
+        public static UIPopupManager popupManager{ get; private set; }
         #endregion
 
 
@@ -120,9 +117,20 @@ namespace AcrealUI
                 tooltipManager.Initialize();
             }
 
-            if(_confirmationWindowController == null)
+            if(_originalWindowTypesDict == null)
             {
-                _confirmationWindowController = new UIConfirmationWindowController();
+                _originalWindowTypesDict = new Dictionary<UIWindowType, Type>();
+            }
+
+            if(_enabledWindowsDict == null)
+            {
+                _enabledWindowsDict = new Dictionary<UIWindowType, bool>();
+            }
+
+            if (popupManager == null)
+            {
+                popupManager = new UIPopupManager();
+                popupManager.Initialize();
             }
 
             #if UNITY_EDITOR
@@ -140,7 +148,6 @@ namespace AcrealUI
             });
             #endif
 
-
             mod.IsReady = true;
         }
 
@@ -149,10 +156,50 @@ namespace AcrealUI
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************************[NEW WINDOWS]******************************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
-            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController));
+            IUserInterfaceWindow pauseWindow = UIWindowFactory.GetInstance(UIWindowType.PauseOptions, DaggerfallUI.UIManager, null);
+            if (pauseWindow != null)
+            {
+                _originalWindowTypesDict[UIWindowType.PauseOptions] = pauseWindow.GetType();
+            }
+            else
+            {
+                _originalWindowTypesDict[UIWindowType.PauseOptions] = typeof(DaggerfallPauseOptionsWindow);
+            }
+
+            IUserInterfaceWindow inventoryWindow = UIWindowFactory.GetInstance(UIWindowType.Inventory, DaggerfallUI.UIManager, null);
+            if (inventoryWindow != null)
+            {
+                _originalWindowTypesDict[UIWindowType.Inventory] = inventoryWindow.GetType();
+            }
+            else
+            {
+                _originalWindowTypesDict[UIWindowType.Inventory] = typeof(DaggerfallInventoryWindow);
+            }
+
+            IUserInterfaceWindow saveWindow = UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { DaggerfallUI.UIManager, DaggerfallUnitySaveGameWindow.Modes.SaveGame, null, false });
+            if (saveWindow != null)
+            {
+                _originalWindowTypesDict[UIWindowType.UnitySaveGame] = saveWindow.GetType();
+            }
+            else
+            {
+                _originalWindowTypesDict[UIWindowType.UnitySaveGame] = typeof(DaggerfallUnitySaveGameWindow);
+            }
+
+            IUserInterfaceWindow talkWindow = UIWindowFactory.GetInstance(UIWindowType.Talk, DaggerfallUI.UIManager, null);
+            if (talkWindow != null)
+            {
+                _originalWindowTypesDict[UIWindowType.Talk] = talkWindow.GetType();
+            }
+            else
+            {
+                _originalWindowTypesDict[UIWindowType.Talk] = typeof(DaggerfallTalkWindow);
+            }
+
+            EnableWindow(UIWindowType.Talk);
+            EnableWindow(UIWindowType.Inventory);
+            EnableWindow(UIWindowType.PauseOptions);
+            EnableWindow(UIWindowType.UnitySaveGame);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************[WINDOWS THAT NEED TO BE REPLACED]*********************************//
@@ -227,6 +274,40 @@ namespace AcrealUI
 
 
         #region Public API
+        public void EnableWindow(UIWindowType windowType)
+        {
+            _enabledWindowsDict[windowType] = true;
+
+            switch(windowType)
+            {
+                case UIWindowType.PauseOptions: 
+                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController)); 
+                    break;
+
+                case UIWindowType.Inventory:
+                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController)); 
+                    break;
+
+                case UIWindowType.Talk:
+                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController)); 
+                    break;
+
+                case UIWindowType.UnitySaveGame:
+                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
+                    break;
+            }
+        }
+        
+        public void DisableWindow(UIWindowType windowType)
+        {
+            _enabledWindowsDict[windowType] = true;
+
+            if (_originalWindowTypesDict.TryGetValue(windowType, out Type t))
+            {
+                UIWindowFactory.RegisterCustomUIWindow(windowType, t);
+            }
+        }
+
         public void ExecuteDelayed(int objectId, int instanceId, float delay, System.Action funcToExecute)
         {
             if(funcToExecute != null)
@@ -297,27 +378,6 @@ namespace AcrealUI
                     };
                     break;
                 }
-            }
-        }
-
-        public void ShowConfirmationWindow(string title, string message, System.Action onConfirm, System.Action onCancel)
-        {
-            if(_confirmationWindowController != null)
-            {
-                _confirmationWindowController.SetText(title, message);
-                _confirmationWindowController.Event_ButtonClick_OnConfirm += onConfirm;
-                _confirmationWindowController.Event_ButtonClick_OnCancel += onCancel;
-                _confirmationWindowController.UpdateButtons();
-                _confirmationWindowController.ShowWindow();
-            }
-        }
-
-        public void HideConfirmationWindow()
-        {
-            if(_confirmationWindowController != null)
-            {
-                _confirmationWindowController.HideWindow();
-                _confirmationWindowController.ResetEvents();
             }
         }
         #endregion

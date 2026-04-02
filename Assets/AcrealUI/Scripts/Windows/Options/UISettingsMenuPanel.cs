@@ -27,19 +27,22 @@ namespace AcrealUI
     {
         #region Variables
         [SerializeField] private string _gameObjName_button_generalSettings = null;
+        [SerializeField] private string _gameObjName_button_interfaceSettings = null;
         [SerializeField] private string _gameObjName_button_videoSettings = null;
         [SerializeField] private string _gameObjName_button_audioSettings = null;
         [SerializeField] private string _gameObjName_button_controlSettings = null;
 
-        private UIButton button_generalSettings = null;
-        private UIButton button_videoSettings = null;
-        private UIButton button_audioSettings = null;
-        private UIButton button_controlSettings = null;
+        private UIButton _button_generalSettings = null;
+        private UIButton _button_interfaceSettings = null;
+        private UIButton _button_videoSettings = null;
+        private UIButton _button_audioSettings = null;
+        private UIButton _button_controlSettings = null;
         #endregion
 
 
         #region Events
         public System.Action Event_OnButtonClicked_GeneralSettings = null;
+        public System.Action Event_OnButtonClicked_InterfaceSettings = null;
         public System.Action Event_OnButtonClicked_VideoSettings = null;
         public System.Action Event_OnButtonClicked_AudioSettings = null;
         public System.Action Event_OnButtonClicked_ControlSettings = null;
@@ -54,23 +57,35 @@ namespace AcrealUI
             Transform generalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_generalSettings);
             if (generalTform != null)
             {
-                button_generalSettings = generalTform.GetComponent<UIButton>();
-                if (button_generalSettings != null)
+                _button_generalSettings = generalTform.GetComponent<UIButton>();
+                if (_button_generalSettings != null)
                 {
-                    button_generalSettings.Initialize();
-                    button_generalSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_GeneralSettings?.Invoke(); };
+                    _button_generalSettings.Initialize();
+                    _button_generalSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_GeneralSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_generalSettings + "\""); }
+            }
+
+            Transform interfaceTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_interfaceSettings);
+            if (interfaceTform != null)
+            {
+                _button_interfaceSettings = interfaceTform.GetComponent<UIButton>();
+                if (_button_interfaceSettings != null)
+                {
+                    _button_interfaceSettings.Initialize();
+                    _button_interfaceSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_InterfaceSettings?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_interfaceSettings + "\""); }
             }
 
             Transform videoTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_videoSettings);
             if (videoTform != null)
             {
-                button_videoSettings = videoTform.GetComponent<UIButton>();
-                if (button_videoSettings != null)
+                _button_videoSettings = videoTform.GetComponent<UIButton>();
+                if (_button_videoSettings != null)
                 {
-                    button_videoSettings.Initialize();
-                    button_videoSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_VideoSettings?.Invoke(); };
+                    _button_videoSettings.Initialize();
+                    _button_videoSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_VideoSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_videoSettings + "\""); }
             }
@@ -78,11 +93,11 @@ namespace AcrealUI
             Transform audioTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_audioSettings);
             if (audioTform != null)
             {
-                button_audioSettings = audioTform.GetComponent<UIButton>();
-                if (button_audioSettings != null)
+                _button_audioSettings = audioTform.GetComponent<UIButton>();
+                if (_button_audioSettings != null)
                 {
-                    button_audioSettings.Initialize();
-                    button_audioSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_AudioSettings?.Invoke(); };
+                    _button_audioSettings.Initialize();
+                    _button_audioSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_AudioSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_audioSettings + "\""); }
             }
@@ -90,11 +105,11 @@ namespace AcrealUI
             Transform controlTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_controlSettings);
             if (controlTform != null)
             {
-                button_controlSettings = controlTform.GetComponent<UIButton>();
-                if (button_controlSettings != null)
+                _button_controlSettings = controlTform.GetComponent<UIButton>();
+                if (_button_controlSettings != null)
                 {
-                    button_controlSettings.Initialize();
-                    button_controlSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_ControlSettings?.Invoke(); };
+                    _button_controlSettings.Initialize();
+                    _button_controlSettings.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_ControlSettings?.Invoke(); };
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_controlSettings + "\""); }
             }

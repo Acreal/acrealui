@@ -35,6 +35,11 @@ namespace AcrealUI
         #endregion
 
 
+        #region Properties
+        public bool useWholeNumbers { get { return _slider != null ? _slider.wholeNumbers : false; } }
+        #endregion
+
+
         #region Events
         public event Action<UISlider> Event_OnSliderValueChanged = null;
         #endregion
@@ -133,6 +138,8 @@ namespace AcrealUI
         {
             if (_slider != null)
             {
+                maxValue = Mathf.Max(minValue + 1, maxValue);
+
                 _slider.minValue = minValue;
                 _slider.maxValue = maxValue;
                 _slider.wholeNumbers = useWholeNumbersOnly;

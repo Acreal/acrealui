@@ -39,6 +39,7 @@ namespace AcrealUI
         public UIPauseWindow prefab_pauseWindow = null;
         public UIWindowSaveLoad prefab_saveLoadWindow = null;
         public UIConfirmationWindow prefab_confirmationWindow = null;
+        public UISliderConfirmationWindow prefab_sliderConfirmationWindow = null;
         public UIConversationWindow prefab_conversationWindow = null;
 
         public UISaveGameEntry prefab_saveEntry = null;
@@ -158,6 +159,9 @@ namespace AcrealUI
 
             GameObject confirmationObj = mod.GetAsset<GameObject>("Prefab_ConfirmationWindow");
             prefab_confirmationWindow = confirmationObj != null ? confirmationObj.GetComponent<UIConfirmationWindow>() : null;
+
+            GameObject sliderConfirmationObj = mod.GetAsset<GameObject>("Prefab_SliderConfirmationWindow");
+            prefab_sliderConfirmationWindow = sliderConfirmationObj != null ? sliderConfirmationObj.GetComponent<UISliderConfirmationWindow>() : null;
 
             GameObject conversationObj = mod.GetAsset<GameObject>("Prefab_ConversationWindow");
             prefab_conversationWindow = conversationObj != null ? conversationObj.GetComponent<UIConversationWindow>() : null;
