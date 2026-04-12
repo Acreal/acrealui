@@ -53,7 +53,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initilization
+        #region Initialization/Cleanup
         public virtual void Initialize()
         {
             _scrollListGroupDict = new Dictionary<string, UIScrollListGroup>();
@@ -74,6 +74,45 @@ namespace AcrealUI
             if (_layoutElement == null)
             {
                 _layoutElement = GetComponent<LayoutElement>();
+            }
+        }
+
+        public virtual void Cleanup()
+        {
+            if (_scrollListGroupDict != null)
+            {
+                List<UIScrollListGroup> groupsToDestroy = new List<UIScrollListGroup>(_scrollListGroupDict.Count);
+                foreach (UIScrollListGroup scrollGroup in _scrollListGroupDict.Values)
+                {
+                    scrollGroup.Cleanup();
+                    groupsToDestroy.Add(scrollGroup);
+                }
+
+                for (int i = groupsToDestroy.Count - 1; i >= 0; i--)
+                {
+                    Destroy(groupsToDestroy[i].gameObject);
+                }
+            }
+            _scrollListGroupDict = null;
+            _canvasGroup = null;
+            _layoutElement = null;
+            _scrollGroupParent = null;
+            _panelSize = Vector2.zero;
+        }
+
+        public virtual void ResetPanel()
+        {
+            if (_scrollListGroupDict != null)
+            {
+                foreach (UIScrollListGroup scrollGroup in _scrollListGroupDict.Values)
+                {
+                    scrollGroup.ResetGroup();
+                }
+            }
+
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
             }
         }
         #endregion

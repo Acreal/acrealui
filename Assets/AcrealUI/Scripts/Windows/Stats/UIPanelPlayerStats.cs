@@ -98,7 +98,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initalization
+        #region Initalization/Cleanup
         public override void Initialize()
         {
             base.Initialize();
@@ -220,6 +220,110 @@ namespace AcrealUI
                 RectTransform rt = layoutElement.transform as RectTransform;
                 rt.anchoredPosition = _hiddenPos;
             }
+        }
+
+        public override void Cleanup()
+        {
+            Event_OnEnemyTypeSelected = null;
+
+            _enemyTypeDropdown = null;
+
+            _experiencePercentSlider?.Cleanup();
+            _experiencePercentSlider = null;
+
+            _healthSlider?.Cleanup();
+            _healthSlider = null;
+
+            _fatigueSlider?.Cleanup();
+            _fatigueSlider = null;
+
+            _magickaSlider?.Cleanup();
+            _magickaSlider = null;
+
+            _showPanelButton?.Cleanup();
+            _showPanelButton = null;
+
+            _hidePanelButton?.Cleanup();
+            _hidePanelButton = null;
+
+            _playerNameText = null;
+            _playerRaceText = null;
+            _playerClassText = null;
+            _playerLevelText = null;
+
+            _mainHandDamageText = null;
+            _mainHandHitChanceText = null;
+            _offHandDamageText = null;
+            _offHandHitChanceText = null;
+            _totalArmorText = null;
+
+            List<GameObject> objsToDelete = new List<GameObject>();
+            if (_statEnumAsIntToStatEntryDict != null)
+            {
+                foreach (UIPlayerStatEntry statEntry in _statEnumAsIntToStatEntryDict.Values)
+                {
+                    if (statEntry != null)
+                    {
+                        statEntry.Cleanup();
+                        objsToDelete.Add(statEntry.gameObject);
+                    }
+                }
+            }
+
+            if (_skillEnumAsIntToSkillEntryDict != null)
+            {
+                foreach (UIPlayerSkillEntry skillEntry in _skillEnumAsIntToSkillEntryDict.Values)
+                {
+                    if (skillEntry != null)
+                    {
+                        skillEntry.Cleanup();
+                        objsToDelete.Add(skillEntry.gameObject);
+                    }
+                }
+            }
+
+            for (int i = 0; i < objsToDelete.Count; i++)
+            {
+                Destroy(objsToDelete[i]);
+            }
+
+            base.Cleanup();
+        }
+
+        public override void ResetPanel()
+        {
+            SetPlayerName(null);
+            SetPlayerClass(null);
+            SetPlayerLevel(null);
+            SetPlayerRace(null);
+
+            SetHealthValue(null);
+            SetFatigueValue(null);
+            SetMagickaValue(null);
+
+            SetEnemyTypeOptions(null);
+            SetMainHandDamageValue(null);
+            SetOffHandDamageValue(null);
+            SetMainHandHitChanceValue(null);
+            SetOffHandHitChanceValue(null);
+            SetTotalArmorValue(null);
+
+            SetExperiencePercent(0f);
+            SetHealthSliderPercent(0f);
+            SetFatigueSliderPercent(0f);
+            SetMagickaSliderPercent(0f);
+
+            foreach (UIPlayerStatEntry statEntry in _statEnumAsIntToStatEntryDict.Values)
+            {
+                statEntry.SetDisplayValue(null);
+            }
+
+            foreach (UIPlayerSkillEntry skillEntry in _skillEnumAsIntToSkillEntryDict.Values)
+            {
+                skillEntry.SetDisplayValue(null);
+            }
+
+            base.ResetPanel();
         }
         #endregion
 
@@ -531,7 +635,11 @@ namespace AcrealUI
             if(_enemyTypeDropdown != null)
             {
                 _enemyTypeDropdown.ClearOptions();
-                _enemyTypeDropdown.AddOptions(enemyTypes);
+
+                if (enemyTypes != null)
+                {
+                    _enemyTypeDropdown.AddOptions(enemyTypes);
+                }
             }
         }
         #endregion

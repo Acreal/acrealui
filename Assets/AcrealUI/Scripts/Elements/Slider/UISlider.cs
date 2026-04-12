@@ -80,6 +80,18 @@ namespace AcrealUI
 
             base.Initialize();
         }
+
+        public override void Cleanup()
+        {
+            DataSource_SliderValue = null;
+            DataSource_SliderValueString = null;
+            Event_OnSliderValueChanged = null;
+
+            _slider?.onValueChanged.RemoveAllListeners();
+            _slider = null;
+
+            base.Cleanup();
+        }
         #endregion
 
 

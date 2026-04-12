@@ -24,7 +24,8 @@ namespace AcrealUI
         void ShowWindow();
         void HideWindow();
 
-        void CreateWindow();
-        void DestroyWindow();
+        //used by Daggerfall Unity when a window is
+        //closed entirely, so we'll reuse it here
+        void OnPop();
     }
 }

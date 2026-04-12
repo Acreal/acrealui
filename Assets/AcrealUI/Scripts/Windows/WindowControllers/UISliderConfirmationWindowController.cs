@@ -35,17 +35,19 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initialization/Cleanup
+        #region Initialization
         public UISliderConfirmationWindowController()
         {
-            CreateWindow();
-        }
-
-        public void CreateWindow()
-        {
-            if (_sliderConfirmationWindow == null && UIManager.referenceManager.prefab_sliderConfirmationWindow != null)
+            if (_sliderConfirmationWindow == null)
             {
-                _sliderConfirmationWindow = Object.Instantiate(UIManager.referenceManager.prefab_sliderConfirmationWindow);
+                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.SliderConfirmation);
+                if (window == null || !(window is UISliderConfirmationWindow))
+                {
+                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.SliderConfirmation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UISliderConfirmationWindow, but got " + window.GetType().ToString() + "!"));
+                    return;
+                }
+
+                _sliderConfirmationWindow = window as UISliderConfirmationWindow;
                 _sliderConfirmationWindow.Initialize();
                 _sliderConfirmationWindow.Hide();
                 _sliderConfirmationWindow.SetBackButtonActive(false);
@@ -55,13 +57,27 @@ namespace AcrealUI
                 _sliderConfirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
             }
         }
+        #endregion
 
-        public void DestroyWindow()
+
+        #region IWindowController
+        public void ShowWindow()
         {
-            if (_sliderConfirmationWindow != null)
-            {
-                Object.Destroy(_sliderConfirmationWindow.gameObject);
-            }
+            _sliderConfirmationWindow?.Show();
+        }
+
+        public void HideWindow()
+        {
+            _sliderConfirmationWindow?.Hide();
+        }
+
+        public void OnPop()
+        {
+            Event_ButtonClick_OnConfirm = null;
+            Event_ButtonClick_OnCancel = null;
+
+            HideWindow();
+            _sliderConfirmationWindow?.ResetWindow();
             _sliderConfirmationWindow = null;
         }
         #endregion
@@ -99,28 +115,6 @@ namespace AcrealUI
             {
                 _sliderConfirmationWindow.SetConfirmButtonActive(Event_ButtonClick_OnConfirm != null);
                 _sliderConfirmationWindow.SetCancelButtonActive(Event_ButtonClick_OnCancel != null);
-            }
-        }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            if (_sliderConfirmationWindow != null)
-            {
-                _sliderConfirmationWindow.Show();
-            }
-        }
-
-        public void HideWindow()
-        {
-            Event_ButtonClick_OnConfirm = null;
-            Event_ButtonClick_OnCancel = null;
-
-            if (_sliderConfirmationWindow != null)
-            {
-                _sliderConfirmationWindow.Hide();
             }
         }
         #endregion

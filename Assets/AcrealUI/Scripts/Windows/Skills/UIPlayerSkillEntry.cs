@@ -60,6 +60,15 @@ namespace AcrealUI
             Transform parentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_skillRankParent);
             _skillRankParent = parentTform != null ? parentTform.gameObject : null;
         }
+
+        public void Cleanup()
+        {
+            _skillRankParent = null;
+            _text_skillName = null;
+            _text_skillValue = null;
+            _image_skillIcon = null;
+            _image_skillRankIcon = null;
+        }
         #endregion
 
 

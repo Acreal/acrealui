@@ -55,6 +55,22 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_default + "\""); }
             }
         }
+
+        public override void Cleanup()
+        {
+            Event_OnButtonClicked_Default = null;
+            
+            _button_default?.Cleanup();
+            _button_default = null;
+
+            base.Cleanup();
+        }
+
+        public override void ResetPanel()
+        {
+            _button_default?.ResetElement();
+            base.ResetPanel();
+        }
         #endregion
 
 

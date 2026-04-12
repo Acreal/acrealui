@@ -27,9 +27,9 @@ namespace AcrealUI
     public class UIInteractiveElement : UIElement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         #region Variables
-        protected bool _isDisabled = false;
         protected UIElementFeedback[] _elementFeedbackArray = null;
-
+        
+        private bool _isDisabled = false;
         private bool _isHighlighted = false;
         private bool _isPressed = false;
         #endregion
@@ -114,6 +114,42 @@ namespace AcrealUI
             }
 
             base.Initialize();
+        }
+
+        /// <summary>
+        /// sets all events and references to null
+        /// and resets any variables to default
+        /// </summary>
+        public override void Cleanup()
+        {
+            _isDisabled = false;
+            _isHighlighted = false;
+            _isPressed = false;
+
+            DataSource_IsDisabled = null;
+            Event_OnDisabledChanged = null;
+
+            if (_elementFeedbackArray != null)
+            {
+                for (int i = 0; i < _elementFeedbackArray.Length; i++)
+                {
+                    _elementFeedbackArray[i].Cleanup();
+                }
+            }
+            _elementFeedbackArray = null;
+
+            base.Cleanup();
+        }
+
+        /// <summary>
+        /// resets any variables, and returns to a default state
+        /// </summary>
+        public override void ResetElement()
+        {
+            _isDisabled = false;
+            _isHighlighted = false;
+            _isPressed = false;
+            base.ResetElement();
         }
         #endregion
 

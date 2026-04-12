@@ -24,7 +24,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIToggleFeedbackColor : UIToggleFeedback
+    public class UIToggleFeedbackColor : UIElementFeedback
     {
         #region Variables
         [SerializeField] private Color _colorWhenOn = new Color(0.9f, 0.9f, 0.9f, 1f);
@@ -36,6 +36,11 @@ namespace AcrealUI
         [SerializeField] private Color _colorOnDisable = new Color(0.9f, 0.9f, 0.9f, 1f);
 
         private Graphic _graphic = null;
+        #endregion
+
+
+        #region Properties
+        protected UIToggle toggle { get { return _uiElement as UIToggle; } }
         #endregion
 
 

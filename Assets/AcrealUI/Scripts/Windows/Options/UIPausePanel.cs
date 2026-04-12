@@ -26,17 +26,17 @@ namespace AcrealUI
     public class UIPausePanel : UIPanel
     {
         #region Variables
+        [SerializeField] private string _gameObjName_button_continue = null;
         [SerializeField] private string _gameObjName_button_saveGame = null;
         [SerializeField] private string _gameObjName_button_loadGame = null;
-        [SerializeField] private string _gameObjName_button_exitGame = null;
         [SerializeField] private string _gameObjName_button_settings = null;
-        [SerializeField] private string _gameObjName_button_continue = null;
+        [SerializeField] private string _gameObjName_button_exitGame = null;
 
+        private UIButton _button_continue = null;
         private UIButton _button_saveGame = null;
         private UIButton _button_loadGame = null;
-        private UIButton _button_exitGame = null;
         private UIButton _button_settings = null;
-        private UIButton _button_continue = null;
+        private UIButton _button_exitGame = null;
         #endregion
 
 
@@ -44,12 +44,12 @@ namespace AcrealUI
         public event System.Action Event_OnButtonClicked_Continue = null;
         public event System.Action Event_OnButtonClicked_SaveGame = null;
         public event System.Action Event_OnButtonClicked_LoadGame = null;
-        public event System.Action Event_OnButtonClicked_ExitGame = null;
         public event System.Action Event_OnButtonClicked_Settings = null;
+        public event System.Action Event_OnButtonClicked_ExitGame = null;
         #endregion
 
 
-        #region Init/Cleanup
+        #region Initialization/Cleanup
         public override void Initialize()
         {
             base.Initialize();
@@ -90,18 +90,6 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (loadTform != null ? loadTform.name : "NULL") + "\""); }
             }
 
-            Transform exitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_exitGame);
-            if (exitTform != null)
-            {
-                _button_exitGame = exitTform.GetComponent<UIButton>();
-                if (_button_exitGame != null)
-                {
-                    _button_exitGame.Initialize();
-                    _button_exitGame.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_ExitGame?.Invoke(); };
-                }
-                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (exitTform != null ? exitTform.name : "NULL") + "\""); }
-            }
-
             Transform settingsTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_settings);
             if (settingsTform != null)
             {
@@ -113,6 +101,44 @@ namespace AcrealUI
                 }
                 else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (settingsTform != null ? settingsTform.name : "NULL") + "\""); }
             }
+
+            Transform exitTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_button_exitGame);
+            if (exitTform != null)
+            {
+                _button_exitGame = exitTform.GetComponent<UIButton>();
+                if (_button_exitGame != null)
+                {
+                    _button_exitGame.Initialize();
+                    _button_exitGame.Event_OnAnyClick += (_, _1) => { Event_OnButtonClicked_ExitGame?.Invoke(); };
+                }
+                else { Debug.LogError("[AcrealUI.UIPausePanel] Failed to load UIButton Script on GameObject \"" + (exitTform != null ? exitTform.name : "NULL") + "\""); }
+            }
+        }
+
+        public override void Cleanup()
+        {
+            Event_OnButtonClicked_Continue = null;
+            Event_OnButtonClicked_SaveGame = null;
+            Event_OnButtonClicked_LoadGame = null;
+            Event_OnButtonClicked_Settings = null;
+            Event_OnButtonClicked_ExitGame = null;
+
+            _button_continue?.Cleanup();
+            _button_continue = null;
+            
+            _button_saveGame?.Cleanup();
+            _button_saveGame = null;
+
+            _button_loadGame?.Cleanup();
+            _button_loadGame = null;
+
+            _button_settings?.Cleanup();
+            _button_settings = null;
+
+            _button_exitGame?.Cleanup();
+            _button_exitGame = null;
+
+            base.Cleanup();
         }
         #endregion
     }

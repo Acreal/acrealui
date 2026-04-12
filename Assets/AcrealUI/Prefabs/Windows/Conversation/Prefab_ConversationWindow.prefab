@@ -2963,6 +2963,7 @@ MonoBehaviour:
   _gameObjName_recentDialogueEntryParent: Parent_RecentDialogueEntries
   _gameObjName_oldDialogueEntryParent: Parent_OldDialogueEntries
   _gameObjName_pendingDialogueText: Text_PendingDialogue
+  _gameObjName_dialoguePanelInteractiveElement: ScrollView_DialogueList
   _gameObjName_dialogueLayoutElement: ScrollView_DialogueList
   _gameObjName_pendingDialogueLayoutElement: LayoutElement_PendingDialogue
   _gameObjName_okayButton: Button_Okay
@@ -3937,7 +3938,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 8997371941811418069}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.9999999
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -7424,7 +7425,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 9213070799579386987}
   m_HandleRect: {fileID: 9213070799579386984}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:

@@ -44,6 +44,14 @@ namespace AcrealUI
                 };
             }
         }
+
+        /// <summary>
+        ///  sets all events and references to null
+        /// </summary>
+        public virtual void Cleanup()
+        {
+            _uiElement = null;
+        }
         #endregion
 
 

@@ -69,8 +69,10 @@ namespace AcrealUI
 
         private static UIManager _instance = null;
 
-        private Dictionary<UIWindowType, Type> _originalWindowTypesDict = null;
-        private Dictionary<UIWindowType, bool> _enabledWindowsDict = null;
+        private List<UIWindowInstanceType> _coreWindowInstanceTypesList = null;
+        private Dictionary<UIWindowInstanceType, UIWindow> _windowTypeToInstanceDict = null;
+        private Dictionary<UIWindowType, Type> _defaultCoreWindowTypes = null;
+        private Dictionary<UIWindowType, bool> _enabledCoreWindowsDict = null;
         private List<CoroutineContainer> _runningCoroutines = null;
         private bool _runningMasterRoutine = false;
         #endregion
@@ -103,35 +105,27 @@ namespace AcrealUI
         {
             _runningCoroutines = new List<CoroutineContainer>(16);
 
+            _coreWindowInstanceTypesList = new List<UIWindowInstanceType>
+            {
+                UIWindowInstanceType.PauseOptions,
+                UIWindowInstanceType.Conversation,
+                UIWindowInstanceType.Inventory,
+                UIWindowInstanceType.SaveOrLoadGame,
+            };
+            _windowTypeToInstanceDict = new Dictionary<UIWindowInstanceType, UIWindow>();
+            _defaultCoreWindowTypes = new Dictionary<UIWindowType, Type>();
+            _enabledCoreWindowsDict = new Dictionary<UIWindowType, bool>();
+
             UISpriteManager.Initialize();
 
-            if (referenceManager == null)
-            {
-                referenceManager = new UIReferenceManager();
-                referenceManager.Initialize(mod);
-            }
+            referenceManager = new UIReferenceManager();
+            referenceManager.Initialize(mod);
 
-            if (tooltipManager == null)
-            {
-                tooltipManager = new UITooltipManager();
-                tooltipManager.Initialize();
-            }
+            tooltipManager = new UITooltipManager();
+            tooltipManager.Initialize();
 
-            if(_originalWindowTypesDict == null)
-            {
-                _originalWindowTypesDict = new Dictionary<UIWindowType, Type>();
-            }
-
-            if(_enabledWindowsDict == null)
-            {
-                _enabledWindowsDict = new Dictionary<UIWindowType, bool>();
-            }
-
-            if (popupManager == null)
-            {
-                popupManager = new UIPopupManager();
-                popupManager.Initialize();
-            }
+            popupManager = new UIPopupManager();
+            popupManager.Initialize();
 
             #if UNITY_EDITOR
             ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset All Keybinds to Defaults", string.Empty, (_) =>
@@ -156,50 +150,27 @@ namespace AcrealUI
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************************[NEW WINDOWS]******************************************//
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            IUserInterfaceWindow pauseWindow = UIWindowFactory.GetInstance(UIWindowType.PauseOptions, DaggerfallUI.UIManager, null);
-            if (pauseWindow != null)
-            {
-                _originalWindowTypesDict[UIWindowType.PauseOptions] = pauseWindow.GetType();
-            }
-            else
-            {
-                _originalWindowTypesDict[UIWindowType.PauseOptions] = typeof(DaggerfallPauseOptionsWindow);
-            }
+            _defaultCoreWindowTypes[UIWindowType.PauseOptions] = typeof(DaggerfallPauseOptionsWindowExtended);
 
             IUserInterfaceWindow inventoryWindow = UIWindowFactory.GetInstance(UIWindowType.Inventory, DaggerfallUI.UIManager, null);
-            if (inventoryWindow != null)
-            {
-                _originalWindowTypesDict[UIWindowType.Inventory] = inventoryWindow.GetType();
-            }
-            else
-            {
-                _originalWindowTypesDict[UIWindowType.Inventory] = typeof(DaggerfallInventoryWindow);
-            }
+            _defaultCoreWindowTypes[UIWindowType.Inventory] = inventoryWindow != null ? inventoryWindow.GetType() : typeof(DaggerfallInventoryWindow);
 
             IUserInterfaceWindow saveWindow = UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { DaggerfallUI.UIManager, DaggerfallUnitySaveGameWindow.Modes.SaveGame, null, false });
-            if (saveWindow != null)
-            {
-                _originalWindowTypesDict[UIWindowType.UnitySaveGame] = saveWindow.GetType();
-            }
-            else
-            {
-                _originalWindowTypesDict[UIWindowType.UnitySaveGame] = typeof(DaggerfallUnitySaveGameWindow);
-            }
+            _defaultCoreWindowTypes[UIWindowType.UnitySaveGame] = saveWindow != null ? saveWindow.GetType() : typeof(DaggerfallUnitySaveGameWindow);
 
             IUserInterfaceWindow talkWindow = UIWindowFactory.GetInstance(UIWindowType.Talk, DaggerfallUI.UIManager, null);
-            if (talkWindow != null)
-            {
-                _originalWindowTypesDict[UIWindowType.Talk] = talkWindow.GetType();
-            }
-            else
-            {
-                _originalWindowTypesDict[UIWindowType.Talk] = typeof(DaggerfallTalkWindow);
-            }
+            _defaultCoreWindowTypes[UIWindowType.Talk] = talkWindow != null ? talkWindow.GetType() : typeof(DaggerfallTalkWindow);
 
-            EnableWindow(UIWindowType.Talk);
-            EnableWindow(UIWindowType.Inventory);
-            EnableWindow(UIWindowType.PauseOptions);
-            EnableWindow(UIWindowType.UnitySaveGame);
+            EnableCoreWindow(UIWindowType.PauseOptions);
+            EnableCoreWindow(UIWindowType.Inventory);
+            EnableCoreWindow(UIWindowType.Talk);
+            EnableCoreWindow(UIWindowType.UnitySaveGame);
+            ApplyCoreWindowChanges();
+
+            //daggerfall unity starts with a depth clear only,
+            //but the load game window does not have a background,
+            //so we set it to solid color before we get to that point
+            Camera.main.clearFlags = CameraClearFlags.SolidColor;
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //**************************[WINDOWS THAT NEED TO BE REPLACED]*********************************//
@@ -225,7 +196,6 @@ namespace AcrealUI
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.SpellBook, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.SpellIconPicker, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.SpellMaker, null);
-            //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Tavern, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.TeleportPopUp, null);
             //UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Trade, null);
@@ -274,37 +244,86 @@ namespace AcrealUI
 
 
         #region Public API
-        public void EnableWindow(UIWindowType windowType)
+        public UIWindow GetWindowInstance(UIWindowInstanceType windowType, bool autoCreate = true)
         {
-            _enabledWindowsDict[windowType] = true;
-
-            switch(windowType)
+            _windowTypeToInstanceDict.TryGetValue(windowType, out UIWindow window);
+            if (window == null && autoCreate)
             {
-                case UIWindowType.PauseOptions: 
-                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController)); 
-                    break;
+                switch (windowType)
+                {
+                    case UIWindowInstanceType.PauseOptions: window = Instantiate(referenceManager.prefab_pauseWindow); break;
+                    case UIWindowInstanceType.Conversation: window = Instantiate(referenceManager.prefab_conversationWindow); break;
+                    case UIWindowInstanceType.Inventory: window = Instantiate(referenceManager.prefab_inventoryWindow); break;
+                    case UIWindowInstanceType.SaveOrLoadGame: window = Instantiate(referenceManager.prefab_saveLoadWindow); break;
+                    case UIWindowInstanceType.Confirmation: window = Instantiate(referenceManager.prefab_confirmationWindow); break;
+                    case UIWindowInstanceType.SliderConfirmation: window = Instantiate(referenceManager.prefab_sliderConfirmationWindow); break;
+                }
 
-                case UIWindowType.Inventory:
-                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController)); 
-                    break;
-
-                case UIWindowType.Talk:
-                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController)); 
-                    break;
-
-                case UIWindowType.UnitySaveGame:
-                    UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
-                    break;
+                if (window != null)
+                {
+                    _windowTypeToInstanceDict[windowType] = window;
+                }
             }
+            return window;
+        }
+
+        public void EnableCoreWindow(UIWindowType windowInstanceType)
+        {
+            _enabledCoreWindowsDict[windowInstanceType] = true;
         }
         
-        public void DisableWindow(UIWindowType windowType)
+        public void DisableCoreWindow(UIWindowType windowInstanceType)
         {
-            _enabledWindowsDict[windowType] = true;
+            _enabledCoreWindowsDict[windowInstanceType] = false;
+        }
 
-            if (_originalWindowTypesDict.TryGetValue(windowType, out Type t))
+        public bool IsCoreWindowEnabled(UIWindowType windowType)
+        {
+            _enabledCoreWindowsDict.TryGetValue(windowType, out bool isEnabled);
+            return isEnabled;
+        }
+
+        public void ApplyCoreWindowChanges()
+        {
+            foreach (UIWindowInstanceType windowInstType in _coreWindowInstanceTypesList)
             {
-                UIWindowFactory.RegisterCustomUIWindow(windowType, t);
+                if (_windowTypeToInstanceDict.TryGetValue(windowInstType, out UIWindow windowInst))
+                {
+                    windowInst?.Hide();
+                    windowInst?.Cleanup();
+                }
+            }
+
+            foreach (KeyValuePair<UIWindowType, bool> kvp in _enabledCoreWindowsDict)
+            {
+                if (kvp.Value)
+                {
+                    switch (kvp.Key)
+                    {
+                        case UIWindowType.PauseOptions:
+                            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.PauseOptions, typeof(UIPauseWindowController));
+                            break;
+
+                        case UIWindowType.Inventory:
+                            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Inventory, typeof(UIInventoryWindowController));
+                            break;
+
+                        case UIWindowType.Talk:
+                            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Talk, typeof(UIConversationWindowController));
+                            break;
+
+                        case UIWindowType.UnitySaveGame:
+                            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
+                            break;
+                    }
+                }
+                else if (_defaultCoreWindowTypes.TryGetValue(kvp.Key, out Type windowType))
+                {
+                    if (windowType != null)
+                    {
+                        UIWindowFactory.RegisterCustomUIWindow(kvp.Key, windowType);
+                    }
+                }
             }
         }
 

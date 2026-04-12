@@ -29,9 +29,6 @@ namespace AcrealUI
     public class UIInventoryWindow : UIWindow
     {
         #region Variables
-        private const float _PLAYER_INVENTORY_SIZE = 400f;
-        private const float _CONTAINER_INVENTORY_SIZE = 350f;
-
         [Header("Panels")]
         [SerializeField] private string _gameObjName_panel_playerStats = null;
 
@@ -42,7 +39,6 @@ namespace AcrealUI
         private UIPanelPlayerStats _panel_playerStats = null;
         private UIInventoryWindow_ItemList _itemList_playerInventory = null;
         private UIInventoryWindow_ItemList _itemList_container = null;
-        private bool _isShowingContainerPanel = false;
         #endregion
 
 
@@ -90,63 +86,49 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI] Failed to Find Container ItemList!"); }
             }
         }
+
+        public override void Cleanup()
+        {
+            _panel_playerStats?.Cleanup();
+            _panel_playerStats = null;
+
+            _itemList_playerInventory?.Cleanup();
+            _itemList_playerInventory = null;
+
+            _itemList_container?.Cleanup();
+            _itemList_container = null;
+
+            base.Cleanup();
+        }
+
+        public override void ResetWindow()
+        {
+            _panel_playerStats?.ResetPanel();
+            _itemList_playerInventory?.ResetList();
+            _itemList_container?.ResetList();
+            base.ResetWindow();
+        }
         #endregion
 
 
-        #region Open/Close
+        #region UIWindow Overrides
         protected override void ShowInternal()
         {
             base.ShowInternal();
 
-            bool containerHasItems = _itemList_container != null && _itemList_container.itemCount > 0;
+            _panel_playerStats?.Show();
+            _itemList_playerInventory?.Show();
 
-            if (_panel_playerStats != null)
+            if (_itemList_container != null)
             {
-                if (containerHasItems)
+                if (_itemList_container.itemCount > 0)
                 {
-                    _panel_playerStats.HideImmediate();
+                    _itemList_container.Show();
                 }
                 else
                 {
-                    _panel_playerStats.HideImmediate();
-                    _panel_playerStats.Show();
+                    _itemList_container.Hide(true);
                 }
-            }
-
-            LayoutElement inventoryLayoutElem = _itemList_playerInventory != null ? _itemList_playerInventory.GetComponent<LayoutElement>() : null;
-            if (inventoryLayoutElem != null)
-            {
-                StartCoroutine(TweenPanelWidthRoutine(inventoryLayoutElem, 0f, _PLAYER_INVENTORY_SIZE, 0.2f));
-            }
-
-            LayoutElement containerLayoutElem = _itemList_container != null ? _itemList_container.GetComponent<LayoutElement>() : null;
-            if (containerLayoutElem != null)
-            {
-                _isShowingContainerPanel = containerHasItems;
-                if (containerHasItems)
-                {
-                    StartCoroutine(TweenPanelWidthRoutine(containerLayoutElem, 0f, _CONTAINER_INVENTORY_SIZE, 0.2f));
-                }
-                else
-                {
-                    containerLayoutElem.minWidth = 0f;
-                    containerLayoutElem.preferredWidth = 0f;
-                }
-            }
-
-            if (panel_playerStats != null)
-            {
-                panel_playerStats.Show();
-            }
-
-            if (_itemList_playerInventory != null && _itemList_playerInventory.tabToggleGroup != null)
-            {
-                _itemList_playerInventory.tabToggleGroup.ToggleDefault();
-            }
-
-            if (_itemList_container != null && _itemList_container.tabToggleGroup != null)
-            {
-                _itemList_container.tabToggleGroup.ToggleDefault();
             }
         }
 
@@ -154,86 +136,9 @@ namespace AcrealUI
         {
             base.HideInternal();
 
-            LayoutElement inventoryLayoutElem = _itemList_playerInventory != null ? _itemList_playerInventory.GetComponent<LayoutElement>() : null;
-            if (inventoryLayoutElem != null)
-            {
-                StartCoroutine(TweenPanelWidthRoutine(inventoryLayoutElem, _PLAYER_INVENTORY_SIZE, 0f, 0.2f));
-            }
-
-            HideContainerPanel();
-
-            if(panel_playerStats != null)
-            {
-                panel_playerStats.Hide();
-            }
-
-            if (_itemList_playerInventory != null)
-            {
-                _itemList_playerInventory.Clear();
-            }
-
-            if (_itemList_container != null)
-            {
-                _itemList_container.Clear();
-            }
-        }
-        #endregion
-
-
-        #region Container Panel
-        public void ShowContainerPanel()
-        {
-            if (!_isShowingContainerPanel)
-            {
-                _itemList_container.SetActiveFilter(ItemFilter.All);
-                _itemList_container.SetItemFilterText(UIUtilityFunctions.ItemFilterToString(ItemFilter.All));
-
-                _isShowingContainerPanel = true;
-                LayoutElement containerLayoutElem = _itemList_container != null ? _itemList_container.GetComponent<LayoutElement>() : null;
-                StartCoroutine(TweenPanelWidthRoutine(containerLayoutElem, 0f, _CONTAINER_INVENTORY_SIZE, 0.2f));
-            }
-        }
-
-        public void HideContainerPanel()
-        {
-            if (_isShowingContainerPanel)
-            {
-                _isShowingContainerPanel = false;
-                LayoutElement containerLayoutElem = _itemList_container != null ? _itemList_container.GetComponent<LayoutElement>() : null;
-                StartCoroutine(TweenPanelWidthRoutine(containerLayoutElem, _CONTAINER_INVENTORY_SIZE, 0f, 0.2f));
-            }
-        }
-        #endregion
-
-
-        #region Coroutines
-        private IEnumerator TweenPanelWidthRoutine(LayoutElement panelLayoutElement, float startWidth, float endWidth, float duration, float delay = 0f)
-        {
-            if (panelLayoutElement != null)
-            {
-                panelLayoutElement.minWidth = startWidth;
-                panelLayoutElement.preferredWidth = startWidth;
-
-                float durationRemaining = delay;
-                while (durationRemaining > 0f)
-                {
-                    durationRemaining -= Time.unscaledDeltaTime;
-                    yield return null;
-                }
-
-                durationRemaining = duration;
-                while (durationRemaining > 0f)
-                {
-                    durationRemaining -= Time.unscaledDeltaTime;
-                    float x = Mathf.Lerp(startWidth, endWidth, 1f-Mathf.InverseLerp(0f, duration, durationRemaining));
-                    panelLayoutElement.minWidth = x;
-                    panelLayoutElement.preferredWidth = x;
-                    yield return null;
-                }
-
-                panelLayoutElement.minWidth = endWidth;
-                panelLayoutElement.preferredWidth = endWidth;
-            }
+            _panel_playerStats?.Hide();
+            _itemList_playerInventory?.Hide();
+            _itemList_container?.Hide();
         }
         #endregion
     }

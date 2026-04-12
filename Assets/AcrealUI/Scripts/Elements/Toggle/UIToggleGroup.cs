@@ -37,7 +37,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initialization
+        #region Initialization/Cleanup
         public void Initialize()
         {
             Transform defaultTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_defaultToggle);
@@ -72,6 +72,22 @@ namespace AcrealUI
                     _toggles[i].Event_OnToggledOn += OnToggleSwitchedOn;
                 }
             }
+        }
+
+        public void Cleanup()
+        {
+            if (_toggles != null)
+            {
+                for (int i = 0; i < _toggles.Count; i++)
+                {
+                    if (_toggles[i] != null)
+                    {
+                        _toggles[i].Cleanup();
+                    }
+                }
+            }
+            _toggles = null;
+            _defaultToggle = null;
         }
         #endregion
 

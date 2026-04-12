@@ -40,16 +40,228 @@ namespace AcrealUI
 
 
         #region Variables
-        private UIWindowSaveLoad _saveLoadGameWindowInstance = null;
+        private UISaveLoadWindow _saveLoadGameWindowInstance = null;
         private UISaveGameData _selectedSaveGameData = new UISaveGameData();
         private SaveWindowState _currentState = SaveWindowState.None;
         #endregion
 
 
-        #region Constructor
+        #region Initialization
         public UISaveLoadWindowController(IUserInterfaceManager uiManager, Modes mode, DaggerfallBaseWindow previous = null, bool displayMostRecentChar = false) : base(uiManager, mode, previous, displayMostRecentChar)
         {
-            CreateWindow();
+            if (_saveLoadGameWindowInstance == null)
+            {
+                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.SaveOrLoadGame);
+                if (window == null || !(window is UISaveLoadWindow))
+                {
+                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.UnitySaveGame) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UISaveLoadWindow, but got " + window.GetType().ToString() + "!"));
+                    return;
+                }
+
+                _saveLoadGameWindowInstance = window as UISaveLoadWindow;
+                if (_saveLoadGameWindowInstance != null)
+                {
+                    _saveLoadGameWindowInstance.Initialize();
+                    _saveLoadGameWindowInstance.SetIsSaving(mode == Modes.SaveGame);
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_CloseWindow += () =>
+                    {
+                        if (PreviousWindow != null)
+                        {
+                            DaggerfallUI.Instance.PopToHUD();
+                        }
+                        else
+                        {
+                            CancelWindow();
+                        }
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_PrevWindow += () =>
+                    {
+                        switch (_currentState)
+                        {
+                            case SaveWindowState.SelectCharacter:
+                            case SaveWindowState.ImportSave:
+                                if (_saveLoadGameWindowInstance.isSaving)
+                                {
+                                    SetState(SaveWindowState.Save);
+                                }
+                                else
+                                {
+                                    SetState(SaveWindowState.Load);
+                                }
+                                break;
+
+                            default:
+                                CancelWindow();
+                                break;
+                        }
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_SaveGame += () =>
+                    {
+                        string characterName = GameManager.Instance.PlayerEntity.Name;
+                        string saveName = _saveLoadGameWindowInstance.inputFieldValue;
+
+                        if (string.IsNullOrWhiteSpace(saveName))
+                        {
+                            DaggerfallUI.MessageBox(TextManager.Instance.GetLocalizedText("youMustEnterASaveName"));
+                            return;
+                        }
+
+                        int key = GameManager.Instance.SaveLoadManager.FindSaveFolderByNames(characterName, saveName);
+                        if (key != -1)
+                        {
+                            DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, this);
+                            messageBox.SetText(new string[] { TextManager.Instance.GetLocalizedText("confirmOverwriteSave"), "" });
+                            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Yes);
+                            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.No);
+                            messageBox.OnButtonClick += (DaggerfallMessageBox sender, DaggerfallMessageBox.MessageBoxButtons messageBoxButton) =>
+                            {
+                                if (messageBoxButton == DaggerfallMessageBox.MessageBoxButtons.Yes)
+                                {
+                                    GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
+                                    DaggerfallUI.Instance.PopToHUD();
+                                }
+                                else
+                                {
+                                    CloseWindow();
+                                }
+                            };
+                            uiManager.PushWindow(messageBox);
+                        }
+                        else
+                        {
+                            GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
+                            DaggerfallUI.Instance.PopToHUD();
+                        }
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_LoadGame += () =>
+                    {
+                        if (_selectedSaveGameData.saveKey >= 0)
+                        {
+                            GameManager.Instance.SaveLoadManager.Load(_selectedSaveGameData.saveKey);
+                            DaggerfallUI.Instance.PopToHUD();
+                        }
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_RenameSave += () =>
+                    {
+                        // Must have a save selected
+                        if (_selectedSaveGameData.saveKey < 0)
+                        {
+                            return;
+                        }
+
+                        // Input save name
+                        DaggerfallInputMessageBox messageBox = new DaggerfallInputMessageBox(uiManager, this);
+                        messageBox.SetTextBoxLabel(TextManager.Instance.GetLocalizedText("enterSaveName") + ": ");
+                        messageBox.TextBox.Text = _selectedSaveGameData.saveName;
+                        messageBox.OnGotUserInput += RenameSaveButton_OnGotUserInput;
+                        uiManager.PushWindow(messageBox);
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_DeleteSave += () =>
+                    {
+                        // Must have a save selected
+                        if (string.IsNullOrWhiteSpace(_selectedSaveGameData.saveName))
+                        {
+                            return;
+                        }
+
+                        // Confirmation
+                        DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, this);
+                        messageBox.SetText(new string[] { TextManager.Instance.GetLocalizedText("confirmDeleteSave"), "" });
+                        messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Delete);
+                        messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Cancel);
+                        messageBox.OnButtonClick += ConfirmDelete_OnButtonClick;
+                        uiManager.PushWindow(messageBox);
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_ImportSave += () =>
+                    {
+                        SetState(SaveWindowState.ImportSave);
+                    };
+
+                    _saveLoadGameWindowInstance.Event_ButtonClick_SelectCharacter += () =>
+                    {
+                        SetState(SaveWindowState.SelectCharacter);
+                    };
+
+                    _saveLoadGameWindowInstance.Event_InputFieldChanged_SaveFileName += (string saveFileName) =>
+                    {
+                        UISaveGameEntry saveEntry = _saveLoadGameWindowInstance.GetSaveEntryBySaveName(saveFileName);
+                        if (saveEntry != null)
+                        {
+                            saveEntry.isToggledOn = true;
+
+                            if (mode == Modes.SaveGame)
+                            {
+                                _saveLoadGameWindowInstance.SetSaveOrLoadButtonEnabled(true);
+                            }
+                            else
+                            {
+                                _saveLoadGameWindowInstance.SetSaveOrLoadButtonEnabled(saveEntry.GetSaveData().saveKey >= 0);
+                            }
+                        }
+                        else
+                        {
+                            _saveLoadGameWindowInstance.SetScreenshotTexture(null);
+                            _saveLoadGameWindowInstance.SetTimestampText(null, null);
+                            _saveLoadGameWindowInstance.SetVersionText(null);
+
+                            _saveLoadGameWindowInstance.toggleGroup.SetActiveToggle(null);
+                            _saveLoadGameWindowInstance.SetSaveOrLoadButtonEnabled(mode == Modes.SaveGame);
+                        }
+                    };
+                }
+            }
+        }
+        #endregion
+
+
+        #region IWindowController
+        public void ShowWindow()
+        {
+            if (PreviousWindow != null)
+            {
+                IWindowController prev = PreviousWindow as IWindowController;
+                if (prev != null)
+                {
+                    prev.HideWindow();
+                }
+            }
+
+            if (_saveLoadGameWindowInstance != null)
+            {
+                _saveLoadGameWindowInstance.Show();
+            }
+        }
+
+        public void HideWindow()
+        {
+            if (_saveLoadGameWindowInstance != null)
+            {
+                _saveLoadGameWindowInstance.Hide();
+            }
+
+            if (PreviousWindow != null)
+            {
+                IWindowController prev = PreviousWindow as IWindowController;
+                if (prev != null)
+                {
+                    prev.ShowWindow();
+                }
+            }
+        }
+
+        public override void OnPop()
+        {
+            base.OnPop();
+            HideWindow();
+            _saveLoadGameWindowInstance?.ResetWindow();
+            _selectedSaveGameData = new UISaveGameData();
         }
         #endregion
 
@@ -83,20 +295,20 @@ namespace AcrealUI
             ShowWindow();
         }
 
-        public override void OnPop()
+        public override void CancelWindow()
         {
-            base.OnPop();
-
-            _selectedSaveGameData = new UISaveGameData();
-
-            // TODO(Acreal): keep track of window instances internally so there's no need
-            // to destroy every time
-            if (_saveLoadGameWindowInstance != null)
+            switch (_currentState)
             {
-                _saveLoadGameWindowInstance.Hide();
-                Object.Destroy(_saveLoadGameWindowInstance.gameObject);
+                case SaveWindowState.ImportSave:
+                case SaveWindowState.SelectCharacter:
+                    if (mode == Modes.SaveGame) { SetState(SaveWindowState.Save); }
+                    else { SetState(SaveWindowState.Load); }
+                    break;
+
+                default:
+                    base.CancelWindow();
+                    break;
             }
-            _saveLoadGameWindowInstance = null;
         }
 
         protected override void Setup()
@@ -269,240 +481,11 @@ namespace AcrealUI
             CloseWindow();
         }
 
-        public override void CancelWindow()
-        {
-            switch(_currentState)
-            {
-                case SaveWindowState.Save:
-                case SaveWindowState.Load:
-                    HideWindow();
-                    base.CancelWindow();
-                    break;
-
-                case SaveWindowState.ImportSave:
-                case SaveWindowState.SelectCharacter:
-                    if(mode == Modes.SaveGame) { SetState(SaveWindowState.Save); }
-                    else { SetState(SaveWindowState.Load); }
-                    break;
-            }
-        }
-
         // NOTE(Acreal): I would normally override this instead of using UpdateSaveEntries(),
         // but the compiler gets angry if I do that, so we empty this function and use a
         // separate one instead
         protected override void RefreshSavesList() { }
         public override void Draw() { }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            if(PreviousWindow != null)
-            {
-                IWindowController prev = PreviousWindow as IWindowController;
-                if(prev != null)
-                {
-                    prev.HideWindow();
-                }
-            }
-
-            if(_saveLoadGameWindowInstance != null)
-            {
-                _saveLoadGameWindowInstance.Show();
-            }
-        }
-
-        public void HideWindow()
-        {
-            if (_saveLoadGameWindowInstance != null)
-            {
-                _saveLoadGameWindowInstance.Hide();
-            }
-
-            if (PreviousWindow != null)
-            {
-                IWindowController prev = PreviousWindow as IWindowController;
-                if (prev != null)
-                {
-                    prev.ShowWindow();
-                }
-            }
-        }
-
-        public void CreateWindow()
-        {
-            if (_saveLoadGameWindowInstance == null && UIManager.referenceManager.prefab_saveLoadWindow != null)
-            {
-                _saveLoadGameWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_saveLoadWindow);
-                if (_saveLoadGameWindowInstance != null)
-                {
-                    _saveLoadGameWindowInstance.Initialize();
-                    _saveLoadGameWindowInstance.SetIsSaving(mode == Modes.SaveGame);
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_CloseWindow += () =>
-                    {
-                        if (PreviousWindow != null)
-                        {
-                            DaggerfallUI.Instance.PopToHUD();
-                        }
-                        else
-                        {
-                            CancelWindow();
-                        }
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_PrevWindow += () =>
-                    {
-                        switch (_currentState)
-                        {
-                            case SaveWindowState.SelectCharacter:
-                            case SaveWindowState.ImportSave:
-                                if (_saveLoadGameWindowInstance.isSaving)
-                                {
-                                    SetState(SaveWindowState.Save);
-                                }
-                                else
-                                {
-                                    SetState(SaveWindowState.Load);
-                                }
-                                break;
-
-                            default:
-                                CancelWindow();
-                                break;
-                        }
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_SaveGame += () =>
-                    {
-                        string characterName = GameManager.Instance.PlayerEntity.Name;
-                        string saveName = _saveLoadGameWindowInstance.inputFieldValue;
-
-                        if (string.IsNullOrWhiteSpace(saveName))
-                        {
-                            DaggerfallUI.MessageBox(TextManager.Instance.GetLocalizedText("youMustEnterASaveName"));
-                            return;
-                        }
-
-                        int key = GameManager.Instance.SaveLoadManager.FindSaveFolderByNames(characterName, saveName);
-                        if (key != -1)
-                        {
-                            DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, this);
-                            messageBox.SetText(new string[] { TextManager.Instance.GetLocalizedText("confirmOverwriteSave"), "" });
-                            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Yes);
-                            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.No);
-                            messageBox.OnButtonClick += (DaggerfallMessageBox sender, DaggerfallMessageBox.MessageBoxButtons messageBoxButton) =>
-                            {
-                                if (messageBoxButton == DaggerfallMessageBox.MessageBoxButtons.Yes)
-                                {
-                                    GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
-                                    DaggerfallUI.Instance.PopToHUD();
-                                }
-                                else
-                                {
-                                    CloseWindow();
-                                }
-                            };
-                            uiManager.PushWindow(messageBox);
-                        }
-                        else
-                        {
-                            GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
-                            DaggerfallUI.Instance.PopToHUD();
-                        }
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_LoadGame += () =>
-                    {
-                        if (_selectedSaveGameData.saveKey >= 0)
-                        {
-                            GameManager.Instance.SaveLoadManager.Load(_selectedSaveGameData.saveKey);
-                            DaggerfallUI.Instance.PopToHUD();
-                        }
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_RenameSave += () =>
-                    {
-                        // Must have a save selected
-                        if (_selectedSaveGameData.saveKey < 0)
-                        {
-                            return;
-                        }
-
-                        // Input save name
-                        DaggerfallInputMessageBox messageBox = new DaggerfallInputMessageBox(uiManager, this);
-                        messageBox.SetTextBoxLabel(TextManager.Instance.GetLocalizedText("enterSaveName") + ": ");
-                        messageBox.TextBox.Text = _selectedSaveGameData.saveName;
-                        messageBox.OnGotUserInput += RenameSaveButton_OnGotUserInput;
-                        uiManager.PushWindow(messageBox);
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_DeleteSave += () =>
-                    {
-                        // Must have a save selected
-                        if (string.IsNullOrWhiteSpace(_selectedSaveGameData.saveName))
-                        {
-                            return;
-                        }
-
-                        // Confirmation
-                        DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, this);
-                        messageBox.SetText(new string[] { TextManager.Instance.GetLocalizedText("confirmDeleteSave"), "" });
-                        messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Delete);
-                        messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Cancel);
-                        messageBox.OnButtonClick += ConfirmDelete_OnButtonClick;
-                        uiManager.PushWindow(messageBox);
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_ImportSave += () =>
-                    {
-                        SetState(SaveWindowState.ImportSave);
-                    };
-
-                    _saveLoadGameWindowInstance.Event_ButtonClick_SelectCharacter += () =>
-                    {
-                        SetState(SaveWindowState.SelectCharacter);
-                    };
-
-                    _saveLoadGameWindowInstance.Event_InputFieldChanged_SaveFileName += (string saveFileName) =>
-                    {
-                        UISaveGameEntry saveEntry = _saveLoadGameWindowInstance.GetSaveEntryBySaveName(saveFileName);
-                        if (saveEntry != null)
-                        {
-                            saveEntry.isToggledOn = true;
-
-                            if (mode == Modes.SaveGame)
-                            {
-                                _saveLoadGameWindowInstance.SetSaveOrLoadButtonEnabled(true);
-                            }
-                            else
-                            {
-                                _saveLoadGameWindowInstance.SetSaveOrLoadButtonEnabled(saveEntry.GetSaveData().saveKey >= 0);
-                            }
-                        }
-                        else
-                        {
-                            _saveLoadGameWindowInstance.SetScreenshotTexture(null);
-                            _saveLoadGameWindowInstance.SetTimestampText(null, null);
-                            _saveLoadGameWindowInstance.SetVersionText(null);
-
-                            _saveLoadGameWindowInstance.toggleGroup.SetActiveToggle(null);
-                            _saveLoadGameWindowInstance.SetSaveOrLoadButtonEnabled(mode == Modes.SaveGame);
-                        }
-                    };
-                }
-            }
-        }
-
-        public void DestroyWindow()
-        {
-            if (_saveLoadGameWindowInstance != null)
-            {
-                Object.Destroy(_saveLoadGameWindowInstance.gameObject);
-            }
-            _saveLoadGameWindowInstance = null;
-        }
         #endregion
 
 

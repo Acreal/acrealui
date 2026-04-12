@@ -23,7 +23,7 @@ using UnityEngine;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIToggleFeedbackScale : UIToggleFeedback
+    public class UIToggleFeedbackScale : UIElementFeedback
     {
         #region Variables
         [SerializeField] private float _scaleWhenOn = 1.0f;
@@ -33,6 +33,11 @@ namespace AcrealUI
         [SerializeField] private float _scaleWhenOnAndHighlighted = 1.1f;
         [SerializeField] private float _scaleWhenOffAndHighlighted = 1.1f;
         [SerializeField] private float _scaleWhenDisabled = 1.0f;
+        #endregion
+
+
+        #region Properties
+        protected UIToggle toggle { get { return _uiElement as UIToggle; } }
         #endregion
 
 

@@ -28,12 +28,8 @@ namespace AcrealUI
     {
         #region Variables
         [SerializeField] private string _gameObjName_slider = null;
-        [SerializeField] private string _gameObjName_sliderTitleText = null;
-        [SerializeField] private string _gameObjName_sliderValueText = null;
 
         private UISlider _slider = null;
-        private TextMeshProUGUI _sliderTitleText = null;
-        private TextMeshProUGUI _sliderValueText = null;
         #endregion
 
 
@@ -74,18 +70,6 @@ namespace AcrealUI
                         }
                     };
                 }
-            }
-
-            Transform titleTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sliderTitleText);
-            if (titleTform != null)
-            {
-                _sliderTitleText = titleTform.GetComponent<TextMeshProUGUI>();
-            }
-
-            Transform valueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sliderValueText);
-            if (valueTform != null)
-            {
-                _sliderValueText = valueTform.GetComponent<TextMeshProUGUI>();
             }
         }
         #endregion

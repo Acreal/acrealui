@@ -157,15 +157,9 @@ namespace AcrealUI
         /// </summary>
         public virtual void ResetWindow()
         {
-            Event_ButtonClick_PrevWindow = null;
-            Event_ButtonClick_CloseWindow = null;
+            SetHeaderText(null);
 
-            if (_headerText != null)
-            {
-                _headerText.text = null;
-            }
-
-            if(_canvasGroup != null)
+            if (_canvasGroup != null)
             {
                 _canvasGroup.alpha = 1f;
             }
@@ -177,12 +171,20 @@ namespace AcrealUI
         public virtual void Cleanup()
         {
             Hide();
-            ResetWindow();
+            SetHeaderText(null);
+
+            Event_ButtonClick_PrevWindow = null;
+            Event_ButtonClick_CloseWindow = null;
 
             _canvasComponent = null;
             _canvasGroup = null;
+
+            _closeWindowButton?.Cleanup();
             _closeWindowButton = null;
+
+            _backButton?.Cleanup();
             _backButton = null;
+
             _headerText = null;
         }
         #endregion

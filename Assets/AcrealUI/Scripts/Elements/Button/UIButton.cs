@@ -33,6 +33,19 @@ namespace AcrealUI
         #endregion
 
 
+        #region Initialization/Cleanup
+        public override void Cleanup()
+        {
+            Event_OnAnyClick = null;
+            Event_OnLeftClick = null;
+            Event_OnRightClick = null;
+            Event_OnMiddleClick = null;
+
+            base.Cleanup();
+        }
+        #endregion
+
+
         #region Mouse Input
         public override void OnPointerDown(PointerEventData eventData)
         {

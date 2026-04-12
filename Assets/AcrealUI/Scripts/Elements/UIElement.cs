@@ -7,7 +7,7 @@ namespace AcrealUI
     public abstract class UIElement : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         #region Variables
-        [SerializeField] protected bool _initializeOnAwake = false;
+        [SerializeField, HideInInspector] protected bool _initializeOnAwake = false;
         [SerializeField] protected string _gameObjName_titleText = null;
         [SerializeField] protected string _gameObjName_valueText = null;
 
@@ -27,13 +27,14 @@ namespace AcrealUI
         {
             if (_initializeOnAwake)
             {
+                //Debug.LogError(gameObject.name + "." + GetInstanceID() + " has _initializeOnAwake set to true!");
                 Initialize();
             }
         }
         #endregion
 
 
-        #region Initialization
+        #region Initialization/Cleanup
         public virtual void Initialize()
         {
             Transform titleTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_titleText);
@@ -48,6 +49,27 @@ namespace AcrealUI
                 _valueText = valueTform.GetComponent<TextMeshProUGUI>();
             }
 
+            Refresh();
+        }
+
+        /// <summary>
+        /// sets all events and references to null - use before destroying/releasing window
+        /// </summary>
+        public virtual void Cleanup()
+        {
+            DataSource_GameObjectActive = null;
+            DataSource_ValueDisplayString = null;
+
+            _titleText = null;
+            _valueText = null;
+        }
+
+        /// <summary>
+        /// resets any variables, and returns any
+        /// interface elements to a default state
+        /// </summary>
+        public virtual void ResetElement()
+        {
             Refresh();
         }
         #endregion

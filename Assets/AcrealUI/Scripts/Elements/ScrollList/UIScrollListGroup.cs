@@ -90,6 +90,73 @@ namespace AcrealUI
                 }
             }
         }
+
+        public void Cleanup()
+        {
+            if (_scrollRows != null)
+            {
+                for (int i = 0; i < _scrollRows.Count; i++)
+                {
+                    _scrollRows[i].Cleanup();
+                    Destroy(_scrollRows[i].gameObject);
+                }
+                _scrollRows.Clear();
+            }
+
+            if (_uiElements != null)
+            {
+                for (int i = 0; i < _uiElements.Count; i++)
+                {
+                    Destroy(_uiElements[i].gameObject);
+                }
+                _uiElements.Clear();
+            }
+
+            if (_subScrollListGroupDict != null)
+            {
+                List<UIScrollListGroup> groupsToDestroy = new List<UIScrollListGroup>(_subScrollListGroupDict.Count);
+
+                foreach (UIScrollListGroup group in _subScrollListGroupDict.Values)
+                {
+                    group.Cleanup();
+                    groupsToDestroy.Add(group);
+                }
+
+                for (int i = groupsToDestroy.Count - 1; i >= 0; i--)
+                {
+                    Destroy(groupsToDestroy[i].gameObject);
+                }
+            }
+        }
+
+        public void ResetGroup()
+        {
+            Collapse();
+
+            if (_scrollRows != null)
+            {
+                for (int i = 0; i < _scrollRows.Count; i++)
+                {
+                    _scrollRows[i].ResetRow();
+                }
+            }
+
+            if (_uiElements != null)
+            {
+                for (int i = 0; i < _uiElements.Count; i++)
+                {
+                    _uiElements[i].ResetElement();
+                }
+            }
+
+            if (_subScrollListGroupDict != null)
+            {
+                foreach (UIScrollListGroup group in _subScrollListGroupDict.Values)
+                {
+                    group.ResetGroup();
+                }
+            }
+        }
         #endregion
 
 

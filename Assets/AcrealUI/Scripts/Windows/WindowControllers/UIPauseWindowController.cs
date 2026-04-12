@@ -43,6 +43,9 @@ namespace AcrealUI
         private Dictionary<string, InputManager.JoystickUIActions> _stringToJoystickActionEnumDict = null;
         private Dictionary<int, Resolution> _instanceIdToResolutionDict = null;
         private Dictionary<int, string> _toggleIdToActionStringDict = null;
+        private Dictionary<int, UIWindowType> _toggleIdToCoreWindowType = null;
+        private List<UIWindowType> _enableableCoreWindowTypes = null;
+        private List<UIWindowType> _toggledCoreWindowTypes = null;
         private string[] _localizedStrings_weaponSwingModes = null;
         private string[] _localizedStrings_shadowResolutionModes = null;
         private string[] _localizedStrings_retroModes = null;
@@ -59,7 +62,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initalization/Cleanup
+        #region Initalization
         public UIPauseWindowController(IUserInterfaceManager uiManager, DaggerfallBaseWindow previous = null) : base(uiManager, previous)
         {
             _allPrimaryKeybindsDict = new Dictionary<string, string>(64);
@@ -71,6 +74,15 @@ namespace AcrealUI
 
             _instanceIdToResolutionDict = new Dictionary<int, Resolution>();
             _toggleIdToActionStringDict = new Dictionary<int, string>();
+            _toggleIdToCoreWindowType = new Dictionary<int, UIWindowType>();
+            _toggledCoreWindowTypes = new List<UIWindowType>();
+            _enableableCoreWindowTypes = new List<UIWindowType>
+            {
+                UIWindowType.PauseOptions,
+                UIWindowType.Inventory,
+                UIWindowType.Talk,
+                UIWindowType.UnitySaveGame,
+            };
 
             _localizedStrings_weaponSwingModes = UIUtilityFunctions.GetLocalizedTextList("weaponSwingModes", TextCollections.TextSettings);
             _localizedStrings_shadowResolutionModes = UIUtilityFunctions.GetLocalizedTextList("shadowResolutionModes", TextCollections.TextSettings);
@@ -151,109 +163,31 @@ namespace AcrealUI
             ResetKeybindDict();
             CreateWindow();
         }
-        #endregion
-
-
-        #region Base Class Overrides
-        public override void CancelWindow()
-        {
-            if(_pauseWindowInstance != null)
-            {
-                _pauseWindowInstance.Hide();
-            }
-            base.CancelWindow();
-        }
-
-        public override void OnPush()
-        {
-            base.OnPush();
-
-            GameManager.Instance.SaveLoadManager.EnumerateSaves();
-            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Paused, true);
-            ShowWindow();
-        }
-
-        public override void OnPop()
-        {
-            if (saveSettings)
-            {
-                DaggerfallUnity.Settings.SaveSettings();
-                saveSettings = false;
-            }
-            
-            HideWindow();
-            GameManager.Instance.PlayerMouseLook.cursorActive = false;
-        }
-
-        protected override void Setup()
-        {
-            ParentPanel.BackgroundColor = ScreenDimColor;
-        }
-
-        public override void Update()
-        {
-            if (AllowCancel)
-            {
-                if (DaggerfallUI.Instance.HotkeySequenceProcessed == HotkeySequence.HotkeySequenceProcessStatus.NotFound)
-                {
-                    // Toggle window closed with same hotkey used to open it
-                    if (InputManager.Instance.GetKeyUp(toggleClosedBinding) || InputManager.Instance.GetBackButtonUp())
-                    {
-                        OnBackButtonClicked();
-                    }
-                }
-            }
-        }
-
-        public override void Draw()
-        {
-            //don't need this
-        }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            AllowCancel = true;
-
-            if (_pauseWindowInstance != null)
-            {
-                _pauseWindowInstance.panelGeneralSettings?.Refresh();
-                _pauseWindowInstance.panelVideoSettings?.Refresh();
-                _pauseWindowInstance.panelAudioSettings?.Refresh();
-                _pauseWindowInstance.panelControlSettings?.Refresh();
-
-                _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Paused);
-                _pauseWindowInstance.Show();
-            }
-        }
-
-        public void HideWindow()
-        {
-            if (_pauseWindowInstance != null)
-            {
-                _pauseWindowInstance.Hide();
-            }
-        }
 
         public void CreateWindow()
         {
-            if (_pauseWindowInstance == null && UIManager.referenceManager.prefab_pauseWindow != null)
+            if (_pauseWindowInstance == null)
             {
-                _pauseWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_pauseWindow);
+                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.PauseOptions);
+                if (window == null || !(window is UIPauseWindow))
+                {
+                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.PauseOptions) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIPauseWindow, but got " + window.GetType().ToString() + "!"));
+                    return;
+                }
+
+                _pauseWindowInstance = window as UIPauseWindow;
                 _pauseWindowInstance.Initialize();
 
                 _pauseWindowInstance.Event_ButtonClick_PrevWindow += OnBackButtonClicked;
 
+                //for some reason there's a compiler error if we try a straight
+                // '+=' on this one
                 _pauseWindowInstance.Event_ButtonClick_CloseWindow += () =>
                 {
                     CancelWindow();
                 };
 
-                //////////////////////////////////////////////////////////////////////////////////////////////
-                // PAUSED PANEL
-                //////////////////////////////////////////////////////////////////////////////////////////////
+                #region Paused Panel
                 if (_pauseWindowInstance.panelPaused != null)
                 {
                     _pauseWindowInstance.panelPaused.gameObject.SetActive(true);
@@ -297,10 +231,9 @@ namespace AcrealUI
                             });
                     };
                 }
+                #endregion
 
-                //////////////////////////////////////////////////////////////////////////////////////////////
-                // SETTINGS PANEL
-                //////////////////////////////////////////////////////////////////////////////////////////////
+                #region Settings Panel
                 if (_pauseWindowInstance.panelSettings != null)
                 {
                     _pauseWindowInstance.panelSettings.gameObject.SetActive(false);
@@ -308,6 +241,11 @@ namespace AcrealUI
                     _pauseWindowInstance.panelSettings.Event_OnButtonClicked_GeneralSettings += () =>
                     {
                         _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_General);
+                    };
+
+                    _pauseWindowInstance.panelSettings.Event_OnButtonClicked_InterfaceSettings += () =>
+                    {
+                        _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_Interface);
                     };
 
                     _pauseWindowInstance.panelSettings.Event_OnButtonClicked_VideoSettings += () =>
@@ -325,10 +263,9 @@ namespace AcrealUI
                         _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings_Controls);
                     };
                 }
+                #endregion
 
-                ////////////////////////////////////////////////////////////////////////////////////////////////
-                // GENERAL SETTINGS PANEL
-                ////////////////////////////////////////////////////////////////////////////////////////////////
+                #region General Settings Panel
                 if (_pauseWindowInstance.panelGeneralSettings != null)
                 {
                     _pauseWindowInstance.panelGeneralSettings.gameObject.SetActive(false);
@@ -346,10 +283,56 @@ namespace AcrealUI
                     };
                     #endregion
                 }
+                #endregion
 
-                ////////////////////////////////////////////////////////////////////////////////////////////////
-                // VIDEO SETTINGS PANEL
-                ////////////////////////////////////////////////////////////////////////////////////////////////
+                #region Interface Settings Panel
+                if (_pauseWindowInstance.panelInterfaceSettings != null)
+                {
+                    _pauseWindowInstance.panelInterfaceSettings.gameObject.SetActive(false);
+
+                    #region Gameplay Settings
+                    UIScrollListGroup interfaceGroup = _pauseWindowInstance.panelInterfaceSettings.GetOrAddScrollListGroup("New Windows"); // TODO(Acreal): localize this string
+
+                    for (int i = 0; i < _enableableCoreWindowTypes.Count; i++)
+                    {
+                        UIToggle windowToggle = interfaceGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        _toggleIdToCoreWindowType[windowToggle.GetInstanceID()] = _enableableCoreWindowTypes[i];
+
+                        windowToggle.SetDisplayName(UIUtilityFunctions.SplitStringIntoWords(_enableableCoreWindowTypes[i].ToString())); // TODO(Acreal): localize this string
+
+                        windowToggle.DataSource_IsToggledOn = (GameObject sender) =>
+                        {
+                            UIToggle toggle = sender.GetComponent<UIToggle>();
+                            if (_toggleIdToCoreWindowType.TryGetValue(toggle.GetInstanceID(), out UIWindowType wndwType))
+                            {
+                                bool enabled = UIManager.Instance.IsCoreWindowEnabled(wndwType);
+                                if (_toggledCoreWindowTypes.Contains(wndwType)) { enabled = !enabled; }
+                                return enabled;
+                            }
+                            return false;
+                        };
+
+                        windowToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            if (_toggleIdToCoreWindowType.TryGetValue(toggle.GetInstanceID(), out UIWindowType wndwType))
+                            {
+                                if (_toggledCoreWindowTypes.Contains(wndwType))
+                                {
+                                    _toggledCoreWindowTypes.Remove(wndwType);
+                                }
+                                else
+                                {
+                                    _toggledCoreWindowTypes.Add(wndwType);
+                                }
+                            }
+                        };
+
+                    }
+                    #endregion
+                }
+                #endregion
+
+                #region Video Settings Panel
                 if (_pauseWindowInstance.panelVideoSettings != null)
                 {
                     _pauseWindowInstance.panelVideoSettings.gameObject.SetActive(false);
@@ -456,54 +439,9 @@ namespace AcrealUI
                         resolutionToggleGroup.SetActiveToggle(selectedResolutionEntry);
                     }
                     #endregion
-
-                    #region Add Refresh Rate Entries **DISABLED**
-                    /*
-                    for (int i = 0; i < refreshRates.Count; i++)
-                    {
-                        UIToggle refreshRateEntry = refreshRateGroup.AddElement(UIManager.referenceManager.prefab_resolutionSettingEntry) as UIToggle;
-                        refreshRateToggleGroup.AddToggle(refreshRateEntry);
-                        _refreshRateToggleIdToRefreshRateValueDict[refreshRateEntry.GetInstanceID()] = refreshRates[i];
-                        refreshRateEntry.SetDisplayName(refreshRates[i].ToString("N0"));
-
-                        if (selectedRefreshRateEntry == null && refreshRates[i] == Screen.currentResolution.refreshRate)
-                        {
-                            selectedRefreshRateEntry = refreshRateEntry;
-                        }
-
-                        refreshRateEntry.DataSource_IsToggledOn = (GameObject sender) => 
-                        {
-                            UIToggle toggle = sender != null ? sender.GetComponent<UIToggle>() : null;
-                            if (toggle != null && _refreshRateToggleIdToRefreshRateValueDict.TryGetValue(toggle.GetInstanceID(), out int refreshRate))
-                            {
-                                Debug.LogError(sender.name + "." + toggle.GetInstanceID() + ".DataSource_IsToggledOn = " + (refreshRate == Screen.currentResolution.refreshRate) + "(Entry Rate: " + refreshRate + ", Screen Rate: " + Screen.currentResolution.refreshRate + ")");
-                                return refreshRate == Screen.currentResolution.refreshRate;
-                            }
-                            return false;
-                        };
-
-                        refreshRateEntry.Event_OnToggledOn += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-
-                            int refreshRate = 0;
-                            _refreshRateToggleIdToRefreshRateValueDict.TryGetValue(toggle.GetInstanceID(), out refreshRate);
-                            if (refreshRate < 30) { refreshRate = _maxFramerate; }
-
-                            Resolution res = Screen.currentResolution;
-                            res.refreshRate = refreshRate;
-                            ApplyResolution(res);
-                        };
-                    }
-
-                    if (selectedRefreshRateEntry != null)
-                    {
-                        refreshRateToggleGroup.SetActiveToggle(selectedRefreshRateEntry);
-                    }
-                    */
-                    #endregion
                     #endregion
 
+                    #region Fullscreen
                     UIToggle fullScreenToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     fullScreenToggle.SetDisplayName("Fullscreen");  // TODO(Acreal): localize this string
                     fullScreenToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.Fullscreen; };
@@ -513,7 +451,9 @@ namespace AcrealUI
                         DaggerfallUnity.Settings.Fullscreen = toggle.isToggledOn;
                         ApplyResolution(Screen.currentResolution);
                     };
+                    #endregion
 
+                    #region Exclusive
                     UIToggle exclusiveToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     exclusiveToggle.SetDisplayName("Exclusive Fullscreen");  // TODO(Acreal): localize this string
                     exclusiveToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ExclusiveFullscreen; };
@@ -523,7 +463,9 @@ namespace AcrealUI
                         DaggerfallUnity.Settings.ExclusiveFullscreen = toggle.isToggledOn;
                         ApplyResolution(Screen.currentResolution);
                     };
+                    #endregion
 
+                    #region Vsync
                     UIToggle vsyncToggle = windowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     vsyncToggle.SetDisplayName("Vsync");  // TODO(Acreal): localize this string
                     vsyncToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VSync; };
@@ -533,7 +475,9 @@ namespace AcrealUI
                         DaggerfallUnity.Settings.VSync = toggle.isToggledOn;
                         QualitySettings.vSyncCount = toggle.isToggledOn ? 1 : 0;
                     };
+                    #endregion
 
+                    #region Framerate
                     UISlider framerateSlider = windowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     framerateSlider.SetTitle("Max Framerate"); // TODO(Acreal): localize this string
                     framerateSlider.SetSliderMinMax(30f, _maxFramerate + 1, true);
@@ -552,10 +496,13 @@ namespace AcrealUI
                     };
                     #endregion
 
+                    #endregion
+
                     #region Rendering Settings
                     UIScrollListGroup renderGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Rendering"); // TODO(Acreal): localize this string
                     renderGroup.Collapse();
 
+                    #region Quality
                     UISlider qualitySlider = renderGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     qualitySlider.SetTitle("Render Quality"); // TODO(Acreal): localize this string
                     qualitySlider.SetSliderMinMax(0, QualitySettings.names.Length - 1, true);
@@ -570,7 +517,9 @@ namespace AcrealUI
                         GameManager.UpdateShadowDistance();
                         GameManager.UpdateShadowResolution();
                     };
+                    #endregion
 
+                    #region Texture Filter
                     UIScrollListGroup textureGroup = renderGroup.GetOrAddSubScrollListGroup("Textures"); // TODO(Acreal): localize this string
                     textureGroup.Collapse();
 
@@ -584,7 +533,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.MainFilterMode = slider.GetSliderValueAsInt();
                     };
+                    #endregion
 
+                    #region GUI Filter
                     UISlider guiFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     guiFilterSlider.SetTitle("GUI Filter"); // TODO(Acreal): localize this string
                     guiFilterSlider.SetSliderMinMax(0, 2, true);
@@ -595,7 +546,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.GUIFilterMode = slider.GetSliderValueAsInt();
                     };
+                    #endregion
 
+                    #region Video Filter
                     UISlider videoFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     videoFilterSlider.SetTitle("Video Filter"); // TODO(Acreal): localize this string
                     videoFilterSlider.SetSliderMinMax(0, 2, true);
@@ -606,7 +559,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.VideoFilterMode = slider.GetSliderValueAsInt();
                     };
+                    #endregion
 
+                    #region Dungeon Texture Mode
                     UISlider dungeonTexSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     dungeonTexSlider.SetTitle("Dungeon Texture Mode"); // TODO(Acreal): localize this string
                     dungeonTexSlider.SetSliderMinMax(0, 2, true);
@@ -617,7 +572,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.RandomDungeonTextures = slider.GetSliderValueAsInt();
                     };
+                    #endregion
 
+                    #region Texture Arrays
                     UIToggle texArrayToggle = textureGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     texArrayToggle.SetDisplayName("Enable Texture Arrays");  // TODO(Acreal): localize this string
                     texArrayToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.EnableTextureArrays; };
@@ -626,10 +583,13 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.EnableTextureArrays = toggle.isToggledOn;
                     };
+                    #endregion
 
+                    #region Anti-Aliasing
                     UIScrollListGroup aaGroup = renderGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("antialiasing"));
                     aaGroup.Collapse();
 
+                    #region Mode
                     UISlider aaModeSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     aaModeSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("method"));
                     //aaModeSlider.SetTooltip(UIUtilityFunctions.GetLocalizedText("antialiasingTip"));
@@ -648,7 +608,9 @@ namespace AcrealUI
 
                         _pauseWindowInstance.panelVideoSettings.Refresh();
                     };
+                    #endregion
 
+                    #region TAA Sharpness
                     UISlider taaSharpnessSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     taaSharpnessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("taaSharpness"));
                     taaSharpnessSlider.SetSliderMinMax(0.0f, 3.0f, false);
@@ -665,7 +627,9 @@ namespace AcrealUI
                             GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
                         }
                     };
+                    #endregion
 
+                    #region SMAA Quality
                     UISlider smaaQualitySlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     smaaQualitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("smaaQuality"));
                     smaaQualitySlider.SetSliderMinMax(0, 2, true);
@@ -682,7 +646,9 @@ namespace AcrealUI
                             GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
                         }
                     };
+                    #endregion
 
+                    #region FXAA
                     UIToggle fastFxaaToggle = aaGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     fastFxaaToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("fxaaFastMode"));
                     fastFxaaToggle.DataSource_GameObjectActive = (_) => { return DaggerfallUnity.Settings.AntialiasingMethod == (int)AntiAliasingMethods.FXAA; };
@@ -697,7 +663,9 @@ namespace AcrealUI
                             GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Antialiasing);
                         }
                     };
+                    #endregion
 
+                    #region Ambient Lit Interiors
                     UIToggle ambientLitToggle = renderGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     ambientLitToggle.SetDisplayName("Ambient Lit Interiors"); // TODO(Acreal): localize this string
                     ambientLitToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.AmbientLitInteriors; };
@@ -706,6 +674,7 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.AmbientLitInteriors = toggle.isToggledOn;
                     };
+                    #endregion
                     #endregion
 
                     #region PostFX Settings
@@ -716,7 +685,7 @@ namespace AcrealUI
                     UIScrollListGroup retroGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("retroMode"));
                     retroGroup.Collapse();
 
-                    ////// RENDERING MODE ///////////////////////////////////////////////////////////////////////////////////////////
+                    #region Rendering Mode
                     {
                         UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         retroSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("mode"));
@@ -734,8 +703,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// POST-PROCESS MODE ///////////////////////////////////////////////////////////////////////////////////////////
+                    #region Post-Process Mode
                     {
                         UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         retroSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("postProcess"));
@@ -753,8 +723,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// ASPECT CORRECTION ///////////////////////////////////////////////////////////////////////////////////////////
+                    #region Aspect Correction
                     {
                         UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         retroSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("retroModeAspectCorrection"));
@@ -773,12 +744,13 @@ namespace AcrealUI
                         };
                     }
                     #endregion
+                    #endregion
 
                     #region Depth of Field
                     UIScrollListGroup dofGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("depthOfField"));
                     dofGroup.Collapse();
 
-                    ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Enable
                     {
                         UIToggle dofToggle = dofGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         dofToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
@@ -794,8 +766,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// FOCUS DISTANCE //////////////////////////////////////////////////////////////////////////////////////////
+                    #region Focal Distance
                     {
                         UISlider focusDistSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         focusDistSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("focusDistance"));
@@ -822,8 +795,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// APERTURE ////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Aperture
                     {
                         UISlider apertureSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         apertureSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("aperture"));
@@ -850,8 +824,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// FOCAL LENGTH /////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Focal Length
                     {
                         UISlider focalLengthSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         focalLengthSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("focalLength"));
@@ -878,8 +853,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// MAX BLUR SIZE ///////////////////////////////////////////////////////////////////////////////////////////
+                    #region Max Blur Size
                     {
                         UISlider focalLengthSlider = dofGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         focalLengthSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("maxBlurSize"));
@@ -907,12 +883,13 @@ namespace AcrealUI
                         };
                     }
                     #endregion
+                    #endregion
 
                     #region Bloom
                     UIScrollListGroup bloomGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("bloom"));
                     bloomGroup.Collapse();
 
-                    ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Enable
                     {
                         UIToggle bloomToggle = bloomGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         bloomToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
@@ -928,8 +905,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Intensity
                     {
                         UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
@@ -953,8 +931,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// THRESHOLD ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Threshold
                     {
                         UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("threshold"));
@@ -977,8 +956,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// DIFFUSION //////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Diffusion
                     {
                         UISlider intensitySlider = bloomGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("diffusion"));
@@ -1001,8 +981,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// FAST MODE //////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Fast Mode
                     {
                         UIToggle bloomToggle = bloomGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         bloomToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("bloomFastMode"));
@@ -1019,12 +1000,13 @@ namespace AcrealUI
                         };
                     }
                     #endregion
+                    #endregion
 
                     #region Ambient Occlusion
                     UIScrollListGroup aoGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("ambientOcclusion"));
                     aoGroup.Collapse();
 
-                    ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Enable
                     {
                         UIToggle aoToggle = aoGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         aoToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
@@ -1040,8 +1022,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// METHOD /////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Method
                     {
                         UISlider aoMethodSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         aoMethodSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("method"));
@@ -1071,8 +1054,9 @@ namespace AcrealUI
                             _pauseWindowInstance.panelVideoSettings.Refresh();
                         };
                     }
+                    #endregion
 
-                    ////// INTENSITY //////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Intensity
                     {
                         UISlider aoIntensitySlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         aoIntensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
@@ -1100,8 +1084,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// RADIUS ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Radius
                     {
                         UISlider aoRadiusSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         aoRadiusSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("radius"));
@@ -1134,8 +1119,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// QUALITY //////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Quality
                     {
                         UISlider aoQualitySlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         aoQualitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("quality"));
@@ -1167,8 +1153,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// THICKNESS ////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Thickness
                     {
                         UISlider aoThicknessSlider = aoGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         aoThicknessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("thickness"));
@@ -1201,12 +1188,13 @@ namespace AcrealUI
                         };
                     }
                     #endregion
+                    #endregion
 
                     #region Motion Blur
                     UIScrollListGroup motionBlurGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("motionBlur"));
                     motionBlurGroup.Collapse();
 
-                    ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Enable
                     {
                         UIToggle motionBlurToggle = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         motionBlurToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
@@ -1222,8 +1210,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// SHUTTER ANGLE ////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Shutter Angle
                     {
                         UISlider intensitySlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         intensitySlider.SetTitle(UIUtilityFunctions.GetLocalizedText("shutterAngle"));
@@ -1246,8 +1235,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// SAMPLE COUNT /////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Sample Count
                     {
                         UISlider motionBlurSlider = motionBlurGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         motionBlurSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("sampleCount"));
@@ -1298,13 +1288,15 @@ namespace AcrealUI
                             }
                         };
                     }
+
+                    #endregion
                     #endregion
 
                     #region Vignette
                     UIScrollListGroup vignetteGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("vignette"));
                     vignetteGroup.Collapse();
 
-                    ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Enable
                     {
                         UIToggle vignetteToggle = vignetteGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         vignetteToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
@@ -1320,8 +1312,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Intensity
                     {
                         UISlider vignetteSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         vignetteSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
@@ -1348,8 +1341,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// SMOOTHNESS /////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Smoothness
                     {
                         UISlider smoothnessSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         smoothnessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("smoothness"));
@@ -1376,8 +1370,27 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// ROUNDNESS //////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Rounded
+                    {
+                        UIToggle roundedToggle = vignetteGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
+                        roundedToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("rounded"));
+                        roundedToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VignetteRounded; };
+                        roundedToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
+                        {
+                            saveSettings = true;
+                            DaggerfallUnity.Settings.VignetteRounded = toggle.isToggledOn;
+
+                            if (GameManager.Instance.StartGameBehaviour != null)
+                            {
+                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
+                            }
+                        };
+                    }
+                    #endregion
+
+                    #region Roundness
                     {
                         UISlider roundnessSlider = vignetteGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         roundnessSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("roundness"));
@@ -1406,30 +1419,14 @@ namespace AcrealUI
                             }
                         };
                     }
-
-                    ////// ROUNDED //////////////////////////////////////////////////////////////////////////////////////////////////
-                    {
-                        UIToggle roundedToggle = vignetteGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        roundedToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("rounded"));
-                        roundedToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.VignetteRounded; };
-                        roundedToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
-                        {
-                            saveSettings = true;
-                            DaggerfallUnity.Settings.VignetteRounded = toggle.isToggledOn;
-
-                            if (GameManager.Instance.StartGameBehaviour != null)
-                            {
-                                GameManager.Instance.StartGameBehaviour.DeployCoreGameEffectSettings(CoreGameEffectSettingsGroups.Vignette);
-                            }
-                        };
-                    }
+                    #endregion
                     #endregion
 
                     #region Color Boost
                     UIScrollListGroup colorBoostGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("colorBoost"));
                     colorBoostGroup.Collapse();
 
-                    ////// ENABLE //////////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Enable
                     {
                         UIToggle colorBoostToggle = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                         colorBoostToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
@@ -1445,8 +1442,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// INTENSITY ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Intensity
                     {
                         UISlider colorBoostSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         colorBoostSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
@@ -1473,8 +1471,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// RADIUS ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Radius
                     {
                         UISlider radiusSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         radiusSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("radius"));
@@ -1501,8 +1500,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// INTERIOR SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Interior Scale
                     {
                         UISlider interiorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         interiorScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("interiorScale"));
@@ -1529,8 +1529,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// EXTERIOR SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Exterior Scale
                     {
                         UISlider exteriorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         exteriorScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("exteriorScale"));
@@ -1557,8 +1558,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// DUNGEON SCALE ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Dungeon Scale
                     {
                         UISlider dungeonScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         dungeonScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("dungeonScale"));
@@ -1585,8 +1587,9 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
 
-                    ////// DUNGEON FALLOFF ///////////////////////////////////////////////////////////////////////////////////////////////
+                    #region Dungeon Falloff
                     {
                         UISlider falloffSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         falloffSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("dungeonFalloff"));
@@ -1613,6 +1616,7 @@ namespace AcrealUI
                             }
                         };
                     }
+                    #endregion
                     #endregion
 
                     #region Dithering
@@ -1657,6 +1661,7 @@ namespace AcrealUI
                     UIScrollListGroup shadowGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup("Shadows"); // TODO(Acreal): localize this string
                     shadowGroup.Collapse();
 
+                    #region Resolution
                     UISlider shadowRes = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     shadowRes.SetTitle("Shadow Resolution"); // TODO(Acreal): localize this string
                     shadowRes.SetSliderMinMax(0, 3, true);
@@ -1667,7 +1672,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.ShadowResolutionMode = (int)slider.GetSliderValue();
                     };
+                    #endregion
 
+                    #region Exterior Shadow Distance
                     UISlider shadowDistExt = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     shadowDistExt.SetTitle("Exterior Shadow Distance"); // TODO(Acreal): localize this string
                     shadowDistExt.SetSliderMinMax(0.1f, 150f, false);
@@ -1678,7 +1685,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.ExteriorShadowDistance = slider.GetSliderValue();
                     };
+                    #endregion
 
+                    #region Interior Shadow Distance
                     UISlider shadowDistInt = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     shadowDistInt.SetTitle("Interior Shadow Distance"); // TODO(Acreal): localize this string
                     shadowDistInt.SetSliderMinMax(0.1f, 50f, false);
@@ -1689,7 +1698,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.InteriorShadowDistance = slider.GetSliderValue();
                     };
+                    #endregion
 
+                    #region Dungeon Shadow Distance
                     UISlider shadowDistDungeon = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     shadowDistDungeon.SetTitle("Dungeon Shadow Distance"); // TODO(Acreal): localize this string
                     shadowDistDungeon.SetSliderMinMax(0.1f, 50f, false);
@@ -1700,7 +1711,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.DungeonShadowDistance = slider.GetSliderValue();
                     };
+                    #endregion
 
+                    #region Exterior Light Shadows
                     UIToggle exteriorLightShadows = shadowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     exteriorLightShadows.SetDisplayName("Exterior Lights Cast Shadows"); // TODO(Acreal): localize this string
                     exteriorLightShadows.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ExteriorLightShadows; };
@@ -1709,7 +1722,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.ExteriorLightShadows = toggle.isToggledOn;
                     };
+                    #endregion
 
+                    #region Interior Light Shadows
                     UIToggle interiorLightShadows = shadowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     interiorLightShadows.SetDisplayName("Interior Lights Cast Shadows"); // TODO(Acreal): localize this string
                     interiorLightShadows.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.InteriorLightShadows; };
@@ -1718,7 +1733,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.InteriorLightShadows = toggle.isToggledOn;
                     };
+                    #endregion
 
+                    #region Dungeon Light Shadows
                     UIToggle dungeonLightShadows = shadowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     dungeonLightShadows.SetDisplayName("Dungeon Lights Cast Shadows"); // TODO(Acreal): localize this string
                     dungeonLightShadows.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.DungeonLightShadows; };
@@ -1727,7 +1744,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.DungeonLightShadows = toggle.isToggledOn;
                     };
+                    #endregion
 
+                    #region NPC Shadows
                     UIToggle npcShadows = shadowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     npcShadows.SetDisplayName("Dynamic NPCs Cast Shadows"); // TODO(Acreal): localize this string
                     npcShadows.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.MobileNPCShadows; };
@@ -1736,7 +1755,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.MobileNPCShadows = toggle.isToggledOn;
                     };
+                    #endregion
 
+                    #region Billboard Shadows
                     UIToggle billboardShadows = shadowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     billboardShadows.SetDisplayName("Object Billboards Cast Shadows"); // TODO(Acreal): localize this string
                     billboardShadows.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.GeneralBillboardShadows; };
@@ -1745,7 +1766,9 @@ namespace AcrealUI
                         saveSettings = true;
                         DaggerfallUnity.Settings.GeneralBillboardShadows = toggle.isToggledOn;
                     };
+                    #endregion
 
+                    #region Foliage Billboard Shadows
                     UIToggle natureBillboardShadows = shadowGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
                     natureBillboardShadows.SetDisplayName("Foliage Billboards Cast Shadows"); // TODO(Acreal): localize this string
                     natureBillboardShadows.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.NatureBillboardShadows; };
@@ -1755,11 +1778,12 @@ namespace AcrealUI
                         DaggerfallUnity.Settings.NatureBillboardShadows = toggle.isToggledOn;
                     };
                     #endregion
+                    #endregion
+                    #endregion
                 }
+                #endregion
 
-                ////////////////////////////////////////////////////////////////////////////////////////////////
-                // AUDIO SETTINGS PANEL
-                ////////////////////////////////////////////////////////////////////////////////////////////////
+                #region Audio Settings Panel
                 if (_pauseWindowInstance.panelAudioSettings != null)
                 {
                     _pauseWindowInstance.panelAudioSettings.gameObject.SetActive(false);
@@ -1796,14 +1820,14 @@ namespace AcrealUI
                     };
                     #endregion
                 }
+                #endregion
 
-                //////////////////////////////////////////////////////////////////////////////////////////////
-                // CONTROLS PANEL
-                //////////////////////////////////////////////////////////////////////////////////////////////
+                #region Control Settings Panel
                 if (_pauseWindowInstance.panelControlSettings != null)
                 {
                     _pauseWindowInstance.panelControlSettings.gameObject.SetActive(false);
 
+                    #region Defaults
                     _pauseWindowInstance.panelControlSettings.Event_OnButtonClicked_Default += () =>
                     {
                         AllowCancel = false;
@@ -1827,6 +1851,7 @@ namespace AcrealUI
                                                                 UIManager.Instance.ExecuteDelayed(GetHashCode(), 0, 0.2f, () => { AllowCancel = true; });
                                                             });
                     };
+                    #endregion
 
                     #region Movement Control Settings
                     UIScrollListGroup movementGroup = _pauseWindowInstance.panelControlSettings.GetOrAddScrollListGroup("Movement"); // TODO(Acreal): localize this string
@@ -1876,25 +1901,25 @@ namespace AcrealUI
                     };
 
                     List<InputManager.Actions> moveActions = new List<InputManager.Actions>()
-                {
-                    InputManager.Actions.MoveForwards,
-                    InputManager.Actions.MoveBackwards,
-                    InputManager.Actions.TurnLeft,
-                    InputManager.Actions.MoveLeft,
-                    InputManager.Actions.TurnRight,
-                    InputManager.Actions.MoveRight,
-                    InputManager.Actions.Jump,
-                    InputManager.Actions.Crouch,
-                    InputManager.Actions.Run,
-                    InputManager.Actions.AutoRun,
-                    InputManager.Actions.Slide,
-                    InputManager.Actions.Sneak,
-                    InputManager.Actions.FloatUp,
-                    InputManager.Actions.FloatDown,
-                    InputManager.Actions.LookUp,
-                    InputManager.Actions.LookDown,
-                    InputManager.Actions.CenterView,
-                };
+                    {
+                        InputManager.Actions.MoveForwards,
+                        InputManager.Actions.MoveBackwards,
+                        InputManager.Actions.TurnLeft,
+                        InputManager.Actions.MoveLeft,
+                        InputManager.Actions.TurnRight,
+                        InputManager.Actions.MoveRight,
+                        InputManager.Actions.Jump,
+                        InputManager.Actions.Crouch,
+                        InputManager.Actions.Run,
+                        InputManager.Actions.AutoRun,
+                        InputManager.Actions.Slide,
+                        InputManager.Actions.Sneak,
+                        InputManager.Actions.FloatUp,
+                        InputManager.Actions.FloatDown,
+                        InputManager.Actions.LookUp,
+                        InputManager.Actions.LookDown,
+                        InputManager.Actions.CenterView,
+                    };
 
                     for (int i = 0; i < moveActions.Count; i++)
                     {
@@ -1927,16 +1952,16 @@ namespace AcrealUI
                     };
 
                     List<InputManager.Actions> combatActions = new List<InputManager.Actions>()
-                {
-                    InputManager.Actions.ReadyWeapon,
-                    InputManager.Actions.SwingWeapon,
-                    InputManager.Actions.SwitchHand,
+                    {
+                        InputManager.Actions.ReadyWeapon,
+                        InputManager.Actions.SwingWeapon,
+                        InputManager.Actions.SwitchHand,
 
-                    InputManager.Actions.CastSpell,
-                    InputManager.Actions.RecastSpell,
-                    InputManager.Actions.AbortSpell,
-                    InputManager.Actions.UseMagicItem,
-                };
+                        InputManager.Actions.CastSpell,
+                        InputManager.Actions.RecastSpell,
+                        InputManager.Actions.AbortSpell,
+                        InputManager.Actions.UseMagicItem,
+                    };
 
                     for (int i = 0; i < combatActions.Count; i++)
                     {
@@ -1961,14 +1986,14 @@ namespace AcrealUI
                     interactGroup.Collapse();
 
                     List<InputManager.Actions> interactActions = new List<InputManager.Actions>()
-                {
-                    InputManager.Actions.ActivateCenterObject,
-                    InputManager.Actions.ActivateCursor,
-                    InputManager.Actions.StealMode,
-                    InputManager.Actions.GrabMode,
-                    InputManager.Actions.InfoMode,
-                    InputManager.Actions.TalkMode,
-                };
+                    {
+                        InputManager.Actions.ActivateCenterObject,
+                        InputManager.Actions.ActivateCursor,
+                        InputManager.Actions.StealMode,
+                        InputManager.Actions.GrabMode,
+                        InputManager.Actions.InfoMode,
+                        InputManager.Actions.TalkMode,
+                    };
 
                     for (int i = 0; i < interactActions.Count; i++)
                     {
@@ -1993,17 +2018,17 @@ namespace AcrealUI
                     interfaceGroup.Collapse();
 
                     List<InputManager.Actions> interfaceActions = new List<InputManager.Actions>()
-                {
-                    InputManager.Actions.Rest,
-                    InputManager.Actions.Transport,
-                    InputManager.Actions.Status,
-                    InputManager.Actions.CharacterSheet,
-                    InputManager.Actions.Inventory,
-                    InputManager.Actions.LogBook,
-                    InputManager.Actions.NoteBook,
-                    InputManager.Actions.AutoMap,
-                    InputManager.Actions.TravelMap,
-                };
+                    {
+                        InputManager.Actions.Rest,
+                        InputManager.Actions.Transport,
+                        InputManager.Actions.Status,
+                        InputManager.Actions.CharacterSheet,
+                        InputManager.Actions.Inventory,
+                        InputManager.Actions.LogBook,
+                        InputManager.Actions.NoteBook,
+                        InputManager.Actions.AutoMap,
+                        InputManager.Actions.TravelMap,
+                    };
 
                     for (int i = 0; i < interfaceActions.Count; i++)
                     {
@@ -2028,12 +2053,12 @@ namespace AcrealUI
                     systemGroup.Collapse();
 
                     List<InputManager.Actions> systemActions = new List<InputManager.Actions>()
-                {
-                    InputManager.Actions.ToggleConsole,
-                    InputManager.Actions.QuickSave,
-                    InputManager.Actions.QuickLoad,
-                    InputManager.Actions.PrintScreen,
-                };
+                    {
+                        InputManager.Actions.ToggleConsole,
+                        InputManager.Actions.QuickSave,
+                        InputManager.Actions.QuickLoad,
+                        InputManager.Actions.PrintScreen,
+                    };
 
                     for (int i = 0; i < systemActions.Count; i++)
                     {
@@ -2058,12 +2083,12 @@ namespace AcrealUI
                     axisGroup.Collapse();
 
                     List<InputManager.AxisActions> axisActions = new List<InputManager.AxisActions>()
-                {
-                    InputManager.AxisActions.MovementHorizontal,
-                    InputManager.AxisActions.MovementVertical,
-                    InputManager.AxisActions.CameraHorizontal,
-                    InputManager.AxisActions.CameraVertical,
-                };
+                    {
+                        InputManager.AxisActions.MovementHorizontal,
+                        InputManager.AxisActions.MovementVertical,
+                        InputManager.AxisActions.CameraHorizontal,
+                        InputManager.AxisActions.CameraVertical,
+                    };
 
                     for (int i = 0; i < axisActions.Count; i++)
                     {
@@ -2193,12 +2218,12 @@ namespace AcrealUI
                     };
 
                     List<InputManager.JoystickUIActions> joystickActions = new List<InputManager.JoystickUIActions>()
-                {
-                    InputManager.JoystickUIActions.LeftClick,
-                    InputManager.JoystickUIActions.MiddleClick,
-                    InputManager.JoystickUIActions.RightClick,
-                    InputManager.JoystickUIActions.Back,
-                };
+                    {
+                        InputManager.JoystickUIActions.LeftClick,
+                        InputManager.JoystickUIActions.MiddleClick,
+                        InputManager.JoystickUIActions.RightClick,
+                        InputManager.JoystickUIActions.Back,
+                    };
 
                     for (int i = 0; i < joystickActions.Count; i++)
                     {
@@ -2218,47 +2243,136 @@ namespace AcrealUI
                     }
                     #endregion
                 }
+                #endregion
             }
-        }
-
-        public void DestroyWindow()
-        {
-            if (_pauseWindowInstance != null)
-            {
-                _pauseWindowInstance.Cleanup();
-                Object.Destroy(_pauseWindowInstance);
-            }
-            _pauseWindowInstance = null;
         }
         #endregion
 
 
-        #region Pause Panel Callbacks/Delegates
+        #region IWindowController
+        public void ShowWindow()
+        {
+            AllowCancel = true;
+
+            if (_pauseWindowInstance != null)
+            {
+                _pauseWindowInstance.panelGeneralSettings?.Refresh();
+                _pauseWindowInstance.panelVideoSettings?.Refresh();
+                _pauseWindowInstance.panelAudioSettings?.Refresh();
+                _pauseWindowInstance.panelControlSettings?.Refresh();
+
+                _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default);
+                _pauseWindowInstance.Show();
+            }
+        }
+
+        public void HideWindow()
+        {
+            _pauseWindowInstance?.Hide();
+        }
+
+        public override void OnPop()
+        {
+            HideWindow();
+            _pauseWindowInstance?.ResetWindow();
+            GameManager.Instance.PlayerMouseLook.cursorActive = false;
+
+            if (saveSettings)
+            {
+                DaggerfallUnity.Settings.SaveSettings();
+                saveSettings = false;
+            }
+
+            if (_toggledCoreWindowTypes != null && _toggledCoreWindowTypes.Count > 0)
+            {
+                for (int i = 0; i < _toggledCoreWindowTypes.Count; i++)
+                {
+                    if (UIManager.Instance.IsCoreWindowEnabled(_toggledCoreWindowTypes[i]))
+                    {
+                        UIManager.Instance.DisableCoreWindow(_toggledCoreWindowTypes[i]);
+                    }
+                    else
+                    {
+                        UIManager.Instance.EnableCoreWindow(_toggledCoreWindowTypes[i]);
+                    }
+                }
+                _toggledCoreWindowTypes.Clear();
+
+                //post message calls needed before and after ApplyCoreWindowChanges call
+                //due to DaggerFallUI only checking to refresh its ui windows if there
+                //are messages in the queue to process (a single call can/will get eaten,
+                //but two calls produces consistent behavior)
+                DaggerfallUI.UIManager.PostMessage(string.Empty);
+                UIManager.Instance.ApplyCoreWindowChanges();
+                DaggerfallUI.UIManager.PostMessage(string.Empty);
+            }
+        }
+        #endregion
+
+
+        #region Base Class Overrides
+        public override void OnPush()
+        {
+            base.OnPush();
+
+            GameManager.Instance.SaveLoadManager.EnumerateSaves();
+            _pauseWindowInstance.panelInterfaceSettings.Refresh();
+            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default, true);
+            ShowWindow();
+        }
+
+        protected override void Setup()
+        {
+            IsSetup = true;
+            ParentPanel.BackgroundColor = ScreenDimColor;
+        }
+
+        public override void Update()
+        {
+            if (AllowCancel)
+            {
+                if (DaggerfallUI.Instance.HotkeySequenceProcessed == HotkeySequence.HotkeySequenceProcessStatus.NotFound)
+                {
+                    // Toggle window closed with same hotkey used to open it
+                    if (InputManager.Instance.GetKeyUp(toggleClosedBinding) || InputManager.Instance.GetBackButtonUp())
+                    {
+                        OnBackButtonClicked();
+                    }
+                }
+            }
+        }
+
+        public override void Draw()
+        {
+            //don't need this
+        }
+        #endregion
+
+
+        #region UI Callbacks/Delegates
         private void OnBackButtonClicked()
         {
             switch (_pauseWindowInstance.currentState)
             {
                 case UIPauseWindow.PauseWindowState.Settings:
-                    _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Paused);
+                    _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default);
                     break;
 
                 case UIPauseWindow.PauseWindowState.Settings_Audio:
                 case UIPauseWindow.PauseWindowState.Settings_Controls:
                 case UIPauseWindow.PauseWindowState.Settings_General:
+                case UIPauseWindow.PauseWindowState.Settings_Interface:
                 case UIPauseWindow.PauseWindowState.Settings_Video:
                     _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Settings);
                     break;
 
-                case UIPauseWindow.PauseWindowState.Paused:
+                case UIPauseWindow.PauseWindowState.Default:
                 default:
                     CancelWindow();
                     break;
             }
         }
-        #endregion
 
-
-        #region Controls Panel Callbacks/Delegates
         private string Controls_KeyCodeBindingDataSource(GameObject entry, bool primary)
         {
             UIControlBindingEntry bindingEntry = entry != null ? entry.GetComponent<UIControlBindingEntry>() : null;
@@ -2288,7 +2402,7 @@ namespace AcrealUI
         {
             // TODO(Acreal): localize strings
             string msg = string.Format("Do you want to clear the binding for '{0}'?", entry.actionEnumAsString); 
-            UIManager.popupManager.PushConfirmationWindow("Clear Binding", msg, null,
+            UIManager.popupManager.PushConfirmationWindow("ResetList Binding", msg, null,
                 (_) => 
                 {
                     UIManager.popupManager.PopWindow();

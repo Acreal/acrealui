@@ -55,6 +55,22 @@ namespace AcrealUI
         #endregion
 
 
+        #region Initialization/Cleanup
+        public override void Cleanup()
+        {
+            Event_OnSortAscendingChanged = null;
+            _sortAscending = _sortAscendingByDefault;
+            base.Cleanup();
+        }
+
+        public override void ResetElement()
+        {
+            _sortAscending = _sortAscendingByDefault;
+            base.ResetElement();
+        }
+        #endregion
+
+
         #region Input
         public override void OnPointerClick(PointerEventData eventData)
         {

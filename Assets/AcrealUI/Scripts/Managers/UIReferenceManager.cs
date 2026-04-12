@@ -37,7 +37,7 @@ namespace AcrealUI
         public UIScrollListRow prefab_scrollListRow = null;
 
         public UIPauseWindow prefab_pauseWindow = null;
-        public UIWindowSaveLoad prefab_saveLoadWindow = null;
+        public UISaveLoadWindow prefab_saveLoadWindow = null;
         public UIConfirmationWindow prefab_confirmationWindow = null;
         public UISliderConfirmationWindow prefab_sliderConfirmationWindow = null;
         public UIConversationWindow prefab_conversationWindow = null;
@@ -105,7 +105,7 @@ namespace AcrealUI
             prefab_pauseWindow = pauseWindowObj != null ? pauseWindowObj.GetComponent<UIPauseWindow>() : null;
 
             GameObject saveWindowObj = mod.GetAsset<GameObject>("Prefab_SaveLoadGameWindow");
-            prefab_saveLoadWindow = saveWindowObj != null ? saveWindowObj.GetComponent<UIWindowSaveLoad>() : null;
+            prefab_saveLoadWindow = saveWindowObj != null ? saveWindowObj.GetComponent<UISaveLoadWindow>() : null;
 
             GameObject saveEntryObj = mod.GetAsset<GameObject>("Prefab_SaveGameEntry");
             prefab_saveEntry = saveEntryObj != null ? saveEntryObj.GetComponent<UISaveGameEntry>() : null;

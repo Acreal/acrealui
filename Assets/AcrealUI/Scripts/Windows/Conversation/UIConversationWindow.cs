@@ -42,6 +42,7 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_recentDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_oldDialogueEntryParent = null;
         [SerializeField] private string _gameObjName_pendingDialogueText = null;
+        [SerializeField] private string _gameObjName_dialoguePanelInteractiveElement = null;
         [SerializeField] private string _gameObjName_dialogueLayoutElement = null;
         [SerializeField] private string _gameObjName_pendingDialogueLayoutElement = null;
         [SerializeField] private string _gameObjName_okayButton = null;
@@ -65,6 +66,7 @@ namespace AcrealUI
         private CanvasGroup _dialogueScrollViewCanvasGroup = null;
         private RectTransform _recentDialogueEntryParent = null;
         private RectTransform _oldDialogueEntryParent = null;
+        private UIInteractiveElement _dialoguePanelInteractiveElement = null;
         private LayoutElement _dialogueLayoutElement = null;
         private LayoutElement _pendingDialogueLayoutElement = null;
         private UIButton _okayButton = null;
@@ -104,7 +106,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initialization
+        #region Initialization/Cleanup
         public override void Initialize()
         {
             base.Initialize();
@@ -134,6 +136,13 @@ namespace AcrealUI
             if (dialogueTform != null)
             {
                 _dialogueLayoutElement = dialogueTform.GetComponent<LayoutElement>();
+            }
+
+            Transform dialogueInteractElem = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_dialoguePanelInteractiveElement);
+            if (dialogueInteractElem != null)
+            {
+                _dialoguePanelInteractiveElement = dialogueInteractElem.GetComponent<UIInteractiveElement>();
+                _dialoguePanelInteractiveElement?.Initialize();
             }
 
             Transform pendingTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_pendingDialogueLayoutElement);
@@ -169,10 +178,7 @@ namespace AcrealUI
             if (prevTopicTform != null)
             {
                 _previousTopicButton = prevTopicTform.GetComponent<UIButton>();
-                if (_previousTopicButton != null)
-                {
-                    _previousTopicButton.Initialize();
-                }
+                _previousTopicButton?.Initialize();
             }
 
             Transform pendingDialogueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_pendingDialogueText);
@@ -185,46 +191,71 @@ namespace AcrealUI
             if (groupTform != null)
             {
                 _speakingStyleToggleGroup = groupTform.GetComponent<UIToggleGroup>();
-                if (_speakingStyleToggleGroup != null)
-                {
-                    _speakingStyleToggleGroup.Initialize();
-                }
+                _speakingStyleToggleGroup?.Initialize();
             }
 
             Transform normalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_normalSpeakingStyleToggle);
             if (normalTform != null)
             {
                 normalSpeakingStyleToggle = normalTform.GetComponent<UIToggle>();
-                if (normalSpeakingStyleToggle != null)
-                {
-                    normalSpeakingStyleToggle.Initialize();
-                }
+                normalSpeakingStyleToggle?.Initialize();
             }
 
             Transform politeTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_politeSpeakingStyleToggle);
             if (politeTform != null)
             {
                 politeSpeakingStyleToggle = politeTform.GetComponent<UIToggle>();
-                if (politeSpeakingStyleToggle != null)
-                {
-                    politeSpeakingStyleToggle.Initialize();
-                }
+                politeSpeakingStyleToggle?.Initialize();
             }
 
             Transform bluntTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_bluntSpeakingStyleToggle);
             if (bluntTform != null)
             {
                 bluntSpeakingStyleToggle = bluntTform.GetComponent<UIToggle>();
-                if (bluntSpeakingStyleToggle != null)
-                {
-                    bluntSpeakingStyleToggle.Initialize();
-                }
+                bluntSpeakingStyleToggle?.Initialize();
             }
+        }
+
+        public override void Cleanup()
+        {
+            Event_ButtonClicked_OnSubmitDialogueEntry = null;
+            Event_OnCopyDialogueToNotebook = null;
+
+            ClearTopics();
+            ClearDialogue();
+            SetPendingDialogue(null);
+
+            _allDialogueEntries = null;
+            _recentDialogueEntries = null;
+            _oldDialogueEntries = null;
+            _topicEntries = null;
+
+            _previousTopicButton?.Cleanup();
+            _previousTopicButton = null;
+
+            _dialoguePanelInteractiveElement?.Cleanup();
+            _dialoguePanelInteractiveElement = null;
+
+            _okayButton?.Cleanup();
+            _okayButton = null;
+
+            _speakingStyleToggleGroup?.Cleanup();
+            _speakingStyleToggleGroup = null;
+
+            base.Cleanup();
+        }
+
+        public override void ResetWindow()
+        {
+            ClearTopics();
+            ClearDialogue();
+            SetPendingDialogue(null);
+            base.ResetWindow();
         }
         #endregion
 
 
-        #region Show/Hide
+        #region UIWindow Overrides
         protected override void ShowInternal()
         {
             if(_dialogueLayoutElement != null)
@@ -309,16 +340,20 @@ namespace AcrealUI
 
         public void ClearDialogue()
         {
-            for(int i = _allDialogueEntries.Count - 1; i >= 0; i--)
+            if (_allDialogueEntries != null)
             {
-                if (_allDialogueEntries[i] != null)
+                for (int i = _allDialogueEntries.Count - 1; i >= 0; i--)
                 {
-                    Destroy(_allDialogueEntries[i].gameObject);
+                    if (_allDialogueEntries[i] != null)
+                    {
+                        Destroy(_allDialogueEntries[i].gameObject);
+                    }
                 }
+                _allDialogueEntries.Clear();
             }
-            _allDialogueEntries.Clear();
-            _recentDialogueEntries.Clear();
-            _oldDialogueEntries.Clear();
+
+            _recentDialogueEntries?.Clear();
+            _oldDialogueEntries?.Clear();
         }
 
         public UIButton AddTopicEntry(string buttonLabel, UIButton prefab)

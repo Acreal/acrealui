@@ -24,7 +24,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIToggleFeedbackSpriteSwap : UIToggleFeedback
+    public class UIToggleFeedbackSpriteSwap : UIElementFeedback
     {
         #region Variables
         [SerializeField] private string _toggledOnSpriteName = null;
@@ -43,6 +43,11 @@ namespace AcrealUI
         private Sprite _toggledOnAndHighlightedSprite = null;
         private Sprite _toggledOffAndHighlightedSprite = null;
         private Sprite _disabledSprite = null;
+        #endregion
+
+
+        #region Properties
+        protected UIToggle toggle { get { return _uiElement as UIToggle; } }
         #endregion
 
 

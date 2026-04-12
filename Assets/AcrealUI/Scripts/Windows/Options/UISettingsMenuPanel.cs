@@ -49,7 +49,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initialization
+        #region Initialization/Cleanup
         public override void Initialize()
         {
             base.Initialize();
@@ -113,6 +113,32 @@ namespace AcrealUI
                 }
                 else { Debug.LogError("[AcrealUI.UISettingsMenuPanel] Failed to load UIButton Script on GameObject \"" + _gameObjName_button_controlSettings + "\""); }
             }
+        }
+
+        public override void Cleanup()
+        {
+            Event_OnButtonClicked_GeneralSettings = null;
+            Event_OnButtonClicked_InterfaceSettings = null;
+            Event_OnButtonClicked_VideoSettings = null;
+            Event_OnButtonClicked_AudioSettings = null;
+            Event_OnButtonClicked_ControlSettings = null;
+
+            _button_generalSettings?.Cleanup();
+            _button_generalSettings = null;
+
+            _button_interfaceSettings?.Cleanup();
+            _button_interfaceSettings = null;
+
+            _button_videoSettings?.Cleanup();
+            _button_videoSettings = null;
+
+            _button_audioSettings?.Cleanup();
+            _button_audioSettings = null;
+
+            _button_controlSettings?.Cleanup();
+            _button_controlSettings = null;
+
+            base.Cleanup();
         }
         #endregion
     }

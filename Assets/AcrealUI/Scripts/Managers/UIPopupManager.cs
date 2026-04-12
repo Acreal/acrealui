@@ -40,7 +40,7 @@ namespace AcrealUI
 
 
         #region Public API
-        public void PushSliderConfirmationWindow(string title, string message,int minSliderValue, int maxSliderValue, bool useWholeNumbers, object[] dataPayload, System.Action<float, object[]> onConfirm, System.Action<object[]> onCancel)
+        public void PushSliderConfirmationWindow(string title, string message, int minSliderValue, int maxSliderValue, bool useWholeNumbers, object[] dataPayload, System.Action<float, object[]> onConfirm, System.Action<object[]> onCancel)
         {
             UISliderConfirmationWindowController windowController = new UISliderConfirmationWindowController();
             if (windowController != null)
@@ -77,7 +77,7 @@ namespace AcrealUI
                 if (windowController != null)
                 {
                     windowController.HideWindow();
-                    windowController.DestroyWindow();
+                    windowController.OnPop();
                 }
             }
         }

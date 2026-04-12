@@ -44,7 +44,7 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initialize
+        #region Initialize/Cleanup
         public override void Initialize()
         {
             base.Initialize();
@@ -83,6 +83,21 @@ namespace AcrealUI
                 }
             }
             
+        }
+
+        public override void Cleanup()
+        {
+            _cancelButton.Cleanup();
+            _cancelButton = null;
+            base.Cleanup();
+        }
+
+        public override void ResetWindow()
+        {
+            Event_OnConfirm = null;
+            Event_OnCancel = null;
+            SetMessageText(null);
+            base.ResetWindow();
         }
         #endregion
 

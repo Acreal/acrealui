@@ -23,7 +23,7 @@ using UnityEngine;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIToggleFeedbackGameObjectToggle : UIToggleFeedback
+    public class UIToggleFeedbackGameObjectToggle : UIElementFeedback
     {
         #region Variables
         [SerializeField] private string _gameObjName_objectToToggle = null;
@@ -36,6 +36,11 @@ namespace AcrealUI
         [SerializeField] protected bool _activateObjOnDisable = false;
 
         protected GameObject _gameObjToToggle = null;
+        #endregion
+
+
+        #region Properties
+        protected UIToggle toggle { get { return _uiElement as UIToggle; } }
         #endregion
 
 

@@ -43,11 +43,46 @@ namespace AcrealUI
         #region Initialization
         public void Initialize()
         {
-            _uiElements = new List<UIElement>();
-            uiElementsRO = _uiElements.AsReadOnly();
+            if (_uiElements == null)
+            {
+                _uiElements = new List<UIElement>();
+                uiElementsRO = _uiElements.AsReadOnly();
+            }
 
-            _parent_groupEntries = UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
-            if(_parent_groupEntries == null) { _parent_groupEntries = transform; }
+            if (_parent_groupEntries == null)
+            {
+                _parent_groupEntries = UIUtilityFunctions.FindDeepChild(transform, _parent_groupEntriesGameObjName);
+                if (_parent_groupEntries == null) { _parent_groupEntries = transform; }
+            }
+        }
+
+        public void Cleanup()
+        {
+            if (_uiElements != null)
+            {
+                for (int i = _uiElements.Count - 1; i >= 0; i--)
+                {
+                    if (_uiElements[i] != null)
+                    {
+                        Destroy(_uiElements[i].gameObject);
+                    }
+                }
+                _uiElements.Clear();
+            }
+        }
+
+        public void ResetRow()
+        {
+            if (_uiElements != null)
+            {
+                for (int i = 0; i < _uiElements.Count; i++)
+                {
+                    if (_uiElements[i] != null)
+                    {
+                        _uiElements[i].ResetElement();
+                    }
+                }
+            }
         }
         #endregion
 

@@ -161,4 +161,15 @@ namespace AcrealUI
         Polite = 1,
         Blunt = 2,
     }
+
+    public enum UIWindowInstanceType
+    {
+        None = 0,
+        PauseOptions = 1,
+        Inventory = 2,
+        Conversation = 3,
+        SaveOrLoadGame = 4,
+        Confirmation = 5,
+        SliderConfirmation = 6,
+    }
 }

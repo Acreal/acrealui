@@ -32,14 +32,13 @@ namespace AcrealUI
         public enum PauseWindowState
         {
             None = 0,
-            Paused = 1,
+            Default = 1,
             Settings = 2,
             Settings_General = 3,
-            Settings_Video = 4,
-            Settings_Audio = 5,
-            Settings_Controls = 6,
-            SimpleMessage = 7,
-            KeyBinding = 8,
+            Settings_Interface = 4,
+            Settings_Video = 5,
+            Settings_Audio = 6,
+            Settings_Controls = 7,
         }
         #endregion
 
@@ -48,16 +47,18 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_panelPaused = null;
         [SerializeField] private string _gameObjName_panelSettings = null;
         [SerializeField] private string _gameObjName_panelGeneralSettings = null;
+        [SerializeField] private string _gameObjName_panelInterfaceSettings = null;
         [SerializeField] private string _gameObjName_panelAudioSettings = null;
         [SerializeField] private string _gameObjName_panelVideoSettings = null;
         [SerializeField] private string _gameObjName_panelControlSettings = null;
 
         private UIPausePanel _panelPaused = null;
         private UISettingsMenuPanel _panelSettings = null;
-        private UIControlOptionsPanel _panelControlSettings = null;
         private UIPanel _panelGeneralSettings = null;
+        private UIPanel _panelInterfaceSettings = null;
         private UIPanel _panelAudioSettings = null;
         private UIPanel _panelVideoSettings = null;
+        private UIControlOptionsPanel _panelControlSettings = null;
 
         private PauseWindowState _currentState = PauseWindowState.None;
         private Vector2 _panelSizeOffset = Vector2.zero;
@@ -69,10 +70,11 @@ namespace AcrealUI
         public PauseWindowState currentState { get { return _currentState; } }
         public UIPausePanel panelPaused { get { return _panelPaused; } }
         public UISettingsMenuPanel panelSettings { get { return _panelSettings; } }
-        public UIControlOptionsPanel panelControlSettings { get { return _panelControlSettings; } }
         public UIPanel panelGeneralSettings { get { return _panelGeneralSettings; } }
+        public UIPanel panelInterfaceSettings { get { return _panelInterfaceSettings; } }
         public UIPanel panelAudioSettings { get { return _panelAudioSettings; } }
         public UIPanel panelVideoSettings { get { return _panelVideoSettings; } }
+        public UIControlOptionsPanel panelControlSettings { get { return _panelControlSettings; } }
         #endregion
 
 
@@ -115,6 +117,17 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_GeneralSettings script from GameObject \"" + (generalTform != null ? generalTform.gameObject.name : "NULL")); }
             }
 
+            Transform interfaceTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelInterfaceSettings);
+            if (interfaceTform != null)
+            {
+                _panelInterfaceSettings = interfaceTform.GetComponent<UIPanel>();
+                if (_panelInterfaceSettings)
+                {
+                    _panelInterfaceSettings.Initialize();
+                }
+                else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIPanel_GeneralSettings script from GameObject \"" + (interfaceTform != null ? interfaceTform.gameObject.name : "NULL")); }
+            }
+
             Transform audioTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_panelAudioSettings);
             if (audioTform != null)
             {
@@ -148,6 +161,51 @@ namespace AcrealUI
                 else { Debug.LogError("[AcrealUI.UIPauseWindow] Unable to get UIControlOptionsPanel script from GameObject \"" + (controlTform != null ? controlTform.gameObject.name : "NULL")); }
             }
         }
+
+        public override void Cleanup()
+        {
+            _activePanel?.Hide();
+            _activePanel = null;
+
+            _panelPaused?.Cleanup();
+            _panelPaused = null;
+
+            _panelSettings?.Cleanup();
+            _panelSettings = null;
+
+            _panelGeneralSettings?.Cleanup();
+            _panelGeneralSettings = null;
+
+            _panelInterfaceSettings?.Cleanup();
+            _panelInterfaceSettings = null;
+
+            _panelAudioSettings?.Cleanup();
+            _panelAudioSettings = null;
+
+            _panelVideoSettings?.Cleanup();
+            _panelVideoSettings = null;
+
+            _panelControlSettings?.Cleanup();
+            _panelControlSettings = null;
+
+            base.Cleanup();
+        }
+
+        public override void ResetWindow()
+        {
+            SetHeaderText(null);
+            SetState(PauseWindowState.None);
+
+            _panelPaused?.ResetPanel();
+            _panelSettings?.ResetPanel();
+            _panelGeneralSettings?.ResetPanel();
+            _panelInterfaceSettings?.ResetPanel();
+            _panelAudioSettings?.ResetPanel();
+            _panelVideoSettings?.ResetPanel();
+            _panelControlSettings?.ResetPanel();
+
+            base.ResetWindow();
+        }
         #endregion
 
 
@@ -168,56 +226,37 @@ namespace AcrealUI
                 {
                     case PauseWindowState.Settings:
                         _activePanel = _panelSettings;
-                        if (_headerText != null)
-                        {
-                            //TODO(Acreal): localize this string
-                            SetHeaderText("Settings");
-                        }
+                        SetHeaderText("Settings"); //TODO(Acreal): localize this string
                         break;
 
                     case PauseWindowState.Settings_General:
                         _activePanel = _panelGeneralSettings;
-                        if (_headerText != null)
-                        {
-                            //TODO(Acreal): localize this string
-                            SetHeaderText("General");
-                        }
+                        SetHeaderText("General"); //TODO(Acreal): localize this string
+                        break;
+
+                    case PauseWindowState.Settings_Interface:
+                        _activePanel = _panelInterfaceSettings;
+                        SetHeaderText("Interface"); //TODO(Acreal): localize this string
                         break;
 
                     case PauseWindowState.Settings_Video:
                         _activePanel = _panelVideoSettings;
-                        if (_headerText != null)
-                        {
-                            //TODO(Acreal): localize this string
-                            SetHeaderText("Video");
-                        }
+                        SetHeaderText("Video"); //TODO(Acreal): localize this string
                         break;
 
                     case PauseWindowState.Settings_Audio:
                         _activePanel = _panelAudioSettings;
-                        if (_headerText != null)
-                        {
-                            //TODO(Acreal): localize this string
-                            SetHeaderText("Audio");
-                        }
+                        SetHeaderText("Audio"); //TODO(Acreal): localize this string
                         break;
 
                     case PauseWindowState.Settings_Controls:
                         _activePanel = _panelControlSettings;
-                        if (_headerText != null)
-                        {
-                            //TODO(Acreal): localize this string
-                            SetHeaderText("Controls");
-                        }
+                        SetHeaderText("Controls"); //TODO(Acreal): localize this string
                         break;
 
                     default:
                         _activePanel = _panelPaused;
-                        if (_headerText != null)
-                        {
-                            //TODO(Acreal): localize this string
-                            SetHeaderText("Paused");
-                        }
+                        SetHeaderText("Default"); //TODO(Acreal): localize this string
                         break;
                 }
 

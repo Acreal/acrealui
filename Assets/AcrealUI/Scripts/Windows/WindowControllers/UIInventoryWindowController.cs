@@ -30,7 +30,6 @@ using System.Text;
 using UnityEngine;
 
 using Debug = UnityEngine.Debug;
-using Object = UnityEngine.Object;
 
 namespace AcrealUI
 {
@@ -45,131 +44,27 @@ namespace AcrealUI
         #endregion
 
 
-        #region Constructor
+        #region Initialization
         public UIInventoryWindowController(IUserInterfaceManager uiManager, DaggerfallBaseWindow previous = null)
                 : base(uiManager, previous)
         {
             AllowCancel = false;
 
-            //base class needs these
+            //base class needs these references, but we don't use them
             localItemListScroller = new ItemListScroller(defaultToolTip);
             remoteItemListScroller = new ItemListScroller(defaultToolTip);
             wagonButton = new Button();
 
-            CreateWindow();
-        }
-        #endregion
-
-
-        #region Overridden Base Class Functions
-        public override void OnPush()
-        {
-            base.OnPush();
-
-            //workaround for base class setting the remoteItems to
-            //the wagon's items (we use localItems for that)
-            if (usingWagon)
+            if (_inventoryWindowInstance == null)
             {
-                remoteItems = lastRemoteItems;
-                usingWagon = false;
-            }
-
-            if (_inventoryWindowInstance != null)
-            {
-                #region Stats Panel
-                UpdateEnemyTypes();
-                UpdatePlayerInfo();
-                UpdateVitalStats();
-                UpdatePaperDoll();
-                UpdateEquipmentStats();
-                UpdatePrimaryStatsAndSkills();
-                #endregion
-
-                #region Player Inventory
-                if (_inventoryWindowInstance.itemList_playerInventory != null)
+                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Inventory);
+                if (window == null || !(window is UIInventoryWindow))
                 {
-                    _inventoryWindowInstance.itemList_playerInventory.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
-                    _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
-
-                    bool hasWagon = UIUtilityFunctions.PlayerHasWagonAccess();
-                    _inventoryWindowInstance.itemList_playerInventory.EnableOrDisableTabs(hasWagon, hasWagon, false, false);
-                    _inventoryWindowInstance.itemList_playerInventory.SetActiveFilter(ItemFilter.All);
-                    UpdatePlayerFilterToggles();
-                    UpdatePlayerInventory();
+                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.Inventory) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIInventoryWindow, but got " + window.GetType().ToString() + "!"));
+                    return;
                 }
-                #endregion
 
-                #region Container Inventory
-                if (_inventoryWindowInstance.itemList_container != null)
-                {
-                    _inventoryWindowInstance.itemList_container.SetTotalGoldText(null);
-                    _inventoryWindowInstance.itemList_container.SetTotalWeightText(null);
-                    _inventoryWindowInstance.itemList_container.EnableOrDisableTabs(false, false, false, LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
-                    _inventoryWindowInstance.itemList_container.SetActiveFilter(ItemFilter.All);
-
-                    if (lootTarget != null)
-                    {
-                        _inventoryWindowInstance.itemList_container.SetLootPileIcon(UIUtilityFunctions.GetLootContainerIcon(lootTarget));
-                    }
-
-                    UpdateContainerFilterToggles();
-                    UpdateContainerInventory();
-                }
-                #endregion
-
-                _inventoryWindowInstance.Show();
-            }
-        }
-
-        public override void OnPop()
-        {
-            base.OnPop();
-
-            GameManager.Instance.PlayerMouseLook.cursorActive = false;
-
-            UIManager.tooltipManager.HideActiveTooltip();
-
-            if (_inventoryWindowInstance != null)
-            {
-                _inventoryWindowInstance.Hide();
-            }
-        }
-
-        protected override void Setup()
-        {
-            IsSetup = true;
-            ParentPanel.BackgroundColor =  Color.clear;
-        }
-
-        //OBSOLETE FUNCTIONS:
-        public override void Draw() { }
-        public override void Refresh(bool refreshPaperDoll = true) { }
-        protected override void SetRemoteItemsAnimation() { }
-        protected override void SelectTabPage(TabPages tabPage) { }
-        protected override void SelectActionMode(ActionModes mode) { }
-        protected override void UpdateLocalTargetIcon() { }
-        protected override void UpdateRemoteTargetIcon() { }
-        protected override void FilterLocalItems() { }
-        protected override void FilterRemoteItems() { }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            _inventoryWindowInstance?.Show();
-        }
-
-        public void HideWindow()
-        {
-            _inventoryWindowInstance?.Hide();
-        }
-
-        public void CreateWindow()
-        {
-            if (_inventoryWindowInstance == null && UIManager.referenceManager.prefab_inventoryWindow != null)
-            {
-                _inventoryWindowInstance = Object.Instantiate(UIManager.referenceManager.prefab_inventoryWindow);
+                _inventoryWindowInstance = window as UIInventoryWindow;
                 _inventoryWindowInstance.Initialize();
 
                 #region Event Listeners
@@ -205,13 +100,6 @@ namespace AcrealUI
                         UpdatePlayerInventory(true);
                         _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
                     };
-
-                    //_inventoryWindowInstance.itemList_playerInventory.Event_OnToggled_InventoryTab_Merchant += () =>
-                    //{
-                    //    //TODO(Acreal): get/populate merchant item list
-                    //    //_inventoryDisplayCollection = merchantItems;
-                    //    //UpdatePlayerInventory(true);
-                    //};
 
                     _inventoryWindowInstance.itemList_playerInventory.Event_OnGoldButtonClicked += () =>
                     {
@@ -340,15 +228,107 @@ namespace AcrealUI
                 #endregion
             }
         }
+        #endregion
 
-        public void DestroyWindow()
+
+        #region IWindowController
+        public void ShowWindow()
         {
+            _inventoryWindowInstance?.Show();
+        }
+
+        public void HideWindow()
+        {
+            _inventoryWindowInstance?.Hide();
+        }
+
+        public override void OnPop()
+        {
+            base.OnPop();
+            HideWindow();
+            _inventoryWindowInstance?.ResetWindow();
+            GameManager.Instance.PlayerMouseLook.cursorActive = false;
+            UIManager.tooltipManager.HideActiveTooltip();
+        }
+        #endregion
+
+
+        #region Overridden Base Class Functions
+        public override void OnPush()
+        {
+            base.OnPush();
+
+            //workaround for base class setting the remoteItems to
+            //the wagon's items (we use localItems for that)
+            if (usingWagon)
+            {
+                remoteItems = lastRemoteItems;
+                usingWagon = false;
+            }
+
             if (_inventoryWindowInstance != null)
             {
-                Object.Destroy(_inventoryWindowInstance.gameObject);
+                #region Stats Panel
+                UpdateEnemyTypes();
+                UpdatePlayerInfo();
+                UpdateVitalStats();
+                UpdatePaperDoll();
+                UpdateEquipmentStats();
+                UpdatePrimaryStatsAndSkills();
+                #endregion
+
+                #region Player Inventory
+                if (_inventoryWindowInstance.itemList_playerInventory != null)
+                {
+                    _inventoryWindowInstance.itemList_playerInventory.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+                    _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
+
+                    bool hasWagon = UIUtilityFunctions.PlayerHasWagonAccess();
+                    _inventoryWindowInstance.itemList_playerInventory.EnableOrDisableTabs(hasWagon, hasWagon, false, false);
+                    _inventoryWindowInstance.itemList_playerInventory.SetActiveFilter(ItemFilter.All);
+                    UpdatePlayerFilterToggles();
+                    UpdatePlayerInventory();
+                }
+                #endregion
+
+                #region Container Inventory
+                if (_inventoryWindowInstance.itemList_container != null)
+                {
+                    _inventoryWindowInstance.itemList_container.SetTotalGoldText(null);
+                    _inventoryWindowInstance.itemList_container.SetTotalWeightText(null);
+                    _inventoryWindowInstance.itemList_container.EnableOrDisableTabs(false, false, false, LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
+                    _inventoryWindowInstance.itemList_container.SetActiveFilter(ItemFilter.All);
+
+                    if (lootTarget != null)
+                    {
+                        _inventoryWindowInstance.itemList_container.SetLootPileIcon(UIUtilityFunctions.GetLootContainerIcon(lootTarget));
+                    }
+
+                    UpdateContainerFilterToggles();
+                    UpdateContainerInventory();
+                }
+                #endregion
+
+                _inventoryWindowInstance.Show();
             }
-            _inventoryWindowInstance = null;
         }
+
+        protected override void Setup()
+        {
+            IsSetup = true;
+            ParentPanel.BackgroundColor =  Color.clear;
+        }
+
+        //OBSOLETE FUNCTIONS:
+        public override void Draw() { }
+        public override void Refresh(bool refreshPaperDoll = true) { }
+        protected override void SetRemoteItemsAnimation() { }
+        protected override void SelectTabPage(TabPages tabPage) { }
+        protected override void SelectActionMode(ActionModes mode) { }
+        protected override void UpdateLocalTargetIcon() { }
+        protected override void UpdateRemoteTargetIcon() { }
+        protected override void FilterLocalItems() { }
+        protected override void FilterRemoteItems() { }
         #endregion
 
 
@@ -537,7 +517,7 @@ namespace AcrealUI
             {
                 if (playerEntity == null || clearFirst)
                 {
-                    _inventoryWindowInstance.itemList_playerInventory.Clear();
+                    _inventoryWindowInstance.itemList_playerInventory.ClearAllItemEntries();
                 }
 
                 if (playerEntity == null)
@@ -583,7 +563,7 @@ namespace AcrealUI
             {
                 if (clearFirst)
                 {
-                    _inventoryWindowInstance.itemList_container.Clear();
+                    _inventoryWindowInstance.itemList_container.ClearAllItemEntries();
                 }
 
                 UIItemQueryOptions queryOptions = new UIItemQueryOptions();
@@ -995,9 +975,9 @@ namespace AcrealUI
 
                 if (_inventoryWindowInstance != null)
                 {
-                    _inventoryWindowInstance.itemList_container.EnableOrDisableTabs(false, false, false, LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
-                    _inventoryWindowInstance.itemList_playerInventory.SetTotalWeightText(BuildPlayerWeightString());
-                    _inventoryWindowInstance.ShowContainerPanel();
+                    _inventoryWindowInstance.itemList_container?.EnableOrDisableTabs(false, false, false, LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
+                    _inventoryWindowInstance.itemList_playerInventory?.SetTotalWeightText(BuildPlayerWeightString());
+                    _inventoryWindowInstance.itemList_container?.Show();
                 }
             }
         }
@@ -1095,7 +1075,7 @@ namespace AcrealUI
                         }
                         else
                         {
-                            _inventoryWindowInstance.HideContainerPanel();
+                            _inventoryWindowInstance.itemList_container?.Hide();
                         }
                     }
                 }
@@ -1147,7 +1127,7 @@ namespace AcrealUI
 
                         UIManager.tooltipManager.HideActiveTooltip();
 
-                        _inventoryWindowInstance.ShowContainerPanel();
+                        _inventoryWindowInstance.itemList_container.Show();
                     }
                 }
             }

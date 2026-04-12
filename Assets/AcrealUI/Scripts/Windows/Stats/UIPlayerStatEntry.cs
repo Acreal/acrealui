@@ -41,23 +41,21 @@ namespace AcrealUI
         #region Initialization
         public void Initialize()
         {
-            if (_image_statIcon == null)
-            {
-                Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_statIcon);
-                _image_statIcon = iconTform != null ? iconTform.GetComponent<Image>() : null;
-            }
+            Transform iconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_image_statIcon);
+            _image_statIcon = iconTform != null ? iconTform.GetComponent<Image>() : null;
+                
+            Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_statName);
+            _text_statName = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
+                
+            Transform valueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_statValue);
+            _text_statValue = valueTform != null ? valueTform.GetComponent<TextMeshProUGUI>() : null;
+        }
 
-            if (_text_statName == null)
-            {
-                Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_statName);
-                _text_statName = nameTform != null ? nameTform.GetComponent<TextMeshProUGUI>() : null;
-            }
-
-            if (_text_statValue == null)
-            {
-                Transform valueTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_statValue);
-                _text_statValue = valueTform != null ? valueTform.GetComponent<TextMeshProUGUI>() : null;
-            }
+        public void Cleanup()
+        {
+            _image_statIcon = null;
+            _text_statName = null;
+            _text_statValue = null;
         }
         #endregion
 

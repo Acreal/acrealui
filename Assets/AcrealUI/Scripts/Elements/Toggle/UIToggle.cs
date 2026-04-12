@@ -18,8 +18,6 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using TMPro;
-using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace AcrealUI
@@ -63,6 +61,9 @@ namespace AcrealUI
                     {
                         Event_OnToggledOff(this);
                     }
+
+                    //refresh must be called after the event calls above
+                    Refresh();
                 }
             }
         }
@@ -86,14 +87,24 @@ namespace AcrealUI
         #endregion
 
 
-        #region Initialization
-        public override void Initialize()
+        #region Initialization/Cleanup
+        public override void Cleanup()
         {
+            _displayName = null;
+
+            DataSource_IsToggledOn = null;
+
             Event_OnToggledOn = null;
             Event_OnToggledOff = null;
             Event_OnToggledOnOrOff = null;
 
-            base.Initialize();
+            base.Cleanup();
+        }
+
+        public override void ResetElement()
+        {
+            _isToggledOn = false;
+            base.ResetElement();
         }
         #endregion
 

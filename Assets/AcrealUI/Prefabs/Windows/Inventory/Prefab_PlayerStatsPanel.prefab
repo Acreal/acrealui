@@ -329,9 +329,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
   _gameObjName_slider: Slider_Magicka
-  _gameObjName_text_sliderTitle: 
-  _gameObjName_text_sliderValue: Text_MagickaValue
 --- !u!114 &3286776691466205903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1028,9 +1028,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
   _gameObjName_slider: Slider_Health
-  _gameObjName_text_sliderTitle: 
-  _gameObjName_text_sliderValue: Text_HealthValue
 --- !u!114 &8629928228414624089
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1984,9 +1984,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
   _gameObjName_slider: Slider_Experience
-  _gameObjName_text_sliderTitle: 
-  _gameObjName_text_sliderValue: Text_ExpValue
 --- !u!114 &8768469063285640950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3675,6 +3675,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!1 &2993727943325387168
 GameObject:
   m_ObjectHideFlags: 0
@@ -4409,6 +4411,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 1
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!114 &3206828626881661919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5001,6 +5005,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 1
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!114 &8103554832365188946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7063,6 +7069,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 1
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!114 &7106114327580762957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7152,9 +7160,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
   _gameObjName_slider: Slider_Fatigue
-  _gameObjName_text_sliderTitle: 
-  _gameObjName_text_sliderValue: Text_FatigueValue
 --- !u!114 &537073395144444074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7378,6 +7386,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 1
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!114 &2531241574415615892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8541,6 +8551,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 1
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!114 &1028067468167753444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9108,6 +9120,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
 --- !u!1 &9162716327962299544
 GameObject:
   m_ObjectHideFlags: 0

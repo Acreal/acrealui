@@ -38,7 +38,49 @@ namespace AcrealUI
         #region Initialization
         public UIConfirmationWindowController()
         {
-            CreateWindow();
+            if (_confirmationWindow == null)
+            {
+                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Confirmation);
+                if (window == null || !(window is UIConfirmationWindow))
+                {
+                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.Confirmation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConfirmationWindow, but got " + window.GetType().ToString() + "!"));
+                    return;
+                }
+
+                _confirmationWindow = window as UIConfirmationWindow;
+                _confirmationWindow.Initialize();
+                _confirmationWindow.Hide();
+                _confirmationWindow.SetBackButtonActive(false);
+                _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+                _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+                _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(_dataPayload); };
+                _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+            }
+        }
+        #endregion
+
+
+        #region IWindowController
+        public void ShowWindow()
+        {
+            _confirmationWindow?.Show();
+        }
+
+        public void HideWindow()
+        {
+            Event_ButtonClick_OnConfirm = null;
+            Event_ButtonClick_OnCancel = null;
+            _confirmationWindow?.Hide();
+        }
+
+        public void OnPop()
+        {
+            if (_confirmationWindow != null)
+            {
+                _confirmationWindow.Hide();
+                _confirmationWindow.ResetWindow();
+            }
+            _confirmationWindow = null;
         }
         #endregion
 
@@ -68,52 +110,6 @@ namespace AcrealUI
                 _confirmationWindow.SetConfirmButtonActive(Event_ButtonClick_OnConfirm != null);
                 _confirmationWindow.SetCancelButtonActive(Event_ButtonClick_OnCancel != null);
             }
-        }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            if (_confirmationWindow != null)
-            {
-                _confirmationWindow.Show();
-            }
-        }
-
-        public void HideWindow()
-        {
-            Event_ButtonClick_OnConfirm = null;
-            Event_ButtonClick_OnCancel = null;
-
-            if (_confirmationWindow != null)
-            {
-                _confirmationWindow.Hide();
-            }
-        }
-
-        public void CreateWindow()
-        {
-            if (_confirmationWindow == null && UIManager.referenceManager.prefab_confirmationWindow != null)
-            {
-                _confirmationWindow = Object.Instantiate(UIManager.referenceManager.prefab_confirmationWindow);
-                _confirmationWindow.Initialize();
-                _confirmationWindow.Hide();
-                _confirmationWindow.SetBackButtonActive(false);
-                _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
-                _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
-                _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(_dataPayload); };
-                _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
-            }
-        }
-
-        public void DestroyWindow()
-        {
-            if (_confirmationWindow != null)
-            {
-                Object.Destroy(_confirmationWindow.gameObject);
-            }
-            _confirmationWindow = null;
         }
         #endregion
     }
