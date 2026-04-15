@@ -37,15 +37,15 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_itemList_container = null;
 
         private UIPanelPlayerStats _panel_playerStats = null;
-        private UIInventoryWindow_ItemList _itemList_playerInventory = null;
-        private UIInventoryWindow_ItemList _itemList_container = null;
+        private UIInventoryItemList _itemList_playerInventory = null;
+        private UIInventoryItemList _itemList_container = null;
         #endregion
 
 
         #region Properties
         public UIPanelPlayerStats panel_playerStats { get { return _panel_playerStats; } }
-        public UIInventoryWindow_ItemList itemList_playerInventory { get { return _itemList_playerInventory; } }
-        public UIInventoryWindow_ItemList itemList_container { get { return _itemList_container; } }
+        public UIInventoryItemList itemList_playerInventory { get { return _itemList_playerInventory; } }
+        public UIInventoryItemList itemList_container { get { return _itemList_container; } }
         #endregion
 
 
@@ -67,7 +67,7 @@ namespace AcrealUI
             Transform invTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_playerInventory);
             if (invTform != null)
             {
-                _itemList_playerInventory = invTform.GetComponent<UIInventoryWindow_ItemList>();
+                _itemList_playerInventory = invTform.GetComponent<UIInventoryItemList>();
                 if (_itemList_playerInventory != null)
                 {
                     _itemList_playerInventory.Initialize();
@@ -78,7 +78,7 @@ namespace AcrealUI
             Transform conTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_container);
             if (conTform != null)
             {
-                _itemList_container = conTform.GetComponent<UIInventoryWindow_ItemList>();
+                _itemList_container = conTform.GetComponent<UIInventoryItemList>();
                 if (_itemList_container != null)
                 {
                     _itemList_container.Initialize();

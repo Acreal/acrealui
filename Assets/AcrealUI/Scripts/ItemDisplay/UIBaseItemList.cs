@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIInventoryWindow_TradeDisplay : MonoBehaviour
+public class UIBaseItemList : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()

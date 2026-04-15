@@ -26,7 +26,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIInventoryWindow_ItemEntry : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+    public class UIItemEntry : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         #region Variables
         [SerializeField] private string _gameObjName_itemTypeIcon = null;
@@ -64,10 +64,10 @@ namespace AcrealUI
 
 
         #region Delegates
-        public System.Action<UIInventoryWindow_ItemEntry> Delegate_OnPointerEnter = null;
-        public System.Action<UIInventoryWindow_ItemEntry> Delegate_OnPointerExit = null;
-        public System.Action<UIInventoryWindow_ItemEntry> Delegate_OnLeftClicked = null;
-        public System.Action<UIInventoryWindow_ItemEntry> Delegate_OnRightClicked = null;
+        public System.Action<UIItemEntry> Delegate_OnPointerEnter = null;
+        public System.Action<UIItemEntry> Delegate_OnPointerExit = null;
+        public System.Action<UIItemEntry> Delegate_OnLeftClicked = null;
+        public System.Action<UIItemEntry> Delegate_OnRightClicked = null;
         #endregion
 
 

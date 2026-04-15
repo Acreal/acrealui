@@ -47,7 +47,7 @@ namespace AcrealUI
         public UIToggle prefab_resolutionSettingEntry = null;
 
         public UIInventoryWindow prefab_inventoryWindow = null;
-        public UIInventoryWindow_ItemEntry prefab_itemEntry = null;
+        public UIItemEntry prefab_itemEntry = null;
         public UIPlayerStatEntry prefab_playerStatEntry = null;
         public UIPlayerSkillEntry prefab_playerSkillEntry = null;
         
@@ -125,7 +125,7 @@ namespace AcrealUI
             prefab_inventoryWindow = inventoryWindowObj != null ? inventoryWindowObj.GetComponent<UIInventoryWindow>() : null;
 
             GameObject itemEntryObj = mod.GetAsset<GameObject>("Prefab_InventoryItemEntry");
-            prefab_itemEntry = itemEntryObj != null ? itemEntryObj.GetComponent<UIInventoryWindow_ItemEntry>() : null;
+            prefab_itemEntry = itemEntryObj != null ? itemEntryObj.GetComponent<UIItemEntry>() : null;
 
             GameObject payerStatEntryObj = mod.GetAsset<GameObject>("Prefab_CharacterStatEntry");
             prefab_playerStatEntry = payerStatEntryObj != null ? payerStatEntryObj.GetComponent<UIPlayerStatEntry>() : null;

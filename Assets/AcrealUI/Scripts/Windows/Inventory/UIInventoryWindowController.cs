@@ -544,7 +544,7 @@ namespace AcrealUI
                     UIUtilityFunctions.SortItemsByColumn(itemData, sortByColumn, ascending);
                     for (int i = 0; i < itemData.Count; i++)
                     {
-                        UIInventoryWindow_ItemEntry itemEntry = _inventoryWindowInstance.itemList_playerInventory.AddItemEntry(itemData[i].UID);
+                        UIItemEntry itemEntry = _inventoryWindowInstance.itemList_playerInventory.AddItemEntry(itemData[i].UID);
                         itemEntry.transform.SetSiblingIndex(i);
                         InitializeItemEntryWithItemData(localItems, itemEntry, itemData[i], UIUtilityFunctions.ItemFilterToColumnFlags(itemFilter));
 
@@ -585,7 +585,7 @@ namespace AcrealUI
 
                 for (int i = 0; i < itemData.Count; i++)
                 {
-                    UIInventoryWindow_ItemEntry itemEntry = _inventoryWindowInstance.itemList_container.AddItemEntry(itemData[i].UID);
+                    UIItemEntry itemEntry = _inventoryWindowInstance.itemList_container.AddItemEntry(itemData[i].UID);
                     itemEntry.transform.SetSiblingIndex(i);
                     InitializeItemEntryWithItemData(remoteItems, itemEntry, itemData[i], UIUtilityFunctions.ItemFilterToColumnFlags(_inventoryWindowInstance.itemList_container.activeItemFilter));
 
@@ -599,7 +599,7 @@ namespace AcrealUI
             }
         }
 
-        protected void InitializeItemEntryWithItemData(ItemCollection itemCollection, UIInventoryWindow_ItemEntry itemEntry, UIItemData itemData, ItemColumnFlags columnFlags)
+        protected void InitializeItemEntryWithItemData(ItemCollection itemCollection, UIItemEntry itemEntry, UIItemData itemData, ItemColumnFlags columnFlags)
         {
             string name = null;
             if ((columnFlags & ItemColumnFlags.Name) != 0)
@@ -720,7 +720,7 @@ namespace AcrealUI
 
 
         #region Input Handling
-        private void OnPointerEnter_ItemEntry(UIInventoryWindow_ItemEntry entry)
+        private void OnPointerEnter_ItemEntry(UIItemEntry entry)
         {
             DaggerfallUnityItem item = localItems.GetItem(entry.itemUID);
             if (item == null) { item = remoteItems.GetItem(entry.itemUID); }
@@ -833,7 +833,7 @@ namespace AcrealUI
             UIManager.tooltipManager.ShowItemDetailsTooltip(entry.gameObject, itemData.icon, itemData.longName, itemData.description, itemStatDataList, itemStatSliderDataList, itemPowersDataList, pivot, tooltipPos);
         }
 
-        private void OnPointerExit_ItemEntry(UIInventoryWindow_ItemEntry entry)
+        private void OnPointerExit_ItemEntry(UIItemEntry entry)
         {
             if (entry != null && UIManager.tooltipManager.hoveredObject != null && UIManager.tooltipManager.hoveredObject.GetInstanceID() == entry.gameObject.GetInstanceID())
             {
@@ -841,7 +841,7 @@ namespace AcrealUI
             }
         }
 
-        private void OnItemLeftClicked_Inventory(UIInventoryWindow_ItemEntry itemEntry)
+        private void OnItemLeftClicked_Inventory(UIItemEntry itemEntry)
         {
             if (itemEntry != null && localItems != null)
             {
@@ -904,7 +904,7 @@ namespace AcrealUI
             }
         }
 
-        private void OnItemRightClicked_Inventory(UIInventoryWindow_ItemEntry itemEntry)
+        private void OnItemRightClicked_Inventory(UIItemEntry itemEntry)
         {
             if (itemEntry != null && localItems != null)
             {
@@ -982,7 +982,7 @@ namespace AcrealUI
             }
         }
 
-        private void OnItemClicked_Container(UIInventoryWindow_ItemEntry itemEntry)
+        private void OnItemClicked_Container(UIItemEntry itemEntry)
         {
             if (itemEntry != null && remoteItems != null)
             {

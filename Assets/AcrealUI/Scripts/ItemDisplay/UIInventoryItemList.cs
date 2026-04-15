@@ -27,7 +27,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIInventoryWindow_ItemList : MonoBehaviour
+    public class UIInventoryItemList : MonoBehaviour
     {
         #region Variables
         private const int ITEM_ENTRY_BLOCK_SIZE = 5;
@@ -108,8 +108,8 @@ namespace AcrealUI
         private UIToggle _inventoryTabToggle_lootPile = null;
         private Image _lootPileIcon = null;
 
-        private Dictionary<ulong, UIInventoryWindow_ItemEntry> _uidToItemEntryDict = null;
-        private Stack<UIInventoryWindow_ItemEntry> _itemEntryStack = null;
+        private Dictionary<ulong, UIItemEntry> _uidToItemEntryDict = null;
+        private Stack<UIItemEntry> _itemEntryStack = null;
         private ItemFilter _currentItemFilter = ItemFilter.All;
         private ItemColumnFlags _sortItemsColumn = ItemColumnFlags.ItemType;
         private UISortToggle _activeSortToggle = null;
@@ -147,8 +147,8 @@ namespace AcrealUI
         #region Initialize/Cleanup
         public void Initialize()
         {
-            _uidToItemEntryDict = new Dictionary<ulong, UIInventoryWindow_ItemEntry>();
-            _itemEntryStack = new Stack<UIInventoryWindow_ItemEntry>();
+            _uidToItemEntryDict = new Dictionary<ulong, UIItemEntry>();
+            _itemEntryStack = new Stack<UIItemEntry>();
 
             Transform entryParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemEntryParent);
             _itemEntryParent = entryParentTform != null ? entryParentTform as RectTransform : null;
@@ -270,7 +270,7 @@ namespace AcrealUI
             Event_OnToggled_InventoryTab_LootPile = null;
             Event_OnGoldButtonClicked = null;
 
-            foreach (UIInventoryWindow_ItemEntry entry in _uidToItemEntryDict.Values)
+            foreach (UIItemEntry entry in _uidToItemEntryDict.Values)
             {
                 if (entry != null)
                 {
@@ -281,7 +281,7 @@ namespace AcrealUI
 
             while (_itemEntryStack.Count > 0)
             {
-                UIInventoryWindow_ItemEntry entry = _itemEntryStack.Pop();
+                UIItemEntry entry = _itemEntryStack.Pop();
                 if (entry != null)
                 {
                     Destroy(entry.gameObject);
@@ -361,11 +361,11 @@ namespace AcrealUI
             }
         }
 
-        public UIInventoryWindow_ItemEntry AddItemEntry(ulong itemUID)
+        public UIItemEntry AddItemEntry(ulong itemUID)
         {
             if (_uidToItemEntryDict != null)
             {
-                UIInventoryWindow_ItemEntry entry;
+                UIItemEntry entry;
                 _uidToItemEntryDict.TryGetValue(itemUID, out entry);
                 if (entry != null)
                 { 
@@ -382,7 +382,7 @@ namespace AcrealUI
 
             if(_itemEntryStack.Count > 0)
             {
-                UIInventoryWindow_ItemEntry entry = _itemEntryStack.Pop();
+                UIItemEntry entry = _itemEntryStack.Pop();
                 entry.SetItemUID(itemUID);
                 entry.ClearEvents();
                 entry.transform.SetAsLastSibling();
@@ -398,7 +398,7 @@ namespace AcrealUI
         {
             if(itemUID == 0 || _uidToItemEntryDict == null) { return false; }
 
-            UIInventoryWindow_ItemEntry itemEntry;
+            UIItemEntry itemEntry;
             if (_uidToItemEntryDict.TryGetValue(itemUID, out itemEntry))
             {
                 bool success = _uidToItemEntryDict.Remove(itemUID);
@@ -419,7 +419,7 @@ namespace AcrealUI
         {
             if (_uidToItemEntryDict != null)
             {
-                foreach (UIInventoryWindow_ItemEntry entry in _uidToItemEntryDict.Values)
+                foreach (UIItemEntry entry in _uidToItemEntryDict.Values)
                 {
                     entry.SetItemUID(0);
                     entry.ClearEvents();
@@ -578,7 +578,7 @@ namespace AcrealUI
 
             for (int i = 0; i < ITEM_ENTRY_BLOCK_SIZE; i++)
             {
-                UIInventoryWindow_ItemEntry itemEntry = Instantiate(UIManager.referenceManager.prefab_itemEntry, _itemEntryParent);
+                UIItemEntry itemEntry = Instantiate(UIManager.referenceManager.prefab_itemEntry, _itemEntryParent);
                 itemEntry.transform.localScale = Vector3.one;
                 itemEntry.Initalize();
                 itemEntry.gameObject.SetActive(false);
