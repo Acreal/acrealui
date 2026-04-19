@@ -511,92 +511,60 @@ namespace AcrealUI
 
 
         #region Items
-        protected void UpdatePlayerInventory(bool clearFirst = false)
+        protected void UpdateItemList(UIInventoryItemList itemList, ItemCollection itemCollection, bool clearFirst, 
+                                      Action<UIItemEntry> onLeftClick, Action<UIItemEntry> onRightClick)
         {
-            if (_inventoryWindowInstance != null && _inventoryWindowInstance.itemList_playerInventory != null)
+            if(itemList == null){ return; }
+            
+            if (clearFirst)
             {
-                if (playerEntity == null || clearFirst)
+                itemList.ClearAllItemEntries();
+            }
+
+            if(itemCollection == null) { return; }
+
+            DFCareer career = playerEntity != null ? playerEntity.Career : null;
+            UIItemQueryOptions queryOptions = new UIItemQueryOptions();
+            if(career != null)
+            {
+                queryOptions.forbiddenArmorsAsInt = (int)career.ForbiddenArmors;
+                queryOptions.forbiddenShieldsAsInt = (int)career.ForbiddenShields;
+                queryOptions.forbiddenMaterialsAsInt = (int)career.ForbiddenMaterials;
+                queryOptions.forbiddenProficienciesAsInt = (int)career.ForbiddenProficiencies;
+            };
+
+            ItemFilter itemFilter = itemList.activeItemFilter;
+            List<UIItemData> itemData = UIUtilityFunctions.ItemCollectionToItemDataList(itemCollection, queryOptions, itemFilter);
+            if (itemData != null && itemData.Count > 0)
+            {
+                ItemColumnFlags sortByColumn = itemList.sortByColumn;
+                bool ascending = itemList.sortByAscending;
+                UIUtilityFunctions.SortItemsByColumn(itemData, sortByColumn, ascending);
+
+                for (int i = 0; i < itemData.Count; i++)
                 {
-                    _inventoryWindowInstance.itemList_playerInventory.ClearAllItemEntries();
-                }
-
-                if (playerEntity == null)
-                {
-                    return;
-                }
-
-                DFCareer career = playerEntity.Career;
-                UIItemQueryOptions queryOptions = new UIItemQueryOptions
-                {
-                    forbiddenArmorsAsInt = (int)career.ForbiddenArmors,
-                    forbiddenShieldsAsInt = (int)career.ForbiddenShields,
-                    forbiddenMaterialsAsInt = (int)career.ForbiddenMaterials,
-                    forbiddenProficienciesAsInt = (int)career.ForbiddenProficiencies,
-                };
-
-                ItemFilter itemFilter = _inventoryWindowInstance.itemList_playerInventory.activeItemFilter;
-                List<UIItemData> itemData = UIUtilityFunctions.ItemCollectionToItemDataList(localItems, queryOptions, itemFilter);
-                if (itemData != null && itemData.Count > 0)
-                {
-                    ItemColumnFlags sortByColumn = _inventoryWindowInstance.itemList_playerInventory.sortByColumn;
-                    bool ascending = _inventoryWindowInstance.itemList_playerInventory.sortByAscending;
-
-                    UIUtilityFunctions.SortItemsByColumn(itemData, sortByColumn, ascending);
-                    for (int i = 0; i < itemData.Count; i++)
-                    {
-                        UIItemEntry itemEntry = _inventoryWindowInstance.itemList_playerInventory.AddItemEntry(itemData[i].UID);
-                        itemEntry.transform.SetSiblingIndex(i);
-                        InitializeItemEntryWithItemData(localItems, itemEntry, itemData[i], UIUtilityFunctions.ItemFilterToColumnFlags(itemFilter));
-
-                        itemEntry.Delegate_OnPointerEnter = OnPointerEnter_ItemEntry;
-                        itemEntry.Delegate_OnPointerExit = OnPointerExit_ItemEntry;
-                        itemEntry.Delegate_OnLeftClicked = OnItemLeftClicked_Inventory;
-                        itemEntry.Delegate_OnRightClicked = OnItemRightClicked_Inventory;
-                    }
+                    UIItemEntry itemEntry = itemList.AddItemEntry(itemData[i].UID);
+                    InitializeItemEntryWithItemData(itemCollection, itemEntry, itemData[i], UIUtilityFunctions.ItemFilterToColumnFlags(itemFilter));
+                    itemEntry.transform.SetSiblingIndex(i);
+                    itemEntry.Delegate_OnPointerEnter = OnPointerEnter_ItemEntry;
+                    itemEntry.Delegate_OnPointerExit = OnPointerExit_ItemEntry;
+                    itemEntry.Delegate_OnLeftClicked = onLeftClick;
+                    itemEntry.Delegate_OnRightClicked = onRightClick;
                 }
             }
+        }
+        protected void UpdatePlayerInventory(bool clearFirst = false)
+        {
+            if (_inventoryWindowInstance == null) { return; }
+            if (_inventoryWindowInstance.itemList_playerInventory == null) { return; }
+            UpdateItemList(_inventoryWindowInstance.itemList_playerInventory, localItems, clearFirst, OnItemLeftClicked_Inventory, OnItemRightClicked_Inventory);
         }
 
         protected void UpdateContainerInventory(bool clearFirst = false)
         {
-            if (_inventoryWindowInstance != null && _inventoryWindowInstance.itemList_container != null)
-            {
-                if (clearFirst)
-                {
-                    _inventoryWindowInstance.itemList_container.ClearAllItemEntries();
-                }
-
-                UIItemQueryOptions queryOptions = new UIItemQueryOptions();
-                DFCareer career = playerEntity != null ? playerEntity.Career : null;
-                if(career != null)
-                {
-                    queryOptions.forbiddenArmorsAsInt = (int)career.ForbiddenArmors;
-                    queryOptions.forbiddenShieldsAsInt = (int)career.ForbiddenShields;
-                    queryOptions.forbiddenMaterialsAsInt = (int)career.ForbiddenMaterials;
-                    queryOptions.forbiddenProficienciesAsInt = (int)career.ForbiddenProficiencies;
-                }
-                List<UIItemData> itemData = UIUtilityFunctions.ItemCollectionToItemDataList(remoteItems, queryOptions, _inventoryWindowInstance.itemList_container.activeItemFilter);
-
-                ItemColumnFlags sortByColumn = _inventoryWindowInstance.itemList_container.sortByColumn;
-                bool ascending = _inventoryWindowInstance.itemList_container.sortByAscending;
-                UIUtilityFunctions.SortItemsByColumn(itemData, sortByColumn, ascending);
-
-                if (itemData == null) { return; }
-
-                for (int i = 0; i < itemData.Count; i++)
-                {
-                    UIItemEntry itemEntry = _inventoryWindowInstance.itemList_container.AddItemEntry(itemData[i].UID);
-                    itemEntry.transform.SetSiblingIndex(i);
-                    InitializeItemEntryWithItemData(remoteItems, itemEntry, itemData[i], UIUtilityFunctions.ItemFilterToColumnFlags(_inventoryWindowInstance.itemList_container.activeItemFilter));
-
-                    itemEntry.Delegate_OnPointerEnter = OnPointerEnter_ItemEntry;
-                    itemEntry.Delegate_OnPointerExit = OnPointerExit_ItemEntry;
-
-                    //for containers, the left and right click have the same function
-                    itemEntry.Delegate_OnLeftClicked = OnItemClicked_Container;
-                    itemEntry.Delegate_OnRightClicked = OnItemClicked_Container;
-                }
-            }
+            if (_inventoryWindowInstance == null) { return; }
+            if (_inventoryWindowInstance.itemList_container == null) { return; }
+            UpdateItemList(_inventoryWindowInstance.itemList_container, remoteItems, clearFirst, OnItemClicked_Container, OnItemClicked_Container);
         }
 
         protected void InitializeItemEntryWithItemData(ItemCollection itemCollection, UIItemEntry itemEntry, UIItemData itemData, ItemColumnFlags columnFlags)
@@ -659,6 +627,97 @@ namespace AcrealUI
                                      (itemData.itemStatusFlags & ItemStatusFlags.Broken) != 0,
                                      (itemData.itemStatusFlags & ItemStatusFlags.Magic) != 0,
                                      (itemData.itemStatusFlags & ItemStatusFlags.Poisoned) != 0);
+        }
+
+        private void GatherItemStatInformation(UIItemData itemData, out List<ItemStatData> statData, out List<ItemStatSliderData> sliderStatData)
+        {
+            statData = new List<ItemStatData>();
+            sliderStatData = new List<ItemStatSliderData>();
+
+            bool isArrow = itemData.itemArchetype == ItemArchetype.Arrow;
+
+            switch (itemData.itemType)
+            {
+                case ItemType.Armor:
+                    statData.Add(new ItemStatData { name = "Armor:", description = itemData.armorValue.ToString("N0") }); //TODO(Acreal): localize this string
+                    break;
+
+                case ItemType.Weapon:
+                    if (!isArrow)
+                    {
+                        statData.Add(new ItemStatData { name = "Damage:", description = (itemData.minDamageValue.ToString("N0") + "-" + itemData.maxDamageValue.ToString("N0")) }); //TODO(Acreal): localize this string
+                    }
+                    break;
+            }
+
+            if (itemData.weightValue > float.Epsilon)
+            {
+                statData.Add(new ItemStatData { name = "Weight:", description = itemData.weightValue.ToString("F2") + " Kg" }); //TODO(Acreal): localize this string
+            }
+
+            if (!isArrow)
+            {
+                string conStr = itemData.showCondition && itemData.conditionPercent >= 0f ? (itemData.conditionPercent * 100f).ToString("N0") + "%" : null;
+                if (conStr != null)
+                {
+                    sliderStatData.Add(new ItemStatSliderData { name = "Condition:", description = conStr, sliderValue = itemData.conditionPercent }); //TODO(Acreal): localize this string
+                }
+            }
+
+            if (itemData.goldValue > 0)
+            {
+                statData.Add(new ItemStatData { name = "Value:", description = itemData.goldValue.ToString("N0") + "g" }); //TODO(Acreal): localize this string
+            }
+        }
+
+        private void GatherItemPowerInformation(DaggerfallUnityItem item, out List<ItemPowerData> itemPowerData)
+        {
+            if (item.HasLegacyEnchantments || item.IsPotion)
+            {
+                itemPowerData = new List<ItemPowerData>();
+                List<string> itemPowerStrings = UIUtilityFunctions.GetItemMagicInfo(item);
+                if (itemPowerStrings != null)
+                {
+                    for (int i = 0; i < itemPowerStrings.Count; i++)
+                    {
+                        itemPowerData.Add(new ItemPowerData()
+                        {
+                            //Sprite_Circle_Empty
+                            icon = UIManager.mod.GetAsset<Sprite>("Sprite_Circle_Empty"),
+                            description = itemPowerStrings[i],
+                        });
+                    }
+                }
+            }
+            else
+            {
+                itemPowerData = null;
+            }
+        }
+
+        private void CalculatePivotAndTooltipPos(UIItemEntry entry, out Vector2 pivot, out Vector2 tooltipPos)
+        {
+            RectTransform rt = entry.transform as RectTransform;
+            Vector3[] cornerArray = new Vector3[4];
+            rt.GetWorldCorners(cornerArray);
+
+            Vector3 center = RectTransformUtility.WorldToScreenPoint(null, (cornerArray[0] + cornerArray[2]) * 0.5f);
+            float x = center.x >= (Screen.width * 0.5f) ? 1f : 0f;
+            float y = 0.5f;
+            pivot = new Vector2(x, y);
+
+            if (pivot.x >= 0.5f)
+            {
+                Vector3 worldPos = (cornerArray[0] + cornerArray[1]) * 0.5f;
+                tooltipPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+                tooltipPos.x -= _TOOLTIP_X_OFFSET;
+            }
+            else
+            {
+                Vector3 worldPos = (cornerArray[2] + cornerArray[3]) * 0.5f;
+                tooltipPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+                tooltipPos.x += _TOOLTIP_X_OFFSET;
+            }
         }
 
         private void UpdatePlayerFilterToggles()
@@ -726,6 +785,7 @@ namespace AcrealUI
             if (item == null) { item = remoteItems.GetItem(entry.itemUID); }
             if (item == null) { return; } //can't find item in either list, so bail out
 
+            //item data
             DFCareer career = playerEntity.Career;
             UIItemQueryOptions queryOptions = new UIItemQueryOptions
             {
@@ -736,100 +796,14 @@ namespace AcrealUI
             };
             UIItemData itemData = UIUtilityFunctions.ItemToItemData(item, queryOptions);
 
-            #region Item Stats and Powers
-            bool isArrow = item.ItemGroup == ItemGroups.Weapons && item.TemplateIndex == (int)Weapons.Arrow;
+            //stats and powers
+            GatherItemStatInformation(itemData, out List<ItemStatData> itemStatDataList, out List<ItemStatSliderData> itemStatSliderDataList);
+            GatherItemPowerInformation(item, out List<ItemPowerData> itemPowersDataList);
+
+            //screen position
+            CalculatePivotAndTooltipPos(entry, out Vector2 pivot, out Vector2 tooltipPos);
             
-            List<ItemStatData> itemStatDataList = new List<ItemStatData>();
-            List<ItemStatSliderData> itemStatSliderDataList = new List<ItemStatSliderData>();
-            List<ItemPowerData> itemPowersDataList = new List<ItemPowerData>();
-
-            //Item Stats Information
-            {
-                
-                switch (itemData.itemType)
-                {
-                    case ItemType.Armor:
-                        itemStatDataList.Add(new ItemStatData { name = "Armor:", description = itemData.armorValue.ToString("N0") }); //TODO(Acreal): localize this string
-                        break;
-
-                    case ItemType.Weapon:
-                        if (!isArrow)
-                        {
-                            itemStatDataList.Add(new ItemStatData { name = "Damage:", description = (itemData.minDamageValue.ToString("N0") + "-" + itemData.maxDamageValue.ToString("N0")) }); //TODO(Acreal): localize this string
-                        }
-                        break;
-                }
-
-                if (itemData.weightValue > float.Epsilon)
-                {
-                    itemStatDataList.Add(new ItemStatData { name = "Weight:", description = itemData.weightValue.ToString("F2") + " Kg" }); //TODO(Acreal): localize this string
-                }
-
-                if (!isArrow)
-                {
-                    string conStr = item.maxCondition > 1 && itemData.conditionPercent >= 0f ? (itemData.conditionPercent * 100f).ToString("N0") + "%" : null;
-                    if (conStr != null)
-                    {
-                        itemStatSliderDataList.Add(new ItemStatSliderData { name = "Condition:", description = conStr, sliderValue = itemData.conditionPercent }); //TODO(Acreal): localize this string
-                    }
-                }
-
-                if (itemData.goldValue > 0)
-                {
-                    itemStatDataList.Add(new ItemStatData { name = "Value:", description = itemData.goldValue.ToString("N0") + "g" }); //TODO(Acreal): localize this string
-                }
-            }
-
-            //Item Powers Information
-            {
-                if (item.HasLegacyEnchantments || item.IsPotion)
-                {
-                    List<string> itemPowerStrings = UIUtilityFunctions.GetItemMagicInfo(item);
-                    if (itemPowerStrings != null)
-                    {
-                        for (int i = 0; i < itemPowerStrings.Count; i++)
-                        {
-                            itemPowersDataList.Add(new ItemPowerData()
-                            {
-                                //Sprite_Circle_Empty
-                                icon = UIManager.mod.GetAsset<Sprite>("Sprite_Circle_Empty"),
-                                description = itemPowerStrings[i],
-                            });
-                        }
-                    }
-                }
-            }
-            #endregion
-
-            #region Calculate Screen Position
-            Vector2 pivot;
-            Vector2 tooltipPos;
-            {
-                RectTransform rt = entry.transform as RectTransform;
-                Vector3[] cornerArray = new Vector3[4];
-                rt.GetWorldCorners(cornerArray);
-
-                Vector3 center = RectTransformUtility.WorldToScreenPoint(null, (cornerArray[0] + cornerArray[2]) * 0.5f);
-                float x = center.x >= (Screen.width * 0.5f) ? 1f : 0f;
-                float y = 0.5f;
-                pivot = new Vector2(x, y);
-
-                if (pivot.x >= 0.5f)
-                {
-                    Vector3 worldPos = (cornerArray[0] + cornerArray[1]) * 0.5f;
-                    tooltipPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
-                    tooltipPos.x -= _TOOLTIP_X_OFFSET;
-                }
-                else
-                {
-                    Vector3 worldPos = (cornerArray[2] + cornerArray[3]) * 0.5f;
-                    tooltipPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
-                    tooltipPos.x += _TOOLTIP_X_OFFSET;
-                }
-            }
-            #endregion
-
-            UIUtilityFunctions.GetItemDescription(item);
+            //display the tooltip
             UIManager.tooltipManager.ShowItemDetailsTooltip(entry.gameObject, itemData.icon, itemData.longName, itemData.description, itemStatDataList, itemStatSliderDataList, itemPowersDataList, pivot, tooltipPos);
         }
 

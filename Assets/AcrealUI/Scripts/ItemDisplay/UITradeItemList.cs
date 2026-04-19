@@ -19,12 +19,8 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_sortToggle_value = null;
 
         [Header("Text")]
-        [SerializeField] private string _gameObjName_weightGoldParent = null;
         [SerializeField] private string _gameObjName_text_totalGold = null;
         [SerializeField] private string _gameObjName_text_totalWeight = null;
-
-        [Header("Buttons")]
-        [SerializeField] private string _gameObjName_goldButton = null;
 
         private RectTransform _itemEntryParent = null;
         private UIToggleGroup _sortToggleGroup = null;
@@ -42,7 +38,6 @@ namespace AcrealUI
 
 
         #region Events
-        public event Action Event_OnItemFilterChanged = null;
         public event Action Event_OnSortItemsColumnChanged = null;
         public event Action Event_OnSortAscendingChanged = null;
         #endregion
@@ -102,7 +97,6 @@ namespace AcrealUI
         {
             StopAllCoroutines();
 
-            Event_OnItemFilterChanged = null;
             Event_OnSortItemsColumnChanged = null;
             Event_OnSortAscendingChanged = null;
 

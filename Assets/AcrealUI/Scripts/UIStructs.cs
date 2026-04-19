@@ -39,6 +39,7 @@ namespace AcrealUI
         public int minDamageValue;
         public int maxDamageValue;
         public int armorValue;
+        public bool showCondition;
         public float conditionPercent;
         public float weightValue;
         public int goldValue;

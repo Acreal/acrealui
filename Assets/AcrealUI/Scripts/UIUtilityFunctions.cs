@@ -1072,6 +1072,7 @@ namespace AcrealUI
                     minDamageValue = item.GetBaseDamageMin() + materialModifier,
                     maxDamageValue = item.GetBaseDamageMax() + materialModifier,
                     armorValue = armor,
+                    showCondition = item.maxCondition > 1,
                     conditionPercent = conPerc,
                     weightValue = item.EffectiveUnitWeightInKg(),
                     goldValue = item.value,
