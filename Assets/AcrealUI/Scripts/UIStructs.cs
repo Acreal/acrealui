@@ -123,4 +123,28 @@ namespace AcrealUI
         public string dialogueText;
     }
     #endregion
+
+
+    #region Localization
+    public struct TextContainer
+    {
+        private string _text;
+        private string _localizationKey; // 0 is considered invalid
+
+        public TextContainer(string text, string localizationKey)
+        {
+            _text = text;
+            _localizationKey = localizationKey;
+        }
+
+        public string GetText()
+        {
+            if (!string.IsNullOrWhiteSpace(_localizationKey))
+            {
+                _text = UIUtilityFunctions.GetLocalizedText(_localizationKey);
+            }
+            return _text;
+        }
+    }
+    #endregion
 }

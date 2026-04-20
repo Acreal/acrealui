@@ -146,8 +146,7 @@ namespace AcrealUI
                 #endregion
 
                 #region Stats
-                //TODO(Acreal): localize this string
-                AddStatsToStatWindow("Primary Stats",
+                AddStatsToStatWindow(UITextStrings.InventoryWindow_Label_PrimaryStats.GetText(),
                                     DFCareer.Stats.Agility,
                                     DFCareer.Stats.Endurance,
                                     DFCareer.Stats.Intelligence,
@@ -173,8 +172,7 @@ namespace AcrealUI
                 playerEntity = GameManager.Instance.PlayerEntity;
                 List<DFCareer.Skills> primarySkills = playerEntity.GetPrimarySkills();
 
-                //TODO(Acreal): localize this string
-                AddSkillsToStatWindow("Combat Skills", primarySkills,
+                AddSkillsToStatWindow(UITextStrings.InventoryWindow_Label_CombatSkills.GetText(), primarySkills,
                                         DFCareer.Skills.Archery,
                                         DFCareer.Skills.Axe,
                                         DFCareer.Skills.Backstabbing,
@@ -186,8 +184,7 @@ namespace AcrealUI
                                         DFCareer.Skills.Medical,
                                         DFCareer.Skills.ShortBlade);
 
-                //TODO(Acreal): localize this string
-                AddSkillsToStatWindow("Magic Skills", primarySkills,
+                AddSkillsToStatWindow(UITextStrings.InventoryWindow_Label_MagicSkills.GetText(), primarySkills,
                                         DFCareer.Skills.Alteration,
                                         DFCareer.Skills.Destruction,
                                         DFCareer.Skills.Illusion,
@@ -195,27 +192,23 @@ namespace AcrealUI
                                         DFCareer.Skills.Restoration,
                                         DFCareer.Skills.Thaumaturgy);
 
-                //TODO(Acreal): localize this string
-                AddSkillsToStatWindow("Stealth Skills", primarySkills,
+                AddSkillsToStatWindow(UITextStrings.InventoryWindow_Label_StealthSkills.GetText(), primarySkills,
                                         DFCareer.Skills.Lockpicking,
                                         DFCareer.Skills.Pickpocket,
                                         DFCareer.Skills.Stealth);
 
-                //TODO(Acreal): localize this string
-                AddSkillsToStatWindow("Social Skills", primarySkills,
+                AddSkillsToStatWindow(UITextStrings.InventoryWindow_Label_SocialSkills.GetText(), primarySkills,
                                         DFCareer.Skills.Etiquette,
                                         DFCareer.Skills.Mercantile,
                                         DFCareer.Skills.Streetwise);
 
-                //TODO(Acreal): localize this string
-                AddSkillsToStatWindow("Movement Skills", primarySkills,
+                AddSkillsToStatWindow(UITextStrings.InventoryWindow_Label_MovementSkills.GetText(), primarySkills,
                                         DFCareer.Skills.Climbing,
                                         DFCareer.Skills.Jumping,
                                         DFCareer.Skills.Running,
                                         DFCareer.Skills.Swimming);
 
-                //TODO(Acreal): localize this string
-                AddSkillsToStatWindow("Language Skills", primarySkills,
+                AddSkillsToStatWindow(UITextStrings.InventoryWindow_Label_LanguageSkills.GetText(), primarySkills,
                                         DFCareer.Skills.Orcish,
                                         DFCareer.Skills.Harpy,
                                         DFCareer.Skills.Giantish,
@@ -339,7 +332,7 @@ namespace AcrealUI
             {
                 //player info
                 _inventoryWindowInstance.panel_playerStats.SetPlayerName(playerEntity.Name);
-                _inventoryWindowInstance.panel_playerStats.SetPlayerRace(playerEntity.Race.ToString()); //TODO(Acreal): localize this string
+                _inventoryWindowInstance.panel_playerStats.SetPlayerRace(playerEntity.RaceTemplate.Name);
                 _inventoryWindowInstance.panel_playerStats.SetPlayerClass(playerEntity.Career.Name);
                 _inventoryWindowInstance.panel_playerStats.SetPlayerLevel(playerEntity.Level.ToString("N0"));
 
@@ -363,7 +356,7 @@ namespace AcrealUI
             }
 
             _enemyTypesForStatCalc.Insert(0, MobileTypes.None);
-            enemyTypeStrings.Insert(0, "None");
+            enemyTypeStrings.Insert(0, UITextStrings.Global_Label_None.GetText());
 
             _currentEnemyTypeForStatCalc = MobileTypes.None;
 
@@ -639,20 +632,20 @@ namespace AcrealUI
             switch (itemData.itemType)
             {
                 case ItemType.Armor:
-                    statData.Add(new ItemStatData { name = "Armor:", description = itemData.armorValue.ToString("N0") }); //TODO(Acreal): localize this string
+                    statData.Add(new ItemStatData { name = UITextStrings.InventoryWindow_Label_Armor.GetText(), description = itemData.armorValue.ToString("N0") });
                     break;
 
                 case ItemType.Weapon:
                     if (!isArrow)
                     {
-                        statData.Add(new ItemStatData { name = "Damage:", description = (itemData.minDamageValue.ToString("N0") + "-" + itemData.maxDamageValue.ToString("N0")) }); //TODO(Acreal): localize this string
+                        statData.Add(new ItemStatData { name = UITextStrings.InventoryWindow_Label_Damage.GetText(), description = (itemData.minDamageValue.ToString("N0") + "-" + itemData.maxDamageValue.ToString("N0")) });
                     }
                     break;
             }
 
             if (itemData.weightValue > float.Epsilon)
             {
-                statData.Add(new ItemStatData { name = "Weight:", description = itemData.weightValue.ToString("F2") + " Kg" }); //TODO(Acreal): localize this string
+                statData.Add(new ItemStatData { name = UITextStrings.InventoryWindow_Label_Weight.GetText(), description = itemData.weightValue.ToString("F2") + " " + UITextStrings.Abbreviation_Kilograms.GetText() });
             }
 
             if (!isArrow)
@@ -660,13 +653,13 @@ namespace AcrealUI
                 string conStr = itemData.showCondition && itemData.conditionPercent >= 0f ? (itemData.conditionPercent * 100f).ToString("N0") + "%" : null;
                 if (conStr != null)
                 {
-                    sliderStatData.Add(new ItemStatSliderData { name = "Condition:", description = conStr, sliderValue = itemData.conditionPercent }); //TODO(Acreal): localize this string
+                    sliderStatData.Add(new ItemStatSliderData { name = UITextStrings.InventoryWindow_Label_Condition.GetText(), description = conStr, sliderValue = itemData.conditionPercent });
                 }
             }
 
             if (itemData.goldValue > 0)
             {
-                statData.Add(new ItemStatData { name = "Value:", description = itemData.goldValue.ToString("N0") + "g" }); //TODO(Acreal): localize this string
+                statData.Add(new ItemStatData { name = UITextStrings.InventoryWindow_Label_Value.GetText(), description = itemData.goldValue.ToString("N0") + UITextStrings.Abbreviation_Grams.GetText() });
             }
         }
 
