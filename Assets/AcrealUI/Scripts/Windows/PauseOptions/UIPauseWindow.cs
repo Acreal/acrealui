@@ -226,37 +226,37 @@ namespace AcrealUI
                 {
                     case PauseWindowState.Settings:
                         _activePanel = _panelSettings;
-                        SetHeaderText("Settings"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.OptionsWindow_Title_Settings.GetText());
                         break;
 
                     case PauseWindowState.Settings_General:
                         _activePanel = _panelGeneralSettings;
-                        SetHeaderText("General"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.OptionsWindow_Title_General.GetText());
                         break;
 
                     case PauseWindowState.Settings_Interface:
                         _activePanel = _panelInterfaceSettings;
-                        SetHeaderText("Interface"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.OptionsWindow_Title_Interface.GetText());
                         break;
 
                     case PauseWindowState.Settings_Video:
                         _activePanel = _panelVideoSettings;
-                        SetHeaderText("Video"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.OptionsWindow_Title_Video.GetText());
                         break;
 
                     case PauseWindowState.Settings_Audio:
                         _activePanel = _panelAudioSettings;
-                        SetHeaderText("Audio"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.OptionsWindow_Title_Audio.GetText());
                         break;
 
                     case PauseWindowState.Settings_Controls:
                         _activePanel = _panelControlSettings;
-                        SetHeaderText("Controls"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.OptionsWindow_Title_Controls.GetText());
                         break;
 
                     default:
                         _activePanel = _panelPaused;
-                        SetHeaderText("Default"); //TODO(Acreal): localize this string
+                        SetHeaderText(UITextStrings.Global_Label_Paused.GetText());
                         break;
                 }
 

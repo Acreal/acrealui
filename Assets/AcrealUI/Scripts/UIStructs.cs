@@ -17,6 +17,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop;
 using System;
 using UnityEngine;
 
@@ -126,24 +127,82 @@ namespace AcrealUI
 
 
     #region Localization
-    public struct TextContainer
+    public struct LocalizedText
     {
         private string _text;
         private string _localizationKey; // 0 is considered invalid
+        private string _localizationTableKey; // 0 is considered invalid
 
-        public TextContainer(string text, string localizationKey)
+        public LocalizedText(string text, string localizationKey, string localizationTableKey)
         {
             _text = text;
             _localizationKey = localizationKey;
+            _localizationTableKey = localizationTableKey;
         }
 
         public string GetText()
         {
             if (!string.IsNullOrWhiteSpace(_localizationKey))
             {
-                _text = UIUtilityFunctions.GetLocalizedText(_localizationKey);
+                if (!string.IsNullOrWhiteSpace(_localizationTableKey))
+                {
+                    _text = UIUtilityFunctions.GetLocalizedText(_localizationKey, _localizationTableKey);
+                }
+                else
+                {
+                    _text = UIUtilityFunctions.GetLocalizedText(_localizationKey);
+                }
             }
             return _text;
+        }
+    }
+
+    public struct LocalizedTextArray
+    {
+        private string[] _textArray;
+        private string _localizationKey;
+        private TextCollections _collection;
+
+        public int arrayLength
+        {
+            get
+            {
+                CheckArray();
+                return _textArray != null ? _textArray.Length : 0;
+            }
+        }
+
+        public LocalizedTextArray(string[] textArray, string localizationKey, TextCollections collection)
+        {
+            _textArray = textArray;
+            _localizationKey = localizationKey;
+            _collection = collection;
+        }
+
+        public string GetText(int index)
+        {
+            if (TextArrayIndexIsValid(index))
+            {
+                return _textArray[index];
+            }
+            return null;
+        }
+
+        private void CheckArray()
+        {
+            if (_textArray == null)
+            {
+                if (!string.IsNullOrWhiteSpace(_localizationKey))
+                {
+                    _textArray = UIUtilityFunctions.GetLocalizedTextList(_localizationKey, _collection);
+                }
+            }
+        }
+
+        private bool TextArrayIndexIsValid(int index)
+        {
+            CheckArray();
+            return _textArray != null && index >= 0 && index < _textArray.Length;
         }
     }
     #endregion
