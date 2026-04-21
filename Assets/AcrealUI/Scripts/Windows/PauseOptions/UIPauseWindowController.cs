@@ -541,7 +541,6 @@ namespace AcrealUI
                     #region Mode
                     UISlider aaModeSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     aaModeSlider.SetTitle(UITextStrings.OptionsWindow_Label_Method.GetText());
-                    //aaModeSlider.SetTooltip(UIUtilityFunctions.GetLocalizedText("antialiasingTip"));
                     aaModeSlider.SetSliderMinMax(0, 3, true);
                     
                     aaModeSlider.DataSource_SliderValue = (_) =>
@@ -1463,13 +1462,13 @@ namespace AcrealUI
                     #endregion
 
                     #region Color Boost
-                    UIScrollListGroup colorBoostGroup = postFxGroup.GetOrAddSubScrollListGroup(UIUtilityFunctions.GetLocalizedText("colorBoost"));
+                    UIScrollListGroup colorBoostGroup = postFxGroup.GetOrAddSubScrollListGroup(UITextStrings.OptionsWindow_Title_ColorBoost.GetText());
                     colorBoostGroup.Collapse();
 
                     #region Enable
                     {
                         UIToggle colorBoostToggle = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_toggle) as UIToggle;
-                        colorBoostToggle.SetDisplayName(UIUtilityFunctions.GetLocalizedText("enable"));
+                        colorBoostToggle.SetDisplayName(UITextStrings.OptionsWindow_Label_Enable.GetText());
                         colorBoostToggle.DataSource_IsToggledOn = (_) => { return DaggerfallUnity.Settings.ColorBoostEnable; };
                         colorBoostToggle.Event_OnToggledOnOrOff += (UIToggle toggle) =>
                         {
@@ -1487,7 +1486,7 @@ namespace AcrealUI
                     #region Intensity
                     {
                         UISlider colorBoostSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        colorBoostSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("intensity"));
+                        colorBoostSlider.SetTitle(UITextStrings.OptionsWindow_Label_Intensity.GetText());
                         colorBoostSlider.SetSliderMinMax(0f, 1f, false);
 
                         colorBoostSlider.DataSource_SliderValue = (_) =>
@@ -1516,7 +1515,7 @@ namespace AcrealUI
                     #region Radius
                     {
                         UISlider radiusSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        radiusSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("radius"));
+                        radiusSlider.SetTitle(UITextStrings.OptionsWindow_Label_Radius.GetText());
                         radiusSlider.SetSliderMinMax(0.1f, 50.0f, false);
 
                         radiusSlider.DataSource_SliderValue = (_) =>
@@ -1545,7 +1544,7 @@ namespace AcrealUI
                     #region Interior Scale
                     {
                         UISlider interiorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        interiorScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("interiorScale"));
+                        interiorScaleSlider.SetTitle(UITextStrings.OptionsWindow_Label_InteriorScale.GetText());
                         interiorScaleSlider.SetSliderMinMax(0f, 8f, false);
 
                         interiorScaleSlider.DataSource_SliderValue = (_) =>
@@ -1574,7 +1573,7 @@ namespace AcrealUI
                     #region Exterior Scale
                     {
                         UISlider exteriorScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        exteriorScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("exteriorScale"));
+                        exteriorScaleSlider.SetTitle(UITextStrings.OptionsWindow_Label_ExteriorScale.GetText());
                         exteriorScaleSlider.SetSliderMinMax(0f, 8f, false);
 
                         exteriorScaleSlider.DataSource_SliderValue = (_) =>
@@ -1603,7 +1602,7 @@ namespace AcrealUI
                     #region Dungeon Scale
                     {
                         UISlider dungeonScaleSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        dungeonScaleSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("dungeonScale"));
+                        dungeonScaleSlider.SetTitle(UITextStrings.OptionsWindow_Label_DungeonScale.GetText());
                         dungeonScaleSlider.SetSliderMinMax(0f, 8f, false);
 
                         dungeonScaleSlider.DataSource_SliderValue = (_) =>
@@ -1632,7 +1631,7 @@ namespace AcrealUI
                     #region Dungeon Falloff
                     {
                         UISlider falloffSlider = colorBoostGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
-                        falloffSlider.SetTitle(UIUtilityFunctions.GetLocalizedText("dungeonFalloff"));
+                        falloffSlider.SetTitle(UITextStrings.OptionsWindow_Label_DungeonFalloff.GetText());
                         falloffSlider.SetSliderMinMax(0f, 8f, false);
 
                         falloffSlider.DataSource_SliderValue = (_) =>
