@@ -38,6 +38,7 @@ NOTES(Acreal):
 */
 
 using DaggerfallWorkshop.Game;
+using DaggerfallWorkshop.Game.Serialization;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
@@ -125,7 +126,9 @@ namespace AcrealUI
             tooltipManager.Initialize();
 
             popupManager = new UIPopupManager();
-            popupManager.Initialize();
+
+            SaveLoadManager.OnStartLoad += PreLoadGame;
+            SaveLoadManager.OnLoad += PostLoadGame;
 
             #if UNITY_EDITOR
             ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset All Keybinds to Defaults", string.Empty, (_) =>
@@ -224,6 +227,9 @@ namespace AcrealUI
 
         private void OnDestroy()
         {
+            SaveLoadManager.OnStartLoad -= PreLoadGame;
+            SaveLoadManager.OnLoad -= PostLoadGame;
+
             StopAllCoroutines();
 
             if(tooltipManager != null)
@@ -257,10 +263,12 @@ namespace AcrealUI
                     case UIWindowInstanceType.SaveOrLoadGame: window = Instantiate(referenceManager.prefab_saveLoadWindow); break;
                     case UIWindowInstanceType.Confirmation: window = Instantiate(referenceManager.prefab_confirmationWindow); break;
                     case UIWindowInstanceType.SliderConfirmation: window = Instantiate(referenceManager.prefab_sliderConfirmationWindow); break;
+                    case UIWindowInstanceType.Trade: window = Instantiate(referenceManager.prefab_tradeWindow); break;
                 }
 
                 if (window != null)
                 {
+                    DontDestroyOnLoad(window.gameObject);
                     _windowTypeToInstanceDict[windowType] = window;
                 }
             }
@@ -283,7 +291,18 @@ namespace AcrealUI
             return isEnabled;
         }
 
-        public void ApplyCoreWindowChanges()
+        public void PreLoadGame(SaveData_v1 saveData)
+        {
+            DaggerfallUI.Instance.PopToHUD();
+            CleanupAllWindows();
+        }
+
+        protected void PostLoadGame(SaveData_v1 saveData)
+        {
+            ApplyCoreWindowChanges();
+        }
+
+        public void CleanupAllWindows()
         {
             foreach (UIWindowInstanceType windowInstType in _coreWindowInstanceTypesList)
             {
@@ -293,6 +312,11 @@ namespace AcrealUI
                     windowInst?.Cleanup();
                 }
             }
+        }
+
+        public void ApplyCoreWindowChanges()
+        {
+            CleanupAllWindows();
 
             foreach (KeyValuePair<UIWindowType, bool> kvp in _enabledCoreWindowsDict)
             {

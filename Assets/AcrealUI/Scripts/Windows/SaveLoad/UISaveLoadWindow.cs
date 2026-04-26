@@ -258,6 +258,46 @@ namespace AcrealUI
             Event_ButtonClick_ImportSave = null;
             Event_InputFieldChanged_SaveFileName = null;
 
+            base.Cleanup();
+
+            _switchCharButton?.Cleanup();
+            _switchCharButton = null;
+
+            _renameButton?.Cleanup();
+            _renameButton = null;
+
+            _deleteButton?.Cleanup();
+            _deleteButton = null;
+
+            _saveLoadButton?.Cleanup();
+            _saveLoadButton = null;
+
+            _importButton?.Cleanup();
+            _importButton = null;
+
+            _saveEntriesToggleGroup?.Cleanup();
+            _saveEntriesToggleGroup = null;
+            
+            _saveScreenShotRawImage = null;
+            _saveNameInputField = null;
+            _realTimeText = null;
+            _gameTimeText = null;
+            _versionText = null;
+            _saveLoadText = null;
+            _importSaveText = null;
+            _saveLoadPromptText = null;
+            _noSavesText = null;
+            _savePromptParent = null;
+            _saveDetailsParent = null;
+            _scrollListParent = null;
+            _renameDeleteButtonsParent = null;
+            _idToSaveGameDataDict = null;
+            _scrollGroupParent = null;
+        }
+
+        public override void ResetWindow()
+        {
+            ClearSaveEntries();
             SetHeaderText(null);
             SetSaveLoadButtonText(null);
             SetSaveLoadPromptText(null);
@@ -265,20 +305,16 @@ namespace AcrealUI
             SetTimestampText(null, null);
             SetVersionText(null);
             SetInputFieldValue(null);
-
-            base.Cleanup();
-        }
-
-        public override void ResetWindow()
-        {
-            ClearSaveEntries();
-            SetScreenshotTexture(null);
-            SetTimestampText(null, null);
-            SetVersionText(null);
-            SetInputFieldValue(null);
             base.ResetWindow();
         }
         #endregion
+
+
+        protected override void HideInternal()
+        {
+            ClearSaveEntries();
+            base.HideInternal();
+        }
 
 
         #region Public API
@@ -468,7 +504,7 @@ namespace AcrealUI
             }
             else
             {
-                Debug.Log("Duplicate entry found for: " + name);
+                Debug.Log("[AcrealUI.UISaveLoadWindow] Duplicate entry found for: " + name);
             }
             return entry;
         }

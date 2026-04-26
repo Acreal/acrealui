@@ -73,11 +73,90 @@ namespace AcrealUI
             };
 
             ResetKeybindDict();
-            CreateWindow();
+        }
+        #endregion
+
+
+        #region IWindowController
+        public void ShowWindow()
+        {
+            AllowCancel = true;
+
+            if (_pauseWindowInstance != null)
+            {
+                _pauseWindowInstance.panelGeneralSettings?.Refresh();
+                _pauseWindowInstance.panelVideoSettings?.Refresh();
+                _pauseWindowInstance.panelAudioSettings?.Refresh();
+                _pauseWindowInstance.panelControlSettings?.Refresh();
+
+                _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default);
+                _pauseWindowInstance.Show();
+            }
         }
 
-        public void CreateWindow()
+        public void HideWindow()
         {
+            _pauseWindowInstance?.Hide();
+        }
+
+        public override void OnPop()
+        {
+            HideWindow();
+            _pauseWindowInstance?.ResetWindow();
+            GameManager.Instance.PlayerMouseLook.cursorActive = false;
+
+            if (saveSettings)
+            {
+                DaggerfallUnity.Settings.SaveSettings();
+                saveSettings = false;
+            }
+
+            if (_toggledCoreWindowTypes != null && _toggledCoreWindowTypes.Count > 0)
+            {
+                for (int i = 0; i < _toggledCoreWindowTypes.Count; i++)
+                {
+                    if (UIManager.Instance.IsCoreWindowEnabled(_toggledCoreWindowTypes[i]))
+                    {
+                        UIManager.Instance.DisableCoreWindow(_toggledCoreWindowTypes[i]);
+                    }
+                    else
+                    {
+                        UIManager.Instance.EnableCoreWindow(_toggledCoreWindowTypes[i]);
+                    }
+                }
+                _toggledCoreWindowTypes.Clear();
+
+                //post message calls needed before and after ApplyCoreWindowChanges call
+                //due to DaggerFallUI only checking to refresh its ui windows if there
+                //are messages in the queue to process (a single call can/will get eaten,
+                //but two calls produces consistent behavior)
+                DaggerfallUI.UIManager.PostMessage(string.Empty);
+                UIManager.Instance.ApplyCoreWindowChanges();
+                DaggerfallUI.UIManager.PostMessage(string.Empty);
+            }
+        }
+        #endregion
+
+
+        #region Base Class Overrides
+        public override void OnPush()
+        {
+            if (!IsSetup)
+            {
+                Setup();
+            }
+
+            base.OnPush();
+            GameManager.Instance.SaveLoadManager.EnumerateSaves();
+            _pauseWindowInstance.panelInterfaceSettings.Refresh();
+            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default, true);
+            ShowWindow();
+        }
+
+        protected override void Setup()
+        {
+            IsSetup = true;
+
             if (_pauseWindowInstance == null)
             {
                 UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.PauseOptions);
@@ -111,12 +190,12 @@ namespace AcrealUI
 
                     _pauseWindowInstance.panelPaused.Event_OnButtonClicked_SaveGame += () =>
                     {
-                        uiManager.PushWindow(UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { uiManager, DaggerfallUnitySaveGameWindow.Modes.SaveGame, this, false }));
+                        DaggerfallUI.UIManager.PushWindow(UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { DaggerfallUI.UIManager, DaggerfallUnitySaveGameWindow.Modes.SaveGame, this, false }));
                     };
 
                     _pauseWindowInstance.panelPaused.Event_OnButtonClicked_LoadGame += () =>
                     {
-                        uiManager.PushWindow(UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { uiManager, DaggerfallUnitySaveGameWindow.Modes.LoadGame, this, false }));
+                        DaggerfallUI.UIManager.PushWindow(UIWindowFactory.GetInstanceWithArgs(UIWindowType.UnitySaveGame, new object[] { DaggerfallUI.UIManager, DaggerfallUnitySaveGameWindow.Modes.LoadGame, this, false }));
                     };
 
                     _pauseWindowInstance.panelPaused.Event_OnButtonClicked_Settings += () =>
@@ -131,7 +210,7 @@ namespace AcrealUI
                         TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRSCTokens(1069);
                         string msg = DaggerfallStringTableImporter.ConvertRSCTokensToString(1069, tokens).Split('[')[0];
 
-                        UIManager.popupManager.PushConfirmationWindow(null, msg, null,
+                        UIManager.popupManager.ShowTextConfirmationWindow(null, msg, null,
                             (_) =>
                             {
                                 DaggerfallUI.PostMessage(DaggerfallUIMessages.dfuiExitGame);
@@ -139,7 +218,7 @@ namespace AcrealUI
                             (_) =>
                             {
                                 AllowCancel = true;
-                                UIManager.popupManager.PopWindow();
+                                UIManager.popupManager.HideActivePopupWindow();
                             });
                     };
                 }
@@ -439,9 +518,9 @@ namespace AcrealUI
                     UISlider mainFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     mainFilterSlider.SetTitle(UITextStrings.OptionsWindow_Label_MainFilter.GetText());
                     mainFilterSlider.SetSliderMinMax(0, UITextStrings.OptionsWindow_TextArray_FilterModes.arrayLength - 1, true);
-                    
+
                     mainFilterSlider.DataSource_SliderValue = (_) =>
-                    { 
+                    {
                         return DaggerfallUnity.Settings.MainFilterMode;
                     };
 
@@ -461,7 +540,7 @@ namespace AcrealUI
                     UISlider guiFilterSlider = textureGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     guiFilterSlider.SetTitle(UITextStrings.OptionsWindow_Label_GuiFilter.GetText());
                     guiFilterSlider.SetSliderMinMax(0, UITextStrings.OptionsWindow_TextArray_FilterModes.arrayLength - 1, true);
-                    
+
                     guiFilterSlider.DataSource_SliderValue = (_) =>
                     {
                         return DaggerfallUnity.Settings.GUIFilterMode;
@@ -542,7 +621,7 @@ namespace AcrealUI
                     UISlider aaModeSlider = aaGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     aaModeSlider.SetTitle(UITextStrings.OptionsWindow_Label_Method.GetText());
                     aaModeSlider.SetSliderMinMax(0, 3, true);
-                    
+
                     aaModeSlider.DataSource_SliderValue = (_) =>
                     {
                         return DaggerfallUnity.Settings.AntialiasingMethod;
@@ -650,7 +729,7 @@ namespace AcrealUI
 
                     #region PostFX Settings
                     UIScrollListGroup postFxGroup = _pauseWindowInstance.panelVideoSettings.GetOrAddScrollListGroup(UITextStrings.OptionsWindow_Label_PostProcess.GetText());
-                    renderGroup.Collapse();
+                    postFxGroup.Collapse();
 
                     #region Retro Mode
                     UIScrollListGroup retroGroup = postFxGroup.GetOrAddSubScrollListGroup(UITextStrings.OptionsWindow_Title_RetroMode.GetText());
@@ -666,7 +745,7 @@ namespace AcrealUI
                         {
                             return DaggerfallUnity.Settings.RetroRenderingMode;
                         };
-                        
+
                         retroSlider.DataSource_SliderValueString = (_) =>
                         {
                             switch (DaggerfallUnity.Settings.RetroRenderingMode)
@@ -695,12 +774,12 @@ namespace AcrealUI
                         UISlider retroSlider = retroGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                         retroSlider.SetTitle(UITextStrings.OptionsWindow_Label_PostProcess.GetText());
                         retroSlider.SetSliderMinMax(0, 4, true);
-                        
+
                         retroSlider.DataSource_SliderValue = (_) =>
-                        { 
+                        {
                             return DaggerfallUnity.Settings.PostProcessingInRetroMode;
                         };
-                        
+
                         retroSlider.DataSource_SliderValueString = (_) =>
                         {
                             switch (DaggerfallUnity.Settings.PostProcessingInRetroMode)
@@ -736,7 +815,7 @@ namespace AcrealUI
                         {
                             return DaggerfallUnity.Settings.RetroModeAspectCorrection;
                         };
-                        
+
                         retroSlider.DataSource_SliderValueString = (_) =>
                         {
                             switch (DaggerfallUnity.Settings.RetroModeAspectCorrection)
@@ -1703,7 +1782,7 @@ namespace AcrealUI
                     #region Resolution
                     UISlider shadowRes = shadowGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     shadowRes.SetTitle(UITextStrings.OptionsWindow_Label_ShadowResolution.GetText());
-                    shadowRes.SetSliderMinMax(0, UITextStrings.OptionsWindow_TextArray_ShadowResolutionModes.arrayLength-1, true);
+                    shadowRes.SetSliderMinMax(0, UITextStrings.OptionsWindow_TextArray_ShadowResolutionModes.arrayLength - 1, true);
 
                     shadowRes.DataSource_SliderValue = (_) =>
                     {
@@ -1839,33 +1918,49 @@ namespace AcrealUI
                     #region Volume Settings
                     UIScrollListGroup volumeGroup = _pauseWindowInstance.panelAudioSettings.GetOrAddScrollListGroup(UITextStrings.OptionsWindow_Title_Volume.GetText());
 
+                    #region SoundFX
                     UISlider soundVolume = volumeGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     soundVolume.SetTitle(UITextStrings.OptionsWindow_Label_SoundEffects.GetText());
                     soundVolume.SetSliderMinMax(0f, 100f, true);
-                    soundVolume.DataSource_SliderValue = (_) => { return Mathf.RoundToInt(DaggerfallUnity.Settings.SoundVolume * 100f); };
+
+                    soundVolume.DataSource_SliderValue = (_) =>
+                    {
+                        return Mathf.RoundToInt(DaggerfallUnity.Settings.SoundVolume * 100f);
+                    };
+
                     soundVolume.DataSource_SliderValueString = (_) =>
                     {
                         return ((int)(DaggerfallUnity.Settings.SoundVolume * 100f)).ToString("N0") + "%";
                     };
+
                     soundVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                     {
                         saveSettings = true;
                         DaggerfallUnity.Settings.SoundVolume = slider.GetSliderValue() * 0.01f;
                     };
+                    #endregion
 
+                    #region Music
                     UISlider musicVolume = volumeGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     musicVolume.SetTitle(UITextStrings.OptionsWindow_Label_Music.GetText());
                     musicVolume.SetSliderMinMax(0f, 100f, true);
-                    musicVolume.DataSource_SliderValue = (_) => { return Mathf.RoundToInt(DaggerfallUnity.Settings.MusicVolume * 100f); };
+
+                    musicVolume.DataSource_SliderValue = (_) =>
+                    {
+                        return Mathf.RoundToInt(DaggerfallUnity.Settings.MusicVolume * 100f);
+                    };
+
                     musicVolume.DataSource_SliderValueString = (_) =>
                     {
                         return ((int)(DaggerfallUnity.Settings.MusicVolume * 100f)).ToString("N0") + "%";
                     };
+
                     musicVolume.Event_OnSliderValueChanged += (UISlider slider) =>
                     {
                         saveSettings = true;
                         DaggerfallUnity.Settings.MusicVolume = slider.GetSliderValue() * 0.01f;
                     };
+                    #endregion
                     #endregion
                 }
                 #endregion
@@ -1879,7 +1974,7 @@ namespace AcrealUI
                     _pauseWindowInstance.panelControlSettings.Event_OnButtonClicked_Default += () =>
                     {
                         AllowCancel = false;
-                        UIManager.popupManager.PushConfirmationWindow(UITextStrings.ConfirmationWindow_Title_SetDefaults.GetText(),
+                        UIManager.popupManager.ShowTextConfirmationWindow(UITextStrings.ConfirmationWindow_Title_SetDefaults.GetText(),
                                                             UITextStrings.ConfirmationWindow_Body_SetDefaults.GetText(),
                                                             null,
 
@@ -1889,13 +1984,13 @@ namespace AcrealUI
                                                                 ResetKeybindDict();
                                                                 CheckDuplicates();
                                                                 _pauseWindowInstance.panelControlSettings.Refresh();
-                                                                UIManager.popupManager.PopWindow();
+                                                                UIManager.popupManager.HideActivePopupWindow();
                                                                 UIManager.Instance.ExecuteDelayed(GetHashCode(), 0, 0.2f, () => { AllowCancel = true; });
                                                             },
 
                                                             (_) => // Cancel
                                                             {
-                                                                UIManager.popupManager.PopWindow();
+                                                                UIManager.popupManager.HideActivePopupWindow();
                                                                 UIManager.Instance.ExecuteDelayed(GetHashCode(), 0, 0.2f, () => { AllowCancel = true; });
                                                             });
                     };
@@ -1990,13 +2085,13 @@ namespace AcrealUI
 
                     UISlider slider_weaponSwingMode = combatGroup.AddElement(UIManager.referenceManager.prefab_slider) as UISlider;
                     slider_weaponSwingMode.SetTitle(UITextStrings.OptionsWindow_Label_WeaponSwingMode.GetText());
-                    slider_weaponSwingMode.SetSliderMinMax(0, UITextStrings.OptionsWindow_TextArray_WeaponSwingModes.arrayLength-1, true);
-                    
+                    slider_weaponSwingMode.SetSliderMinMax(0, UITextStrings.OptionsWindow_TextArray_WeaponSwingModes.arrayLength - 1, true);
+
                     slider_weaponSwingMode.DataSource_SliderValue = (_) =>
                     {
                         return DaggerfallUnity.Settings.WeaponSwingMode;
                     };
-                    
+
                     slider_weaponSwingMode.DataSource_SliderValueString = (_) =>
                     {
                         return UITextStrings.OptionsWindow_TextArray_WeaponSwingModes.GetText(DaggerfallUnity.Settings.WeaponSwingMode);
@@ -2302,86 +2397,6 @@ namespace AcrealUI
                 #endregion
             }
         }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            AllowCancel = true;
-
-            if (_pauseWindowInstance != null)
-            {
-                _pauseWindowInstance.panelGeneralSettings?.Refresh();
-                _pauseWindowInstance.panelVideoSettings?.Refresh();
-                _pauseWindowInstance.panelAudioSettings?.Refresh();
-                _pauseWindowInstance.panelControlSettings?.Refresh();
-
-                _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default);
-                _pauseWindowInstance.Show();
-            }
-        }
-
-        public void HideWindow()
-        {
-            _pauseWindowInstance?.Hide();
-        }
-
-        public override void OnPop()
-        {
-            HideWindow();
-            _pauseWindowInstance?.ResetWindow();
-            GameManager.Instance.PlayerMouseLook.cursorActive = false;
-
-            if (saveSettings)
-            {
-                DaggerfallUnity.Settings.SaveSettings();
-                saveSettings = false;
-            }
-
-            if (_toggledCoreWindowTypes != null && _toggledCoreWindowTypes.Count > 0)
-            {
-                for (int i = 0; i < _toggledCoreWindowTypes.Count; i++)
-                {
-                    if (UIManager.Instance.IsCoreWindowEnabled(_toggledCoreWindowTypes[i]))
-                    {
-                        UIManager.Instance.DisableCoreWindow(_toggledCoreWindowTypes[i]);
-                    }
-                    else
-                    {
-                        UIManager.Instance.EnableCoreWindow(_toggledCoreWindowTypes[i]);
-                    }
-                }
-                _toggledCoreWindowTypes.Clear();
-
-                //post message calls needed before and after ApplyCoreWindowChanges call
-                //due to DaggerFallUI only checking to refresh its ui windows if there
-                //are messages in the queue to process (a single call can/will get eaten,
-                //but two calls produces consistent behavior)
-                DaggerfallUI.UIManager.PostMessage(string.Empty);
-                UIManager.Instance.ApplyCoreWindowChanges();
-                DaggerfallUI.UIManager.PostMessage(string.Empty);
-            }
-        }
-        #endregion
-
-
-        #region Base Class Overrides
-        public override void OnPush()
-        {
-            base.OnPush();
-
-            GameManager.Instance.SaveLoadManager.EnumerateSaves();
-            _pauseWindowInstance.panelInterfaceSettings.Refresh();
-            _pauseWindowInstance.SetState(UIPauseWindow.PauseWindowState.Default, true);
-            ShowWindow();
-        }
-
-        protected override void Setup()
-        {
-            IsSetup = true;
-            ParentPanel.BackgroundColor = ScreenDimColor;
-        }
 
         public override void Update()
         {
@@ -2457,10 +2472,10 @@ namespace AcrealUI
         private void Controls_OnClearBinding(UIControlBindingEntry entry, bool primary)
         {
             string msg = string.Format(UITextStrings.ConfirmationWindow_Body_ClearBinding.GetText(), entry.actionEnumAsString); 
-            UIManager.popupManager.PushConfirmationWindow(UITextStrings.ConfirmationWindow_Title_ClearBinding.GetText(), msg, null,
+            UIManager.popupManager.ShowTextConfirmationWindow(UITextStrings.ConfirmationWindow_Title_ClearBinding.GetText(), msg, null,
                 (_) => 
                 {
-                    UIManager.popupManager.PopWindow();
+                    UIManager.popupManager.HideActivePopupWindow();
                     
                     if(entry is UIKeyCodeBindingEntry) { InputManager.Instance.ClearBinding(((UIKeyCodeBindingEntry)entry).boundAction); }
                     else if(entry is UIJoystickKeyBindingEntry) { InputManager.Instance.ClearJoystickUIBinding(((UIJoystickKeyBindingEntry)entry).boundAction); }
@@ -2474,7 +2489,7 @@ namespace AcrealUI
                 },
                 (_) =>
                 {
-                    UIManager.popupManager.PopWindow();
+                    UIManager.popupManager.HideActivePopupWindow();
                 });
         }
 
@@ -2682,7 +2697,7 @@ namespace AcrealUI
             string primaryOrSecondary = isPrimaryBinding ? UITextStrings.Global_Label_Primary.GetText() : UITextStrings.Global_Label_Secondary.GetText();
             string rebindMsg = string.Format(UITextStrings.ConfirmationWindow_Body_RebindAction.GetText(), primaryOrSecondary, bindingEntry.actionEnumAsString);
             string pressAnyMsg = UITextStrings.ConfirmationWindow_Body_PressAnyKey.GetText();
-            UIManager.popupManager.PushConfirmationWindow(title, rebindMsg + "\n" + pressAnyMsg, null, null, null);
+            UIManager.popupManager.ShowTextConfirmationWindow(title, rebindMsg + "\n" + pressAnyMsg, null, null, null);
 
             float t = 0.2f;
             while (t > 0f)
@@ -2699,7 +2714,7 @@ namespace AcrealUI
                 yield return 0f;
             }
 
-            UIManager.popupManager.PopWindow();
+            UIManager.popupManager.HideActivePopupWindow();
 
             if (code != KeyCode.Escape && InputManager.Instance.ReservedKeys.FirstOrDefault(x => x == code) == KeyCode.None)
             {
@@ -2754,18 +2769,18 @@ namespace AcrealUI
                             AllowCancel = false;
 
                             string msg = string.Format(UITextStrings.ConfirmationWindow_Body_DuplicateBinding.GetText(), newBindingString, otherActionBinding);
-                            UIManager.popupManager.PushConfirmationWindow(UITextStrings.ConfirmationWindow_Title_DuplicateBinding.GetText(), msg, null,
+                            UIManager.popupManager.ShowTextConfirmationWindow(UITextStrings.ConfirmationWindow_Title_DuplicateBinding.GetText(), msg, null,
                                 (_) =>
                                 {
                                     AllowCancel = true;
-                                    UIManager.popupManager.PopWindow();
+                                    UIManager.popupManager.HideActivePopupWindow();
                                     SetKeyBind(bindingEntry, newBindingCode, newBindingString, isPrimaryBinding);
                                     _pauseWindowInstance?.panelControlSettings?.UpdateDuplicateBindings(duplicateSet);
                                 },
                                 (_) =>
                                 {
                                     AllowCancel = true;
-                                    UIManager.popupManager.PopWindow();
+                                    UIManager.popupManager.HideActivePopupWindow();
                                     if (isPrimaryBinding) { _allPrimaryKeybindsDict[bindingEntry.actionEnumAsString] = prevBindingString; }
                                     else { _allSecondaryKeybindsDict[bindingEntry.actionEnumAsString] = prevBindingString; }
                                 });

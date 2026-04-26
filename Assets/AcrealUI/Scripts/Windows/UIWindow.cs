@@ -97,19 +97,19 @@ namespace AcrealUI
             {
                 _canvasComponent.enabled = false;
             }
-            else { Debug.LogError("Unable to find Canvas for UIWindow attached to GameObject: " + gameObject.name); }
+            else { Debug.LogError("[AcrealUI.UIWindow] Unable to find Canvas for UIWindow attached to GameObject: " + gameObject.name); }
 
             // FIND CANVAS GROUP
             Transform canvasGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_canvasGroup);
             if(canvasGroupTform == null) { canvasGroupTform = transform; }
             _canvasGroup = canvasGroupTform.GetComponent<CanvasGroup>();
-            if(_canvasGroup == null) { Debug.LogWarning("Unable to find CanvasGroup for UIWindow attached to GameObject: " + gameObject.name); }
+            if(_canvasGroup == null) { Debug.LogWarning("[AcrealUI.UIWindow] Unable to find CanvasGroup for UIWindow attached to GameObject: " + gameObject.name); }
 
             // FIND LAYOUT ELEMENT
             Transform layoutElemTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_layoutElement);
             if (layoutElemTform == null) { layoutElemTform = transform; }
             _layoutElement = layoutElemTform.GetComponent<LayoutElement>();
-            if (_layoutElement == null) { Debug.LogWarning("Unable to find LayoutElement for UIWindow attached to GameObject: " + gameObject.name); }
+            if (_layoutElement == null) { Debug.LogWarning("[AcrealUI.UIWindow] Unable to find LayoutElement for UIWindow attached to GameObject: " + gameObject.name); }
 
             // FIND CLOSE BUTTON
             Transform closeTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_closeWindowButton);
@@ -124,7 +124,7 @@ namespace AcrealUI
                         Event_ButtonClick_CloseWindow?.Invoke();
                     };
                 }
-                else { Debug.LogWarning("Unable to find UIButton for UIWindow attached to GameObject: " + gameObject.name); }
+                else { Debug.LogWarning("[AcrealUI.UIWindow] Unable to find UIButton for UIWindow attached to GameObject: " + gameObject.name); }
             }
 
             // FIND BACK BUTTON
@@ -140,7 +140,7 @@ namespace AcrealUI
                         Event_ButtonClick_PrevWindow?.Invoke();
                     };
                 }
-                else { Debug.LogWarning("Unable to find UIButton for UIWindow attached to GameObject: " + gameObject.name); }
+                else { Debug.LogWarning("[AcrealUI.UIWindow] Unable to find UIButton for UIWindow attached to GameObject: " + gameObject.name); }
             }
 
             // FIND HEADER TEXT
@@ -148,7 +148,7 @@ namespace AcrealUI
             if (headerTform != null)
             {
                 _headerText = headerTform.GetComponent<TextMeshProUGUI>();
-                if (_headerText == null) { Debug.LogWarning("Unable to find TextMeshProUGUI for UIWindow attached to GameObject: " + gameObject.name); }
+                if (_headerText == null) { Debug.LogWarning("[AcrealUI.UIWindow] Unable to find TextMeshProUGUI for UIWindow attached to GameObject: " + gameObject.name); }
             }
         }
 
@@ -261,6 +261,12 @@ namespace AcrealUI
             if (_canvasComponent != null)
             {
                 _canvasComponent.enabled = true;
+
+                GraphicRaycaster raycaster = _canvasComponent.GetComponent<GraphicRaycaster>();
+                if (raycaster != null)
+                {
+                    raycaster.enabled = true;
+                }
             }
 
             if (_canvasGroup != null)
@@ -274,6 +280,12 @@ namespace AcrealUI
             _isOpen = false;
 
             StopAllCoroutines();
+
+            GraphicRaycaster raycaster = _canvasComponent.GetComponent<GraphicRaycaster>();
+            if (raycaster != null)
+            {
+                raycaster.enabled = false;
+            }
 
             if (_canvasGroup != null)
             {

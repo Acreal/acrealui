@@ -192,7 +192,7 @@ namespace AcrealUI
         public static LocalizedText InventoryWindow_Label_Weight = new LocalizedText("Weight:", null, null);
 
 
-        public static LocalizedText Abbreviation_Grams = new LocalizedText("g", null, null);
+        public static LocalizedText Abbreviation_Gold = new LocalizedText("g", null, null);
         public static LocalizedText Abbreviation_Kilograms = new LocalizedText("Kg", null, null);
 
 

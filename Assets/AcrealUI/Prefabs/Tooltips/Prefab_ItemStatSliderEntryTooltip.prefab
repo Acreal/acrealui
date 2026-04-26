@@ -90,7 +90,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: 80
-  m_MinHeight: 34
+  m_MinHeight: 28
   m_PreferredWidth: 0
   m_PreferredHeight: 0
   m_FlexibleWidth: 0
@@ -134,9 +134,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 0
+  _gameObjName_titleText: 
+  _gameObjName_valueText: 
   _gameObjName_slider: Slider_ItemCondition
-  _gameObjName_text_sliderTitle: 
-  _gameObjName_text_sliderValue: 
 --- !u!1 &881769733224130026
 GameObject:
   m_ObjectHideFlags: 0
@@ -306,7 +306,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 96, y: 34}
+  m_SizeDelta: {x: 96, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &881769733437428954
 MonoBehaviour:
@@ -326,7 +326,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 3
-  m_Spacing: 15
+  m_Spacing: 5
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -347,7 +347,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
   m_MinWidth: 200
-  m_MinHeight: 40
+  m_MinHeight: 36
   m_PreferredWidth: -1
   m_PreferredHeight: -1
   m_FlexibleWidth: -1
@@ -368,7 +368,7 @@ MonoBehaviour:
   _gameObjName_image_icon: 
   _gameObjName_text_title: Text_Title
   _gameObjName_text_description: Text_ConditionValue
-  _gameObjName_slider_condition: Slider_ItemCondition
+  _gameObjName_slider_condition: UISlider_ItemCondition
 --- !u!1 &881769733862990750
 GameObject:
   m_ObjectHideFlags: 0
@@ -605,8 +605,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
-  m_fontSizeBase: 32
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -868,8 +868,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
-  m_fontSizeBase: 32
+  m_fontSize: 22
+  m_fontSizeBase: 22
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

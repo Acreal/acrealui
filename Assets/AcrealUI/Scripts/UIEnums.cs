@@ -171,5 +171,6 @@ namespace AcrealUI
         SaveOrLoadGame = 4,
         Confirmation = 5,
         SliderConfirmation = 6,
+        Trade = 7,
     }
 }

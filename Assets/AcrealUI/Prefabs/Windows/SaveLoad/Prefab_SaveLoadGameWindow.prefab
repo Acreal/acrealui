@@ -3559,8 +3559,8 @@ GameObject:
   - component: {fileID: 7457937032503411338}
   - component: {fileID: 3479616301852300832}
   - component: {fileID: -5378587028014421671}
-  - component: {fileID: 9004962382321818065}
   - component: {fileID: 1318786740342296044}
+  - component: {fileID: 9004962382321818065}
   m_Layer: 5
   m_Name: Prefab_SaveLoadGameWindow
   m_TagString: Untagged
@@ -3601,7 +3601,7 @@ Canvas:
   m_RenderMode: 0
   m_Camera: {fileID: 0}
   m_PlaneDistance: 100
-  m_PixelPerfect: 0
+  m_PixelPerfect: 1
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 1
@@ -3632,6 +3632,23 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
+--- !u!114 &1318786740342296044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7457937032503411337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 32
 --- !u!114 &9004962382321818065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3669,23 +3686,6 @@ MonoBehaviour:
   _gameObjName_savePromptParent: VerticalLayout_TopControls
   _gameObjName_saveDetailsParent: VerticalLayout_SaveInfo
   _gameObjName_scrollListParent: Parent_ScrollView
---- !u!114 &1318786740342296044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7457937032503411337}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 32
 --- !u!1001 &3764321415077633411
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3914,6 +3914,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IgnoreLayout
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6147501312390490941, guid: f5e4e270fedf7d048959eec4b7fe7dc6,
+        type: 3}
+      propertyPath: m_margin.w
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 6722578833042806474, guid: f5e4e270fedf7d048959eec4b7fe7dc6,
         type: 3}

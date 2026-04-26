@@ -23,8 +23,7 @@ namespace AcrealUI
 {
     public class UITradeDisplayPanel : UIPanel
     {
+        [Header("Buttons")]
         [SerializeField] private string _gameObjName_confirmButton = null;
-        [SerializeField] private string _gameObjName_emptyBuyListButton = null;
-        [SerializeField] private string _gameObjName_emptySellListButton = null;
     }
 }

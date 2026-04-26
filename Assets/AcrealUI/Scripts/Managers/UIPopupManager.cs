@@ -24,28 +24,35 @@ namespace AcrealUI
     public class UIPopupManager
     {
         #region Variables
-        private Stack<IWindowController> _windowStack = null;
-        #endregion
-
-
-        #region Initalization
-        public void Initialize()
-        {
-            if (_windowStack == null)
-            {
-                _windowStack = new Stack<IWindowController>(4);
-            }
-        }
+        private IWindowController _activePopupController = null;
         #endregion
 
 
         #region Public API
-        public void PushSliderConfirmationWindow(string title, string message, int minSliderValue, int maxSliderValue, bool useWholeNumbers, object[] dataPayload, System.Action<float, object[]> onConfirm, System.Action<object[]> onCancel)
+        public void ShowTextConfirmationWindow(string title, string message, object[] dataPayload, System.Action<object[]> onConfirm, System.Action<object[]> onCancel)
         {
+            HideActivePopupWindow();
+
+            UIConfirmationWindowController windowController = new UIConfirmationWindowController();
+            if (windowController != null)
+            {
+                _activePopupController = windowController;
+
+                windowController.SetText(title, message);
+                windowController.SetDataPayload(dataPayload);
+                windowController.RegisterEvents(onConfirm, onCancel);
+                windowController.ShowWindow();
+            }
+        }
+
+        public void ShowSliderConfirmationWindow(string title, string message, int minSliderValue, int maxSliderValue, bool useWholeNumbers, object[] dataPayload, System.Action<float, object[]> onConfirm, System.Action<object[]> onCancel)
+        {
+            HideActivePopupWindow();
+
             UISliderConfirmationWindowController windowController = new UISliderConfirmationWindowController();
             if (windowController != null)
             {
-                _windowStack.Push((IWindowController)windowController);
+                _activePopupController = windowController;
 
                 windowController.SetText(title, message);
                 windowController.SetSliderMinMax(minSliderValue, maxSliderValue, useWholeNumbers);
@@ -55,30 +62,12 @@ namespace AcrealUI
             }
         }
 
-        public void PushConfirmationWindow(string title, string message, object[] dataPayload, System.Action<object[]> onConfirm, System.Action<object[]> onCancel)
+        public void HideActivePopupWindow()
         {
-            UIConfirmationWindowController windowController = new UIConfirmationWindowController();
-            if (windowController != null)
+            if (_activePopupController != null)
             {
-                _windowStack.Push((IWindowController)windowController);
-
-                windowController.SetText(title, message);
-                windowController.SetDataPayload(dataPayload);
-                windowController.RegisterEvents(onConfirm, onCancel);
-                windowController.ShowWindow();
-            }
-        }
-
-        public void PopWindow()
-        {
-            if (_windowStack != null)
-            {
-                IWindowController windowController = _windowStack.Pop();
-                if (windowController != null)
-                {
-                    windowController.HideWindow();
-                    windowController.OnPop();
-                }
+                _activePopupController.HideWindow();
+                _activePopupController.OnPop();
             }
         }
         #endregion

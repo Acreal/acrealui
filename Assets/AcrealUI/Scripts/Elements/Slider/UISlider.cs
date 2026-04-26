@@ -54,27 +54,24 @@ namespace AcrealUI
         #region Initialization/Cleanup
         public override void Initialize()
         {
-            if (!string.IsNullOrEmpty(_gameObjName_slider))
+            Transform sliderTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_slider);
+            if (sliderTform != null)
             {
-                Transform sliderTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_slider);
-                if (sliderTform != null)
+                _slider = sliderTform.GetComponent<Slider>();
+                if (_slider != null)
                 {
-                    _slider = sliderTform.GetComponent<Slider>();
-                    if (_slider != null)
+                    _slider.onValueChanged.AddListener((float val) =>
                     {
-                        _slider.onValueChanged.AddListener((float val) =>
+                        if (Event_OnSliderValueChanged != null)
                         {
-                            if (Event_OnSliderValueChanged != null)
-                            {
-                                Event_OnSliderValueChanged(this);
-                            }
+                            Event_OnSliderValueChanged(this);
+                        }
 
-                            if (DataSource_SliderValueString != null)
-                            {
-                                SetDisplayValue(DataSource_SliderValueString(gameObject));
-                            }
-                        });
-                    }
+                        if (DataSource_SliderValueString != null)
+                        {
+                            SetDisplayValue(DataSource_SliderValueString(gameObject));
+                        }
+                    });
                 }
             }
 

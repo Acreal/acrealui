@@ -43,7 +43,7 @@ namespace AcrealUI
                 UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Confirmation);
                 if (window == null || !(window is UIConfirmationWindow))
                 {
-                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.Confirmation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConfirmationWindow, but got " + window.GetType().ToString() + "!"));
+                    Debug.LogError("[AcrealUI.UIConfirmationWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.Confirmation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConfirmationWindow, but got " + window.GetType().ToString() + "!"));
                     return;
                 }
 

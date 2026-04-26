@@ -40,5 +40,7 @@ namespace AcrealUI
 
         public const int MAX_RECENT_DIALOGUE_ENTRIES = 4;
         public const int MAX_OLD_DIALOGUE_ENTRIES = 64 - MAX_RECENT_DIALOGUE_ENTRIES;
+
+        public const float TOOLTIP_OFFSET_ITEM = 20f;
     }
 }

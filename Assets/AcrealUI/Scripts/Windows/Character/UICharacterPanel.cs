@@ -26,7 +26,7 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIPanelPlayerStats : UIPanel
+    public class UICharacterPanel : UIPanel
     {
         #region Variables
         [Header("Show/Hide Panel")]

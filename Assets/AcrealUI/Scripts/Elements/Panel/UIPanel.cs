@@ -28,9 +28,12 @@ namespace AcrealUI
     public class UIPanel : MonoBehaviour
     {
         #region Variables
+        [Header("Dynamic Sizing")]
         [SerializeField] private string _gameObjName_layoutElement = null;
-        [SerializeField] private string _gameObjName_scrollGroupParent = null;
         [SerializeField] private float _panelVerticalSizeOffset = 40f;
+
+        [Header("Dynamic Elements")]
+        [SerializeField] private string _gameObjName_scrollGroupParent = null;
 
         protected CanvasGroup _canvasGroup = null;
         protected LayoutElement _layoutElement = null;

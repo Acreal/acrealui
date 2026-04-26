@@ -30,6 +30,8 @@ namespace AcrealUI
     public class UIConversationWindowController : DaggerfallTalkWindow, IWindowController
     {
         #region Variables
+        private static Texture2D _lastSpeakerPortrait = null;
+
         private UIConversationWindow _conversationWindowInstance = null;
         private Dictionary<int, TalkManager.ListItem> _instanceIdToTopicListItemDict = null;
         private Stack<List<TalkManager.ListItem>> _topicListStack = null;
@@ -43,85 +45,12 @@ namespace AcrealUI
         #region Initialization
         public UIConversationWindowController(IUserInterfaceManager uiManager, DaggerfallBaseWindow previous = null) : base(uiManager, previous)
         {
+            //needed by base class
             listboxConversation = new ListBox();
 
             _topicListStack = new Stack<List<TalkManager.ListItem>>();
             _instanceIdToTopicListItemDict = new Dictionary<int, TalkManager.ListItem>();
             _selectedTopicInstanceId = 0;
-
-            UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Conversation);
-            if (window == null || !(window is UIConversationWindow))
-            {
-                Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.Conversation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConversationWindow, but got " + window.GetType().ToString() + "!"));
-                return;
-            }
-
-            _conversationWindowInstance = window as UIConversationWindow;
-            _conversationWindowInstance.Initialize();
-            _conversationWindowInstance.SetHeaderText("Conversation History"); // TODO(Acreal): localize string
-            _conversationWindowInstance.Hide();
-
-            _conversationWindowInstance.Event_ButtonClick_CloseWindow += () => { CancelWindow(); };
-
-            _conversationWindowInstance.normalSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Normal; };
-            _conversationWindowInstance.politeSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Polite; };
-            _conversationWindowInstance.bluntSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Blunt; };
-
-            _conversationWindowInstance.normalSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Normal); };
-            _conversationWindowInstance.politeSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Polite); };
-            _conversationWindowInstance.bluntSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Blunt); };
-
-            _conversationWindowInstance.previousTopicButton.DataSource_IsDisabled = (_) => { return _topicListStack == null || _topicListStack.Count <= 1; };
-            _conversationWindowInstance.previousTopicButton.Event_OnLeftClick += (_, _1) =>
-            {
-                PopTopicList();
-            };
-
-            _conversationWindowInstance.Event_ButtonClicked_OnSubmitDialogueEntry += () =>
-            {
-                if (!string.IsNullOrWhiteSpace(_pendingDialogueText))
-                {
-                    string answer = string.Empty;
-                    if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
-                    {
-                        answer = TalkManager.Instance.GetAnswerText(listItem);
-                    }
-                    SetQuestionAnswerPairInConversationListbox(_pendingDialogueText, answer);
-
-                    //_speakingInProgress = true;
-                    //UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
-
-                    //if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
-                    //{
-                    //    DialogueInfo reply = new DialogueInfo
-                    //    {
-                    //        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
-                    //        speakerPortrait = texturePortrait,
-                    //        speakerName = TalkManager.Instance.NameNPC,
-                    //        dialogueText = TalkManager.Instance.GetAnswerText(listItem),
-                    //    };
-                    //    UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
-                    //}
-
-                    _selectedTopicInstanceId = 0;
-                    _pendingDialogueText = null;
-                    _conversationWindowInstance.SetPendingDialogue(null);
-                }
-            };
-
-            _conversationWindowInstance.Event_OnCopyDialogueToNotebook += (UIDialogueEntry dialogueEntry, int dialogueEntryIndex) =>
-            {
-                if (copyIndexes.Remove(dialogueEntryIndex))
-                {
-                    if (dialogueEntry.isPlayerDialogue) { dialogueEntry.SetBorderColor(textcolorQuestionBackgroundModernConversationStyle); }
-                    else { dialogueEntry.SetBorderColor(textcolorAnswerBackgroundModernConversationStyle); }
-                }
-                else
-                {
-                    copyIndexes.Add(dialogueEntryIndex);
-                    dialogueEntry.SetBorderColor(textcolorHighlighted);
-                }
-            };
         }
         #endregion
 
@@ -196,6 +125,15 @@ namespace AcrealUI
                 PushTopicList(defaultTopicList);
                 #endregion
 
+                //this texture is not updated if speaking to the same
+                //NPC multiple times in a row - so cache it here for
+                //later use
+                if (texturePortrait == null)
+                {
+                    texturePortrait = _lastSpeakerPortrait;
+                }
+                _lastSpeakerPortrait = texturePortrait;
+
                 SetQuestionAnswerPairInConversationListbox(null, TalkManager.Instance.NPCGreetingText);
                 _conversationWindowInstance.SetPendingDialogue(null);
                 _conversationWindowInstance.Show();
@@ -205,10 +143,7 @@ namespace AcrealUI
 
         public void HideWindow()
         {
-            if (_conversationWindowInstance != null)
-            {
-                _conversationWindowInstance.Hide();
-            }
+            _conversationWindowInstance?.Hide();
         }
 
         public override void OnPop()
@@ -223,8 +158,95 @@ namespace AcrealUI
         #region Base Class Overrides
         public override void OnPush()
         {
+            if (!IsSetup)
+            {
+                Setup();
+            }
+
             base.OnPush();
             ShowWindow();
+        }
+
+        protected override void Setup()
+        {
+            IsSetup = true;
+
+            if (_conversationWindowInstance == null)
+            {
+                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Conversation);
+                if (window == null || !(window is UIConversationWindow))
+                {
+                    Debug.LogError("[AcrealUI.UIConversationWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.Conversation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConversationWindow, but got " + window.GetType().ToString() + "!"));
+                    return;
+                }
+
+                _conversationWindowInstance = window as UIConversationWindow;
+                _conversationWindowInstance.Initialize();
+                _conversationWindowInstance.SetHeaderText("Conversation History"); // TODO(Acreal): localize string
+                _conversationWindowInstance.Hide();
+
+                _conversationWindowInstance.Event_ButtonClick_CloseWindow += () => { CancelWindow(); };
+
+                _conversationWindowInstance.normalSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Normal; };
+                _conversationWindowInstance.politeSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Polite; };
+                _conversationWindowInstance.bluntSpeakingStyleToggle.DataSource_IsToggledOn = (_) => { return _currentSpeakingStyle == SpeakingStyle.Blunt; };
+
+                _conversationWindowInstance.normalSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Normal); };
+                _conversationWindowInstance.politeSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Polite); };
+                _conversationWindowInstance.bluntSpeakingStyleToggle.Event_OnToggledOn += (_) => { SetSpeakingStyle(SpeakingStyle.Blunt); };
+
+                _conversationWindowInstance.previousTopicButton.DataSource_IsDisabled = (_) => { return _topicListStack == null || _topicListStack.Count <= 1; };
+                _conversationWindowInstance.previousTopicButton.Event_OnLeftClick += (_, _1) =>
+                {
+                    PopTopicList();
+                };
+
+                _conversationWindowInstance.Event_ButtonClicked_OnSubmitDialogueEntry += () =>
+                {
+                    if (!string.IsNullOrWhiteSpace(_pendingDialogueText))
+                    {
+                        string answer = string.Empty;
+                        if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                        {
+                            answer = TalkManager.Instance.GetAnswerText(listItem);
+                        }
+                        SetQuestionAnswerPairInConversationListbox(_pendingDialogueText, answer);
+
+                        //_speakingInProgress = true;
+                        //UIManager.Instance.RunCoroutine(GetHashCode(), 0, DisplayDialogueRoutine(_pendingDialogueInfo));
+
+                        //if (_instanceIdToTopicListItemDict.TryGetValue(_selectedTopicInstanceId, out TalkManager.ListItem listItem))
+                        //{
+                        //    DialogueInfo reply = new DialogueInfo
+                        //    {
+                        //        entryPrefab = UIManager.referenceManager.prefab_npcDialogueEntry,
+                        //        speakerPortrait = texturePortrait,
+                        //        speakerName = TalkManager.Instance.NameNPC,
+                        //        dialogueText = TalkManager.Instance.GetAnswerText(listItem),
+                        //    };
+                        //    UIManager.Instance.RunCoroutine(GetHashCode(), 1, RespondToPlayerRoutine(reply, 0.5f));
+                        //}
+
+                        _selectedTopicInstanceId = 0;
+                        _pendingDialogueText = null;
+                        _conversationWindowInstance.SetPendingDialogue(null);
+                    }
+                };
+
+                _conversationWindowInstance.Event_OnCopyDialogueToNotebook += (UIDialogueEntry dialogueEntry, int dialogueEntryIndex) =>
+                {
+                    if (copyIndexes.Remove(dialogueEntryIndex))
+                    {
+                        if (dialogueEntry.isPlayerDialogue) { dialogueEntry.SetBorderColor(textcolorQuestionBackgroundModernConversationStyle); }
+                        else { dialogueEntry.SetBorderColor(textcolorAnswerBackgroundModernConversationStyle); }
+                    }
+                    else
+                    {
+                        copyIndexes.Add(dialogueEntryIndex);
+                        dialogueEntry.SetBorderColor(textcolorHighlighted);
+                    }
+                };
+            }
         }
 
         protected override void SetQuestionAnswerPairInConversationListbox(string question, string answer)
@@ -260,7 +282,6 @@ namespace AcrealUI
 
         //unused functions
         public override void Draw() { }
-        protected override void Setup() { }
         #endregion
 
 

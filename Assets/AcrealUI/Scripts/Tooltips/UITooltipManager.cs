@@ -242,6 +242,7 @@ namespace AcrealUI
                         statEntry.SetIcon(itemStatSliderData[i].icon);
                         statEntry.SetTitle(itemStatSliderData[i].name);
                         statEntry.SetDescription(itemStatSliderData[i].description);
+                        statEntry.SetSliderMinMaxValue(0f, 1f, false);
                         statEntry.SetSliderValue(itemStatSliderData[i].sliderValue);
                     }
                 }

@@ -17,42 +17,15 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop.Game.Utility.ModSupport;
 using UnityEngine;
 
 namespace AcrealUI
 {
-    public class UITradeItemList : UIItemList
+    [ImportedComponent]
+    public class UITradeWindow : UIInventoryWindow
     {
-        [Header("Buttons")]
-        [SerializeField] private string _gameObjName_emptyListButton = null;
-
-        private UIButton _emptyListButton = null;
-
-
-        public override void Initialize()
-        {
-            base.Initialize();
-
-            Transform emptyListTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_emptyListButton);
-            if (emptyListTform != null)
-            {
-                _emptyListButton = emptyListTform.GetComponent<UIButton>();
-                _emptyListButton.Initialize();
-
-                if (_emptyListButton != null)
-                {
-                    _emptyListButton.Event_OnLeftClick += (_, _1) =>
-                    {
-                        ClearAllItemEntries();
-                    };
-                }
-            }
-        }
-
-        public override void Cleanup()
-        {
-            _emptyListButton?.Cleanup();
-            base.Cleanup();
-        }
+        [SerializeField] private string _gameObjName_itemList_buy = null;
+        [SerializeField] private string _gameObjName_itemList_sell = null;
     }
 }

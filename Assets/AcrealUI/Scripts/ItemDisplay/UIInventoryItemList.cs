@@ -18,7 +18,6 @@ DEALINGS IN THE SOFTWARE.
 */
 
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -27,14 +26,9 @@ using UnityEngine.UI;
 namespace AcrealUI
 {
     [ImportedComponent]
-    public class UIInventoryItemList : MonoBehaviour
+    public class UIInventoryItemList : UIItemList
     {
         #region Variables
-        private const int ITEM_ENTRY_BLOCK_SIZE = 5;
-
-        [Header("Item Entries")]
-        [SerializeField] private string _gameObjName_itemEntryParent = null;
-
         [Header("Filter Toggles")]
         [SerializeField] private string _gameObjName_toggleGroup = null;
         [SerializeField] private string _gameObjName_toggle_filterAll = null;
@@ -49,35 +43,14 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_toggle_filterMisc = null;
 
         [Header("Item Info Columns")]
-        [SerializeField] private string _gameObjName_sortToggleGroup = null;
-        [SerializeField] private string _gameObjName_sortToggle_name = null;
-        [SerializeField] private string _gameObjName_sortToggle_type = null;
         [SerializeField] private string _gameObjName_sortToggle_damage = null;
         [SerializeField] private string _gameObjName_sortToggle_armor = null;
         [SerializeField] private string _gameObjName_sortToggle_condition = null;
         [SerializeField] private string _gameObjName_sortToggle_weight = null;
-        [SerializeField] private string _gameObjName_sortToggle_value = null;
 
         [Header("Text")]
         [SerializeField] private string _gameObjName_text_itemFilter = null;
-        [SerializeField] private string _gameObjName_weightGoldParent = null;
-        [SerializeField] private string _gameObjName_text_totalGold = null;
-        [SerializeField] private string _gameObjName_text_totalWeight = null;
 
-        [Header("Item Source Tabs")]
-        [SerializeField] private string _gameObjName_inventoryTabToggleGroup = null;
-        [SerializeField] private string _gameObjName_inventoryTabToggle_player = null;
-        [SerializeField] private string _gameObjName_inventoryTabToggle_wagon = null;
-        [SerializeField] private string _gameObjName_inventoryTabToggle_lootPile = null;
-        [SerializeField] private string _gameObjName_lootPileIcon = null;
-
-        [Header("Buttons")]
-        [SerializeField] private string _gameObjName_goldButton = null;
-
-        [Header("Tweening")]
-        [SerializeField] private float _defaultSize = 350f;
-
-        private RectTransform _itemEntryParent = null;
         private UIToggleGroup _filterToggleGroup = null;
         private UIToggle _toggle_filterAll = null;
         private UIToggle _toggle_filterFavorited = null;
@@ -89,50 +62,11 @@ namespace AcrealUI
         private UIToggle _toggle_filterBooks = null;
         private UIToggle _toggle_filterQuestItems = null;
         private UIToggle _toggle_filterMisc = null;
-        private UIToggleGroup _sortToggleGroup = null;
-        private UISortToggle _sortToggle_name = null;
-        private UISortToggle _sortToggle_type = null;
         private UISortToggle _sortToggle_damage = null;
         private UISortToggle _sortToggle_armor = null;
         private UISortToggle _sortToggle_condition = null;
         private UISortToggle _sortToggle_weight = null;
-        private UISortToggle _sortToggle_value = null;
         private TextMeshProUGUI _text_itemFilter = null;
-        private TextMeshProUGUI _text_totalGold = null;
-        private TextMeshProUGUI _text_totalWeight = null;
-        private GameObject _weightGoldParent = null;
-        private UIButton _goldButton = null;
-        private UIToggleGroup _inventoryTabToggleGroup = null;
-        private UIToggle _inventoryTabToggle_player = null;
-        private UIToggle _inventoryTabToggle_wagon = null;
-        private UIToggle _inventoryTabToggle_lootPile = null;
-        private Image _lootPileIcon = null;
-
-        private Dictionary<ulong, UIItemEntry> _uidToItemEntryDict = null;
-        private Stack<UIItemEntry> _itemEntryStack = null;
-        private ItemFilter _currentItemFilter = ItemFilter.All;
-        private ItemColumnFlags _sortItemsColumn = ItemColumnFlags.ItemType;
-        private UISortToggle _activeSortToggle = null;
-        private bool? _isShown = null;
-        #endregion
-
-
-        #region Events
-        public event Action Event_OnItemFilterChanged = null;
-        public event Action Event_OnSortItemsColumnChanged = null;
-        public event Action Event_OnSortAscendingChanged = null;
-        public event Action Event_OnToggled_InventoryTab_Player = null;
-        public event Action Event_OnToggled_InventoryTab_Wagon = null;
-        public event Action Event_OnToggled_InventoryTab_LootPile = null;
-        public event Action Event_OnGoldButtonClicked = null;
-        #endregion
-
-
-        #region Properties
-        public int itemCount { get { return _uidToItemEntryDict != null ? _uidToItemEntryDict.Count : 0; } }
-        public ItemFilter activeItemFilter {  get { return _currentItemFilter; } }
-        public ItemColumnFlags sortByColumn { get { return _sortItemsColumn; } }
-        public bool sortByAscending { get { return _activeSortToggle == null || _activeSortToggle.sortByAscending; } }
         #endregion
 
 
@@ -145,51 +79,12 @@ namespace AcrealUI
 
 
         #region Initialize/Cleanup
-        public void Initialize()
+        public override void Initialize()
         {
-            _uidToItemEntryDict = new Dictionary<ulong, UIItemEntry>();
-            _itemEntryStack = new Stack<UIItemEntry>();
+            #region Item Filter
+            Transform filterTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_itemFilter);
+            _text_itemFilter = filterTextTform != null ? filterTextTform.GetComponent<TextMeshProUGUI>() : null;
 
-            Transform entryParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemEntryParent);
-            _itemEntryParent = entryParentTform != null ? entryParentTform as RectTransform : null;
-
-            #region Tab Toggle References
-            Transform playerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_player);
-            _inventoryTabToggle_player = playerTform != null ? playerTform.GetComponent<UIToggle>() : null;
-            if (_inventoryTabToggle_player != null)
-            {
-                _inventoryTabToggle_player.Initialize();
-                _inventoryTabToggle_player.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Player?.Invoke(); };
-            }
-
-            Transform wagonTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_wagon);
-            _inventoryTabToggle_wagon = wagonTform != null ? wagonTform.GetComponent<UIToggle>() : null;
-            if (_inventoryTabToggle_wagon != null)
-            {
-                _inventoryTabToggle_wagon.Initialize();
-                _inventoryTabToggle_wagon.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_Wagon?.Invoke(); };
-            }
-
-            Transform toggleGroupTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggleGroup);
-            _inventoryTabToggleGroup = toggleGroupTform != null ? toggleGroupTform.GetComponent<UIToggleGroup>() : null;
-            if (_inventoryTabToggleGroup != null)
-            {
-                _inventoryTabToggleGroup.Initialize();
-            }
-
-            Transform lootTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_lootPile);
-            _inventoryTabToggle_lootPile = lootTform != null ? lootTform.GetComponent<UIToggle>() : null;
-            if (_inventoryTabToggle_lootPile != null)
-            {
-                _inventoryTabToggle_lootPile.Initialize();
-                _inventoryTabToggle_lootPile.Event_OnToggledOn += (_) => { Event_OnToggled_InventoryTab_LootPile?.Invoke(); };
-            }
-
-            Transform lootIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_lootPileIcon);
-            _lootPileIcon = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
-            #endregion
-
-            #region ItemFilter Toggle References
             _toggle_filterAll = InitializeItemFilterToggle(_gameObjName_toggle_filterAll, ItemFilter.All);
             _toggle_filterFavorited = InitializeItemFilterToggle(_gameObjName_toggle_filterFavorited, ItemFilter.Favorite);
             _toggle_filterWeapons = InitializeItemFilterToggle(_gameObjName_toggle_filterWeapons, ItemFilter.Weapons);
@@ -213,146 +108,76 @@ namespace AcrealUI
             #endregion
 
             #region Sort Toggle References
-            _sortToggle_type = InitializeSortItemsToggle(_gameObjName_sortToggle_type, ItemColumnFlags.ItemType);
-            _sortToggle_name = InitializeSortItemsToggle(_gameObjName_sortToggle_name, ItemColumnFlags.Name);
             _sortToggle_damage = InitializeSortItemsToggle(_gameObjName_sortToggle_damage, ItemColumnFlags.Damage);
             _sortToggle_armor = InitializeSortItemsToggle(_gameObjName_sortToggle_armor, ItemColumnFlags.Armor);
             _sortToggle_condition = InitializeSortItemsToggle(_gameObjName_sortToggle_condition, ItemColumnFlags.Condition);
             _sortToggle_weight = InitializeSortItemsToggle(_gameObjName_sortToggle_weight, ItemColumnFlags.Weight);
-            _sortToggle_value = InitializeSortItemsToggle(_gameObjName_sortToggle_value, ItemColumnFlags.GoldValue);
-
-            Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
-            if (groupTForm != null)
-            { 
-                _sortToggleGroup = groupTForm.GetComponent<UIToggleGroup>();
-
-                if (_sortToggleGroup != null)
-                {
-                    _sortToggleGroup.Initialize();
-                }
-            }
             #endregion
 
-            #region Text References
-            Transform filterTextTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_itemFilter);
-            _text_itemFilter = filterTextTform != null ? filterTextTform.GetComponent<TextMeshProUGUI>() : null;
-
-            Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
-            _text_totalGold = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
-
-            Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalWeight);
-            _text_totalWeight = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
-
-            Transform weightGoldParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightGoldParent);
-            if(weightGoldParentTform != null) { _weightGoldParent = weightGoldParentTform.gameObject; }
-
-            Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
-            if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
-            if(_goldButton != null)
-            {
-                _goldButton.Event_OnAnyClick += (_, _1) =>
-                {
-                    Event_OnGoldButtonClicked?.Invoke();
-                };
-            }
-            #endregion
+            //keep this at the bottom so the sort toggle group
+            //initializes correctly
+            base.Initialize();
         }
 
-        public void Cleanup()
+        public override void Cleanup()
         {
-            StopAllCoroutines();
+            _filterToggleGroup?.Cleanup();
+            _filterToggleGroup = null;
 
-            Event_OnItemFilterChanged = null;
-            Event_OnSortItemsColumnChanged = null;
-            Event_OnSortAscendingChanged = null;
-            Event_OnToggled_InventoryTab_Player = null;
-            Event_OnToggled_InventoryTab_Wagon = null;
-            Event_OnToggled_InventoryTab_LootPile = null;
-            Event_OnGoldButtonClicked = null;
+            _toggle_filterAll?.Cleanup();
+            _toggle_filterAll = null;
 
-            foreach (UIItemEntry entry in _uidToItemEntryDict.Values)
-            {
-                if (entry != null)
-                {
-                    _itemEntryStack.Push(entry);
-                }
-            }
-            _uidToItemEntryDict = null;
+            _toggle_filterFavorited?.Cleanup();
+            _toggle_filterFavorited = null;
 
-            while (_itemEntryStack.Count > 0)
-            {
-                UIItemEntry entry = _itemEntryStack.Pop();
-                if (entry != null)
-                {
-                    Destroy(entry.gameObject);
-                }
-            }
-            _itemEntryStack = null;
+            _toggle_filterWeapons?.Cleanup();
+            _toggle_filterWeapons = null;
+
+            _toggle_filterArmor?.Cleanup();
+            _toggle_filterArmor = null;
+
+            _toggle_filterPotions?.Cleanup();
+            _toggle_filterPotions = null;
+
+            _toggle_filterMagic?.Cleanup();
+            _toggle_filterMagic = null;
+
+            _toggle_filterIngredients?.Cleanup();
+            _toggle_filterIngredients = null;
+
+            _toggle_filterBooks?.Cleanup();
+            _toggle_filterBooks = null;
+
+            _toggle_filterQuestItems?.Cleanup();
+            _toggle_filterQuestItems = null;
+
+            _toggle_filterMisc?.Cleanup();
+            _toggle_filterMisc = null;
+
+            _sortToggle_damage?.Cleanup();
+            _sortToggle_damage = null;
+
+            _sortToggle_armor?.Cleanup();
+            _sortToggle_armor = null;
+
+            _sortToggle_condition?.Cleanup();
+            _sortToggle_condition = null;
+
+            _sortToggle_weight?.Cleanup();
+            _sortToggle_weight = null;
+
+            base.Cleanup();
         }
 
-        public void ResetList()
+        public override void ResetList()
         {
-            StopAllCoroutines();
-
             _filterToggleGroup?.ToggleDefault();
-            _inventoryTabToggleGroup?.ToggleDefault();
-
-            SetTotalGoldText(null);
-            SetTotalWeightText(null);
-            ClearAllItemEntries();
-        }
-        #endregion
-
-
-        #region Show/Hide
-        public void Show()
-        {
-            if (_isShown == null || !_isShown.Value)
-            {
-                _isShown = true;
-                _filterToggleGroup?.ToggleDefault();
-                _inventoryTabToggleGroup?.ToggleDefault();
-
-                LayoutElement layoutElem = GetComponent<LayoutElement>();
-                if (layoutElem != null)
-                {
-                    StartCoroutine(TweenPanelWidthRoutine(layoutElem, 0f, _defaultSize, 0.2f));
-                }
-            }
-        }
-
-        public void Hide(bool hideImmediately = false)
-        {
-            if (_isShown == null || _isShown.Value)
-            {
-                _isShown = false;
-
-                LayoutElement layoutElem = GetComponent<LayoutElement>();
-                if (layoutElem != null)
-                {
-                    if (hideImmediately)
-                    {
-                        layoutElem.minWidth = 0f;
-                        layoutElem.preferredWidth = 0f;
-                    }
-                    else
-                    {
-                        StartCoroutine(TweenPanelWidthRoutine(layoutElem, _defaultSize, 0f, 0.2f));
-                    }
-                }
-            }
+            base.ResetList();
         }
         #endregion
 
 
         #region Public API
-        public void EnableOrDisableTabs(bool enablePlayerTab, bool enableWagonTab, bool enableMerchantTab, bool enableLootPileTab)
-        {
-            if (_inventoryTabToggle_player != null) { _inventoryTabToggle_player.gameObject.SetActive(enablePlayerTab); }
-            if (_inventoryTabToggle_wagon != null) { _inventoryTabToggle_wagon.gameObject.SetActive(enableWagonTab); }
-            if (_inventoryTabToggle_lootPile != null) { _inventoryTabToggle_lootPile.gameObject.SetActive(enableLootPileTab); }
-        }
-
         public void ScrollToBottom()
         {
             if (gameObject.activeSelf && gameObject.activeInHierarchy)
@@ -361,127 +186,13 @@ namespace AcrealUI
             }
         }
 
-        public UIItemEntry AddItemEntry(ulong itemUID)
+        public override void SetItemColumnFlags(ItemColumnFlags filterFlags)
         {
-            if (_uidToItemEntryDict != null)
-            {
-                UIItemEntry entry;
-                _uidToItemEntryDict.TryGetValue(itemUID, out entry);
-                if (entry != null)
-                { 
-                    return entry;
-                }
-            }
-
-            if (_itemEntryStack == null) { return null; }
-
-            if (_itemEntryStack.Count == 0)
-            {
-                SpawnItemEntryBlock();
-            }
-
-            if(_itemEntryStack.Count > 0)
-            {
-                UIItemEntry entry = _itemEntryStack.Pop();
-                entry.SetItemUID(itemUID);
-                entry.ClearEvents();
-                entry.transform.SetAsLastSibling();
-                entry.gameObject.SetActive(true);
-                _uidToItemEntryDict[itemUID] = entry;
-                return entry;
-            }
-
-            return null;
-        }
-
-        public bool RemoveItemEntry(ulong itemUID)
-        {
-            if(itemUID == 0 || _uidToItemEntryDict == null) { return false; }
-
-            UIItemEntry itemEntry;
-            if (_uidToItemEntryDict.TryGetValue(itemUID, out itemEntry))
-            {
-                bool success = _uidToItemEntryDict.Remove(itemUID);
-
-                if (itemEntry != null && success)
-                {
-                    itemEntry.SetItemUID(0);
-                    itemEntry.gameObject.SetActive(false);
-                    _itemEntryStack.Push(itemEntry);
-                }
-
-                return success;
-            }
-            return false;
-        }
-
-        public void ClearAllItemEntries()
-        {
-            if (_uidToItemEntryDict != null)
-            {
-                foreach (UIItemEntry entry in _uidToItemEntryDict.Values)
-                {
-                    entry.SetItemUID(0);
-                    entry.ClearEvents();
-                    entry.gameObject.SetActive(false);
-                    _itemEntryStack.Push(entry);
-                }
-                _uidToItemEntryDict.Clear();
-            }
-        }
-
-        public void SetTotalGoldText(string totalGoldStr)
-        {
-            if(_text_totalGold != null)
-            {
-                _text_totalGold.text = totalGoldStr;
-                _text_totalGold.gameObject.SetActive(totalGoldStr != null);
-            }
-        }
-
-        public void SetTotalWeightText(string totalWeightStr)
-        {
-            if (_text_totalWeight != null)
-            {
-                _text_totalWeight.text = totalWeightStr;
-                _text_totalWeight.gameObject.SetActive(totalWeightStr != null);
-            }
-
-            if(_weightGoldParent != null)
-            {
-                bool weightActive = _text_totalWeight != null && _text_totalWeight.gameObject.activeSelf;
-                bool goldActive = _text_totalGold != null && _text_totalGold.gameObject.activeSelf;
-                _weightGoldParent.SetActive(weightActive || goldActive);
-            }
-        }
-
-        public void SetItemFilterText(string filterText)
-        {
-            if (_text_itemFilter != null)
-            {
-                _text_itemFilter.text = filterText;
-                _text_itemFilter.gameObject.SetActive(filterText != null);
-            }
-        }
-
-        public void SetLootPileIcon(Sprite icon)
-        {
-            if(_lootPileIcon != null)
-            {
-                _lootPileIcon.sprite = icon;
-                _lootPileIcon.gameObject.SetActive(icon != null);
-            }
-        }
-
-        public void SetItemColumnFlags(ItemColumnFlags filterFlags)
-        {
-            if (_sortToggle_name != null) { _sortToggle_name.gameObject.SetActive((filterFlags & ItemColumnFlags.Name) != 0); }
-            if (_sortToggle_type != null) { _sortToggle_type.gameObject.SetActive((filterFlags & ItemColumnFlags.ItemType) != 0); }
+            base.SetItemColumnFlags(filterFlags);
             if (_sortToggle_damage != null) { _sortToggle_damage.gameObject.SetActive((filterFlags & ItemColumnFlags.Damage) != 0); }
             if (_sortToggle_armor != null) { _sortToggle_armor.gameObject.SetActive((filterFlags & ItemColumnFlags.Armor) != 0); }
             if (_sortToggle_condition != null) { _sortToggle_condition.gameObject.SetActive((filterFlags & ItemColumnFlags.Condition) != 0); }
             if (_sortToggle_weight != null) { _sortToggle_weight.gameObject.SetActive((filterFlags & ItemColumnFlags.Weight) != 0); }
-            if (_sortToggle_value != null) { _sortToggle_value.gameObject.SetActive((filterFlags & ItemColumnFlags.GoldValue) != 0); }
         }
 
         public void SetFilterToggleDisabled(ItemFilter filter, bool disabled)
@@ -493,12 +204,23 @@ namespace AcrealUI
             }
         }
 
-        public void SetActiveFilter(ItemFilter filter)
+        public override void SetItemFilter(ItemFilter filter)
         {
+            base.SetItemFilter(filter);
+
             UIToggle toggle = GetFilterToggle(filter);
             if (toggle != null)
             {
-                toggle.isToggledOn = true;
+                toggle.SetToggledWithoutNotify(true);
+            }
+        }
+
+        public void SetItemFilterText(string filterText)
+        {
+            if (_text_itemFilter != null)
+            {
+                _text_itemFilter.text = filterText;
+                _text_itemFilter.gameObject.SetActive(filterText != null);
             }
         }
         #endregion
@@ -531,12 +253,10 @@ namespace AcrealUI
             {
                 toggle.Initialize();
 
-                toggle.Event_OnToggledOn += (_) =>
+                toggle.Event_OnToggledOn += (UIToggle tgl) =>
                 {
-                    _currentItemFilter = filter;
-                    SetItemFilterText(UIUtilityFunctions.ItemFilterToString(filter));
                     SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
-                    Event_OnItemFilterChanged?.Invoke();
+                    SetItemFilter(filter);
                 };
 
                 return toggle;
@@ -556,34 +276,17 @@ namespace AcrealUI
                 {
                     _sortItemsColumn = sortColumn;
                     _activeSortToggle = toggle as UISortToggle;
-                    Event_OnSortItemsColumnChanged?.Invoke();
+                    CallSortItemsColumnChangedEvent();
                 };
 
                 sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) =>
                 {
-                    Event_OnSortAscendingChanged?.Invoke();
+                    CallSortAscendingChangedEvent();
                 };
 
                 return sortToggle;
             }
             return null;
-        }
-        #endregion
-
-
-        #region Item Entries
-        private void SpawnItemEntryBlock()
-        {
-            if (UIManager.referenceManager.prefab_itemEntry == null || _itemEntryParent == null) { return; }
-
-            for (int i = 0; i < ITEM_ENTRY_BLOCK_SIZE; i++)
-            {
-                UIItemEntry itemEntry = Instantiate(UIManager.referenceManager.prefab_itemEntry, _itemEntryParent);
-                itemEntry.transform.localScale = Vector3.one;
-                itemEntry.Initalize();
-                itemEntry.gameObject.SetActive(false);
-                _itemEntryStack.Push(itemEntry);
-            }
         }
         #endregion
 
@@ -596,35 +299,6 @@ namespace AcrealUI
             if(scrollRect != null)
             {
                 scrollRect.normalizedPosition = Vector2.zero;
-            }
-        }
-
-        private IEnumerator<float> TweenPanelWidthRoutine(LayoutElement panelLayoutElement, float startWidth, float endWidth, float duration, float delay = 0f)
-        {
-            if (panelLayoutElement != null)
-            {
-                panelLayoutElement.minWidth = startWidth;
-                panelLayoutElement.preferredWidth = startWidth;
-
-                float durationRemaining = delay;
-                while (durationRemaining > 0f)
-                {
-                    durationRemaining -= Time.unscaledDeltaTime;
-                    yield return 0f;
-                }
-
-                durationRemaining = duration;
-                while (durationRemaining > 0f)
-                {
-                    durationRemaining -= Time.unscaledDeltaTime;
-                    float x = Mathf.Lerp(startWidth, endWidth, 1f - Mathf.InverseLerp(0f, duration, durationRemaining));
-                    panelLayoutElement.minWidth = x;
-                    panelLayoutElement.preferredWidth = x;
-                    yield return 0f;
-                }
-
-                panelLayoutElement.minWidth = endWidth;
-                panelLayoutElement.preferredWidth = endWidth;
             }
         }
         #endregion

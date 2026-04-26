@@ -99,6 +99,11 @@ namespace AcrealUI
 
 
         #region Player
+        public static PlayerEntity GetPlayerEntity()
+        {
+            return GameManager.Instance != null ? GameManager.Instance.PlayerEntity : null;
+        }
+
         public static string GetPlayerName()
         {
             DaggerfallEntity playerEntity = GameManager.Instance != null ? GameManager.Instance.PlayerEntity : null;
@@ -110,6 +115,12 @@ namespace AcrealUI
             if (playerEntity == null) { return 0f; }
             float currentLevel = (playerEntity.CurrentLevelUpSkillSum - playerEntity.StartingLevelUpSkillSum + 28f) / 15f;
             return currentLevel - Mathf.FloorToInt(currentLevel);
+        }
+
+        public static float GetPlayerCarriedWeight()
+        {
+            PlayerEntity e = GetPlayerEntity();
+            return e != null ? e.CarriedWeight : 0f;
         }
 
         public static bool PlayerHasWagonAccess()
@@ -168,6 +179,22 @@ namespace AcrealUI
         public static Texture2D GetPlayerPortrait()
         {
             return GetPaperDollHeadTexture();
+        }
+
+        public static UIItemQueryOptions GetItemQueryOptionsForPlayer()
+        {
+            GameManager gm = GameManager.Instance;
+            PlayerEntity playerEntity = gm != null ? gm.PlayerEntity : null;
+            DFCareer career = playerEntity != null ? playerEntity.Career : null;
+            UIItemQueryOptions queryOptions = new UIItemQueryOptions();
+            if (career != null)
+            {
+                queryOptions.forbiddenArmorsAsInt = (int)career.ForbiddenArmors;
+                queryOptions.forbiddenShieldsAsInt = (int)career.ForbiddenShields;
+                queryOptions.forbiddenMaterialsAsInt = (int)career.ForbiddenMaterials;
+                queryOptions.forbiddenProficienciesAsInt = (int)career.ForbiddenProficiencies;
+            }
+            return queryOptions;
         }
         #endregion
 

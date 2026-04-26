@@ -49,12 +49,120 @@ namespace AcrealUI
         #region Initialization
         public UISaveLoadWindowController(IUserInterfaceManager uiManager, Modes mode, DaggerfallBaseWindow previous = null, bool displayMostRecentChar = false) : base(uiManager, mode, previous, displayMostRecentChar)
         {
+            
+        }
+        #endregion
+
+
+        #region IWindowController
+        public void ShowWindow()
+        {
+            if (PreviousWindow != null)
+            {
+                IWindowController prev = PreviousWindow as IWindowController;
+                if (prev != null)
+                {
+                    prev.HideWindow();
+                }
+            }
+
+            if (_saveLoadGameWindowInstance != null)
+            {
+                _saveLoadGameWindowInstance.Show();
+            }
+        }
+
+        public void HideWindow()
+        {
+            if (_saveLoadGameWindowInstance != null)
+            {
+                _saveLoadGameWindowInstance.Hide();
+            }
+
+            if (PreviousWindow != null)
+            {
+                IWindowController prev = PreviousWindow as IWindowController;
+                if (prev != null)
+                {
+                    prev.ShowWindow();
+                }
+            }
+        }
+
+        public override void OnPop()
+        {
+            base.OnPop();
+
+            HideWindow();
+
+            _saveLoadGameWindowInstance?.Cleanup();
+            _saveLoadGameWindowInstance = null;
+
+            _selectedSaveGameData = new UISaveGameData();
+        }
+        #endregion
+
+
+        #region Base Class Overrides
+        public override void OnPush()
+        {
+            if (!IsSetup)
+            {
+                Setup();
+            }
+
+            currentPlayerName = GameManager.Instance != null && GameManager.Instance.PlayerEntity != null ? GameManager.Instance.PlayerEntity.Name : null;
+
+            // TODO(Acreal): find a better way to determine this rather than checking for "Nameless"
+            // assuming players can name themselves this intentionally
+            if (string.IsNullOrWhiteSpace(currentPlayerName) || currentPlayerName == "Nameless")
+            {
+                currentPlayerName = UIUtilityFunctions.GetMostRecentSaveGameData().characterName;
+            }
+
+            if (!_selectedSaveGameData.isValid)
+            {
+                _selectedSaveGameData = UIUtilityFunctions.GetMostRecentSaveGameData(currentPlayerName);
+            }
+
+            if (mode == Modes.SaveGame)
+            {
+                SetState(SaveWindowState.Save);
+            }
+            else
+            {
+                SetState(SaveWindowState.Load);
+            }
+
+            ShowWindow();
+        }
+
+        public override void CancelWindow()
+        {
+            switch (_currentState)
+            {
+                case SaveWindowState.ImportSave:
+                case SaveWindowState.SelectCharacter:
+                    if (mode == Modes.SaveGame) { SetState(SaveWindowState.Save); }
+                    else { SetState(SaveWindowState.Load); }
+                    break;
+
+                default:
+                    base.CancelWindow();
+                    break;
+            }
+        }
+
+        protected override void Setup()
+        {
+            IsSetup = true;
+
             if (_saveLoadGameWindowInstance == null)
             {
                 UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.SaveOrLoadGame);
                 if (window == null || !(window is UISaveLoadWindow))
                 {
-                    Debug.LogError("UIManager.GetWindowInstance(UIWindowInstanceType.UnitySaveGame) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UISaveLoadWindow, but got " + window.GetType().ToString() + "!"));
+                    Debug.LogError("[AcrealUI.UISaveLoadWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.UnitySaveGame) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UISaveLoadWindow, but got " + window.GetType().ToString() + "!"));
                     return;
                 }
 
@@ -139,10 +247,10 @@ namespace AcrealUI
 
                     _saveLoadGameWindowInstance.Event_ButtonClick_LoadGame += () =>
                     {
-                        if (_selectedSaveGameData.saveKey >= 0)
+                        int saveKey = _selectedSaveGameData.saveKey;
+                        if (saveKey >= 0)
                         {
-                            GameManager.Instance.SaveLoadManager.Load(_selectedSaveGameData.saveKey);
-                            DaggerfallUI.Instance.PopToHUD();
+                            GameManager.Instance.SaveLoadManager.Load(saveKey);
                         }
                     };
 
@@ -217,103 +325,6 @@ namespace AcrealUI
                     };
                 }
             }
-        }
-        #endregion
-
-
-        #region IWindowController
-        public void ShowWindow()
-        {
-            if (PreviousWindow != null)
-            {
-                IWindowController prev = PreviousWindow as IWindowController;
-                if (prev != null)
-                {
-                    prev.HideWindow();
-                }
-            }
-
-            if (_saveLoadGameWindowInstance != null)
-            {
-                _saveLoadGameWindowInstance.Show();
-            }
-        }
-
-        public void HideWindow()
-        {
-            if (_saveLoadGameWindowInstance != null)
-            {
-                _saveLoadGameWindowInstance.Hide();
-            }
-
-            if (PreviousWindow != null)
-            {
-                IWindowController prev = PreviousWindow as IWindowController;
-                if (prev != null)
-                {
-                    prev.ShowWindow();
-                }
-            }
-        }
-
-        public override void OnPop()
-        {
-            base.OnPop();
-            HideWindow();
-            _saveLoadGameWindowInstance?.ResetWindow();
-            _selectedSaveGameData = new UISaveGameData();
-        }
-        #endregion
-
-
-        #region Base Class Overrides
-        public override void OnPush()
-        {
-            currentPlayerName = GameManager.Instance != null && GameManager.Instance.PlayerEntity != null ? GameManager.Instance.PlayerEntity.Name : null;
-
-            // TODO(Acreal): find a better way to determine this rather than checking for "Nameless"
-            // assuming players can name themselves this intentionally
-            if (string.IsNullOrWhiteSpace(currentPlayerName) || currentPlayerName == "Nameless")
-            {
-                currentPlayerName = UIUtilityFunctions.GetMostRecentSaveGameData().characterName;
-            }
-
-            if (!_selectedSaveGameData.isValid)
-            {
-                _selectedSaveGameData = UIUtilityFunctions.GetMostRecentSaveGameData(currentPlayerName);
-            }
-
-            if (mode == Modes.SaveGame)
-            {
-                SetState(SaveWindowState.Save);
-            }
-            else
-            {
-                SetState(SaveWindowState.Load);
-            }
-
-            ShowWindow();
-        }
-
-        public override void CancelWindow()
-        {
-            switch (_currentState)
-            {
-                case SaveWindowState.ImportSave:
-                case SaveWindowState.SelectCharacter:
-                    if (mode == Modes.SaveGame) { SetState(SaveWindowState.Save); }
-                    else { SetState(SaveWindowState.Load); }
-                    break;
-
-                default:
-                    base.CancelWindow();
-                    break;
-            }
-        }
-
-        protected override void Setup()
-        {
-            ParentPanel.BackgroundColor = ScreenDimColor;
         }
 
         protected void UpdateSavesEntries()
