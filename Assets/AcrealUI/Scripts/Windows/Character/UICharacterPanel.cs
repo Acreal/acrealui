@@ -80,8 +80,8 @@ namespace AcrealUI
         private TextMeshProUGUI _totalArmorText = null;
         private Dictionary<int, UIPlayerStatEntry> _statEnumAsIntToStatEntryDict = null;
         private Dictionary<int, UIPlayerSkillEntry> _skillEnumAsIntToSkillEntryDict = null;
-        private bool _panelIsShown = false;
         private RawImage _paperDollRawImage = null;
+        private bool _panelIsShown = false;
         #endregion
 
 
@@ -93,7 +93,7 @@ namespace AcrealUI
         #region MonoBehaviour
         private void OnDisable()
         {
-            StopAllCoroutines();
+            UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), 0);
         }
         #endregion
 
@@ -357,10 +357,10 @@ namespace AcrealUI
 
                 if (layoutElement != null)
                 {
-                    StopAllCoroutines();
+                    UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), 0);
 
                     RectTransform rt = layoutElement.transform as RectTransform;
-                    StartCoroutine(MovePanelRoutine(rt.anchoredPosition, _shownPos, 0.2f));
+                    UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), 0, MovePanelRoutine(rt.anchoredPosition, _shownPos, 0.2f));
                 }
             }
         }
@@ -393,10 +393,10 @@ namespace AcrealUI
 
                 if (layoutElement != null)
                 {
-                    StopAllCoroutines();
+                    UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), 0);
 
                     RectTransform rt = layoutElement.transform as RectTransform;
-                    StartCoroutine(MovePanelRoutine(rt.anchoredPosition, _hiddenPos, 0.2f));
+                    UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), 0, MovePanelRoutine(rt.anchoredPosition, _hiddenPos, 0.2f));
                 }
             }
         }

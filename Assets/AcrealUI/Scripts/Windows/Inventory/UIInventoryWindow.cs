@@ -49,8 +49,8 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_text_totalWeight = null;
 
         [Header("Tweening")]
-        private float _defaultPlayerInventorySize = 400f;
-        private float _defaultRemoteItemContainerSize = 325f;
+        [SerializeField] private float _defaultLocalItemContainerSize = 400f;
+        [SerializeField] private float _defaultRemoteItemContainerSize = 325f;
 
         [Header("Panels")]
         [SerializeField] private string _gameObjName_panel_playerStats = null;
@@ -113,7 +113,7 @@ namespace AcrealUI
                     LayoutElement playerLayoutElem = _itemList_localItems.GetComponent<LayoutElement>();
                     if (playerLayoutElem != null)
                     {
-                        _defaultPlayerInventorySize = Mathf.Max(playerLayoutElem.minWidth, playerLayoutElem.preferredWidth);
+                        _defaultLocalItemContainerSize = Mathf.Max(playerLayoutElem.minWidth, playerLayoutElem.preferredWidth);
                     }
                 }
                 else { Debug.LogError("[AcrealUI.UIInventoryWindow] Failed to Find PlayerInventory ItemList!"); }
@@ -130,7 +130,7 @@ namespace AcrealUI
                     LayoutElement containerLayoutElem = _itemList_remoteItems.GetComponent<LayoutElement>();
                     if (containerLayoutElem != null)
                     {
-                        _defaultPlayerInventorySize = Mathf.Max(containerLayoutElem.minWidth, containerLayoutElem.preferredWidth);
+                        _defaultRemoteItemContainerSize = Mathf.Max(containerLayoutElem.minWidth, containerLayoutElem.preferredWidth);
                     }
                 }
                 else { Debug.LogError("[AcrealUI.UIInventoryWindow] Failed to Find Container ItemList!"); }
@@ -229,7 +229,7 @@ namespace AcrealUI
             _panel_playerStats?.Show();
             _inventoryTabToggleGroup?.ToggleDefault();
 
-            TweenItemListWidth(_itemList_localItems, 0f, _defaultPlayerInventorySize);
+            TweenItemListWidth(_itemList_localItems, 0f, _defaultLocalItemContainerSize);
 
             if (_itemList_remoteItems != null)
             {
@@ -255,7 +255,7 @@ namespace AcrealUI
         {
             base.HideInternal();
             _panel_playerStats?.Hide();
-            TweenItemListWidth(_itemList_localItems, _defaultPlayerInventorySize, 0f);
+            TweenItemListWidth(_itemList_localItems, _defaultLocalItemContainerSize, 0f);
             HideRemoteItemsPanel();
         }
         #endregion
@@ -321,8 +321,20 @@ namespace AcrealUI
         #region Tweening
         private void TweenItemListWidth(UIItemList itemList, float startWidth, float endWidth)
         {
-            UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), 0);
-            UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), 0, TweenLayoutElementWidthRoutine(itemList.GetComponent<LayoutElement>(), startWidth, endWidth, 0.2f));
+            if (_canvasComponent != null)
+            {
+                _canvasComponent.pixelPerfect = false;
+            }
+
+            UIManager.Instance.StopCoroutine(gameObject.GetInstanceID(), itemList.GetInstanceID());
+            UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), itemList.GetInstanceID(), TweenLayoutElementWidthRoutine(itemList.GetComponent<LayoutElement>(), startWidth, endWidth, 0.2f),
+                (_) =>
+                {
+                    if (_canvasComponent != null)
+                    {
+                        _canvasComponent.pixelPerfect = true;
+                    }
+                });
         }
 
         private IEnumerator<float> TweenLayoutElementWidthRoutine(LayoutElement layoutElement, float startWidth, float endWidth, float duration)

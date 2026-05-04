@@ -53,7 +53,7 @@ namespace AcrealUI
         #region IWindowController
         public void ShowWindow()
         {
-            _inventoryWindowInstance?.Show();
+            _inventoryWindowInstance?.Show(true);
         }
 
         public void HideWindow()
@@ -92,6 +92,8 @@ namespace AcrealUI
 
             if (_inventoryWindowInstance != null)
             {
+                _inventoryWindowInstance.Show();
+
                 _inventoryWindowInstance.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
                 _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
 
@@ -105,7 +107,10 @@ namespace AcrealUI
                 _inventoryWindowInstance.SetLootPileIcon(UIUtilityFunctions.GetLootContainerIcon(lootTarget));
                 _inventoryWindowInstance.SetLootPileActive(lootTarget != null);
 
-                _inventoryWindowInstance.Show();
+                if (remoteItems != null && remoteItems.Count > 0)
+                {
+                    _inventoryWindowInstance.ShowRemoteItemsPanel();
+                }
             }
         }
 
@@ -220,7 +225,7 @@ namespace AcrealUI
 
 
         #region Input Handling
-        private void OnLocalItemLeftClicked(UIItemEntry itemEntry)
+        private void OnLocalItemLeftClicked(UIItemEntry itemEntry, int clickCount)
         {
             if (itemEntry != null && localItems != null)
             {
@@ -233,7 +238,7 @@ namespace AcrealUI
                         //changes to swapping item over to the dropped
                         //items list - at which point it can be added
                         //back into the player's inventory
-                        OnLocalItemRightClicked(itemEntry);
+                        OnLocalItemRightClicked(itemEntry, clickCount);
                     }
                     else
                     {
@@ -266,7 +271,6 @@ namespace AcrealUI
                             Debug.LogError("[AcrealUI.UIInventoryWindowController] Unhandled Item Type: " + UIUtilityFunctions.ItemToItemType(item));
                         }
 
-
                         _characterPanelController?.UpdateAll();
                         _localItemsController.UpdateItemList(clearInventoryBeforeUpdate);
 
@@ -281,7 +285,7 @@ namespace AcrealUI
             }
         }
 
-        private void OnLocalItemRightClicked(UIItemEntry itemEntry)
+        private void OnLocalItemRightClicked(UIItemEntry itemEntry, int clickCount)
         {
             if (itemEntry != null && localItems != null)
             {
@@ -358,7 +362,7 @@ namespace AcrealUI
             }
         }
 
-        private void OnRemoteItemClicked(UIItemEntry itemEntry)
+        private void OnRemoteItemClicked(UIItemEntry itemEntry, int clickCount)
         {
             if (itemEntry != null && remoteItems != null)
             {
@@ -372,7 +376,7 @@ namespace AcrealUI
                         int defaultValue = item.stackCount / 2;
 
                         // TODO(Acreal): localize "Split Stack" string
-                        UIManager.popupManager.ShowSliderConfirmationWindow("Split Stack", String.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
+                        UIManager.popupManager.ShowSliderConfirmationWindow("Split Stack", string.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
                                                                         0, item.stackCount - 1, true, //slider params
                                                                         new object[3] { localItems, remoteItems, item }, //additional meta data to pass along
                                                                         (float sliderValue, object[] dataPayload) => //on confirm

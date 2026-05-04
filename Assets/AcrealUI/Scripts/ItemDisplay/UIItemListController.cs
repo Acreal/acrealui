@@ -33,12 +33,14 @@ namespace AcrealUI
 
 
         #region Events
-        public event Action<UIItemEntry> Event_OnItemLeftClicked = null;
-        public event Action<UIItemEntry> Event_OnItemRightClicked = null;
+        public event Action<UIItemEntry, int> Event_OnItemLeftClicked = null;
+        public event Action<UIItemEntry, int> Event_OnItemRightClicked = null;
         #endregion
 
 
         #region Properties
+        public UIItemList itemList { get { return _itemList; } }
+        public ItemCollection itemCollection {get { return _itemCollection; } }
         public ItemFilter activeItemFilter { get { return _itemList != null ? _itemList.activeItemFilter : ItemFilter.All; } }
         #endregion
 
@@ -310,43 +312,86 @@ namespace AcrealUI
 
 
         #region Input Handling
-        private void OnItemLeftClicked(UIItemEntry itemEntry)
+        private void OnItemLeftClicked(UIItemEntry itemEntry, int clickCount)
         {
-            Event_OnItemLeftClicked?.Invoke(itemEntry);
+            Event_OnItemLeftClicked?.Invoke(itemEntry, clickCount);
         }
 
-        private void OnItemRightClicked(UIItemEntry itemEntry)
+        private void OnItemRightClicked(UIItemEntry itemEntry, int clickCount)
         {
-            Event_OnItemRightClicked?.Invoke(itemEntry);
+            Event_OnItemRightClicked?.Invoke(itemEntry, clickCount);
         }
 
         private void OnItemHoverBegin(UIItemEntry itemEntry)
         {
+            #if OPTIMIZATION
+            UIManager.Instance.StopCoroutine(itemEntry.GetInstanceID(), 2);
+            UIManager.Instance.RunCoroutine(itemEntry.GetInstanceID(), 2, HoverRoutine(itemEntry));
+            #else
             DaggerfallUnityItem item = _itemCollection.GetItem(itemEntry.itemUID);
-            if (item == null) { return; }
+            if (item != null)
+            {
+                //item data
+                UIItemQueryOptions queryOptions = UIUtilityFunctions.GetItemQueryOptionsForPlayer();
+                UIItemData itemData = UIUtilityFunctions.ItemToItemData(item, queryOptions);
 
-            //item data
-            UIItemQueryOptions queryOptions = UIUtilityFunctions.GetItemQueryOptionsForPlayer();
-            UIItemData itemData = UIUtilityFunctions.ItemToItemData(item, queryOptions);
+                //stats and powers
+                GatherItemStatInformation(itemData, out List<ItemStatData> itemStatDataList, out List<ItemStatSliderData> itemStatSliderDataList);
+                GatherItemPowerInformation(item, out List<ItemPowerData> itemPowersDataList);
 
-            //stats and powers
-            GatherItemStatInformation(itemData, out List<ItemStatData> itemStatDataList, out List<ItemStatSliderData> itemStatSliderDataList);
-            GatherItemPowerInformation(item, out List<ItemPowerData> itemPowersDataList);
+                //screen position
+                CalculatePivotAndTooltipPos(itemEntry, out Vector2 pivot, out Vector2 tooltipPos);
 
-            //screen position
-            CalculatePivotAndTooltipPos(itemEntry, out Vector2 pivot, out Vector2 tooltipPos);
-
-            //display the tooltip
-            UIManager.tooltipManager.ShowItemDetailsTooltip(itemEntry.gameObject, itemData.icon, itemData.longName, itemData.description, itemStatDataList, itemStatSliderDataList, itemPowersDataList, pivot, tooltipPos);
+                //display the tooltip
+                UIManager.tooltipManager.ShowItemDetailsTooltip(itemEntry.gameObject, itemData.icon, itemData.longName, itemData.description, itemStatDataList, itemStatSliderDataList, itemPowersDataList, pivot, tooltipPos);
+            }
+            #endif
         }
 
         private void OnItemHoverEnd(UIItemEntry itemEntry)
         {
+            #if OPTIMIZATION
+            UIManager.Instance.StopCoroutine(itemEntry.GetInstanceID(), 2);
+            #endif
+
             if (itemEntry != null && UIManager.tooltipManager.hoveredObject != null && UIManager.tooltipManager.hoveredObject.GetInstanceID() == itemEntry.gameObject.GetInstanceID())
             {
                 UIManager.tooltipManager.HideActiveTooltip();
             }
         }
+        #endregion
+
+
+        #region Coroutines
+        #if OPTIMIZATION
+        private IEnumerator<float> HoverRoutine(UIItemEntry itemEntry)
+        {
+            float t = 0.2f;
+            while (t > 0f)
+            {
+                t -= Time.unscaledDeltaTime;
+                yield return 0f;
+            }
+
+            DaggerfallUnityItem item = _itemCollection.GetItem(itemEntry.itemUID);
+            if (item != null)
+            {
+                //item data
+                UIItemQueryOptions queryOptions = UIUtilityFunctions.GetItemQueryOptionsForPlayer();
+                UIItemData itemData = UIUtilityFunctions.ItemToItemData(item, queryOptions);
+
+                //stats and powers
+                GatherItemStatInformation(itemData, out List<ItemStatData> itemStatDataList, out List<ItemStatSliderData> itemStatSliderDataList);
+                GatherItemPowerInformation(item, out List<ItemPowerData> itemPowersDataList);
+
+                //screen position
+                CalculatePivotAndTooltipPos(itemEntry, out Vector2 pivot, out Vector2 tooltipPos);
+
+                //display the tooltip
+                UIManager.tooltipManager.ShowItemDetailsTooltip(itemEntry.gameObject, itemData.icon, itemData.longName, itemData.description, itemStatDataList, itemStatSliderDataList, itemPowersDataList, pivot, tooltipPos);
+            }
+        }
+        #endif
         #endregion
     }
 }

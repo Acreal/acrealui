@@ -191,9 +191,9 @@ namespace AcrealUI
 
 
         #region Public API
-        public void Show()
+        public void Show(bool force = false)
         {
-            if (!_isOpen)
+            if (!_isOpen || force)
             {
                 ShowInternal();
             }

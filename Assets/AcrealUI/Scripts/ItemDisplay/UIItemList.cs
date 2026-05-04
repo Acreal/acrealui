@@ -20,6 +20,7 @@ DEALINGS IN THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace AcrealUI
 {
@@ -47,7 +48,9 @@ namespace AcrealUI
         private UISortToggle _sortToggle_value = null;
         private Dictionary<ulong, UIItemEntry> _uidToItemEntryDict = null;
         private Stack<UIItemEntry> _itemEntryStack = null;
+        private HorizontalOrVerticalLayoutGroup[] _layoutGroups = null;
         private ItemFilter _activeItemFilter = ItemFilter.All;
+        private bool _isPendingLayoutUpdate = false;
         #endregion
 
 
@@ -59,14 +62,41 @@ namespace AcrealUI
 
 
         #region Properties
-        public int itemCount { get { return _uidToItemEntryDict != null ? _uidToItemEntryDict.Count : 0; } }
-        public ItemColumnFlags sortByColumn { get { return _sortItemsColumn; } }
-        public bool sortByAscending { get { return _activeSortToggle == null || _activeSortToggle.sortByAscending; } }
+        public int itemCount
+        {
+            get { return _uidToItemEntryDict != null ? _uidToItemEntryDict.Count : 0; }
+        }
+        
+        public ItemColumnFlags sortByColumn
+        {
+            get { return _sortItemsColumn; }
+        }
+        
+        public bool sortByAscending
+        {
+            get { return _activeSortToggle == null || _activeSortToggle.sortByAscending; }
+        }
+        
         public ItemFilter activeItemFilter
         {
-            get
+            get { return _activeItemFilter; }
+        }
+
+        protected bool isPendingLayoutUpdate
+        {
+            get { return _isPendingLayoutUpdate; }
+            set
             {
-                return _activeItemFilter;
+                #if OPTIMIZATION
+                if (_isPendingLayoutUpdate != value)
+                {
+                    _isPendingLayoutUpdate = value;
+                    if (_isPendingLayoutUpdate)
+                    {
+                        UIManager.Instance.RunCoroutine(gameObject.GetInstanceID(), _itemEntryParent.GetInstanceID(), DisableLayoutDelayedRoutine());
+                    }
+                }
+                #endif
             }
         }
         #endregion
@@ -88,6 +118,11 @@ namespace AcrealUI
 
             Transform entryParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemEntryParent);
             _itemEntryParent = entryParentTform != null ? entryParentTform as RectTransform : null;
+
+            if (_layoutGroups == null)
+            {
+                _layoutGroups = GetComponentsInChildren<HorizontalOrVerticalLayoutGroup>();
+            }
 
             #region Sort Toggle References
             _sortToggle_type = InitializeSortItemsToggle(_gameObjName_sortToggle_type, ItemColumnFlags.ItemType);
@@ -171,6 +206,7 @@ namespace AcrealUI
                 entry.transform.SetAsLastSibling();
                 entry.gameObject.SetActive(true);
                 _uidToItemEntryDict[itemUID] = entry;
+                isPendingLayoutUpdate = true;
                 return entry;
             }
 
@@ -191,6 +227,7 @@ namespace AcrealUI
                     itemEntry.SetItemUID(0);
                     itemEntry.gameObject.SetActive(false);
                     _itemEntryStack.Push(itemEntry);
+                    isPendingLayoutUpdate = true;
                 }
 
                 return success;
@@ -208,6 +245,7 @@ namespace AcrealUI
                     entry.ClearEvents();
                     entry.gameObject.SetActive(false);
                     _itemEntryStack.Push(entry);
+                    isPendingLayoutUpdate = true;
                 }
                 _uidToItemEntryDict.Clear();
             }
@@ -216,6 +254,7 @@ namespace AcrealUI
         public virtual void SetItemFilter(ItemFilter filter)
         {
             _activeItemFilter = filter;
+            isPendingLayoutUpdate = true;
             Event_OnItemFilterChanged?.Invoke(_activeItemFilter);
         }
 
@@ -232,11 +271,13 @@ namespace AcrealUI
         protected void CallSortItemsColumnChangedEvent()
         {
             Event_OnSortItemsColumnChanged?.Invoke();
+            isPendingLayoutUpdate = true;
         }
 
         protected void CallSortAscendingChangedEvent()
         {
             Event_OnSortAscendingChanged?.Invoke();
+            isPendingLayoutUpdate = true;
         }
         #endregion
 
@@ -271,18 +312,72 @@ namespace AcrealUI
                 {
                     _sortItemsColumn = sortColumn;
                     _activeSortToggle = toggle as UISortToggle;
-                    Event_OnSortItemsColumnChanged?.Invoke();
+                    CallSortItemsColumnChangedEvent();
                 };
 
                 sortToggle.Event_OnSortAscendingChanged += (bool sortAscending) =>
                 {
-                    Event_OnSortAscendingChanged?.Invoke();
+                    CallSortAscendingChangedEvent();
                 };
 
                 return sortToggle;
             }
             return null;
         }
+        #endregion
+
+
+        #region Coroutines
+        #if OPTIMIZATION
+        private IEnumerator<float> DisableLayoutDelayedRoutine()
+        {
+            RectTransform rt = transform as RectTransform;
+            LayoutElement contentLayoutElem = _itemEntryParent.GetComponent<LayoutElement>();
+            ContentSizeFitter sizeFitter = _itemEntryParent.GetComponent<ContentSizeFitter>();
+
+            foreach (HorizontalOrVerticalLayoutGroup layoutGroup in _layoutGroups)
+            {
+                if (layoutGroup != null)
+                {
+                    layoutGroup.enabled = true;
+                }
+            }
+
+            if (contentLayoutElem != null)
+            {
+                contentLayoutElem.enabled = false;
+            }
+
+            if (sizeFitter != null)
+            {
+                sizeFitter.enabled = true;
+            }
+
+            LayoutRebuilder.MarkLayoutForRebuild(transform as RectTransform);
+            yield return 0f;
+
+            if (contentLayoutElem != null)
+            {
+                contentLayoutElem.enabled = true;
+                contentLayoutElem.minHeight = rt.sizeDelta.y;
+            }
+
+            foreach (HorizontalOrVerticalLayoutGroup layoutGroup in _layoutGroups)
+            {
+                if (layoutGroup != null)
+                {
+                    layoutGroup.enabled = false;
+                }
+            }
+
+            if (sizeFitter != null)
+            {
+                sizeFitter.enabled = false;
+            }
+
+            isPendingLayoutUpdate = false;
+        }
+        #endif
         #endregion
     }
 }

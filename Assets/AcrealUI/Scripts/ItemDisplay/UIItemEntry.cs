@@ -66,8 +66,8 @@ namespace AcrealUI
         #region Delegates
         public System.Action<UIItemEntry> Delegate_OnPointerEnter = null;
         public System.Action<UIItemEntry> Delegate_OnPointerExit = null;
-        public System.Action<UIItemEntry> Delegate_OnLeftClicked = null;
-        public System.Action<UIItemEntry> Delegate_OnRightClicked = null;
+        public System.Action<UIItemEntry, int> Delegate_OnLeftClicked = null;
+        public System.Action<UIItemEntry, int> Delegate_OnRightClicked = null;
         #endregion
 
 
@@ -302,7 +302,7 @@ namespace AcrealUI
 
             if (_statusParent_magic != null) 
             {
-                _statusParent_magic.SetActive(enchanted); 
+                _statusParent_magic.SetActive(enchanted);
             }
 
             if (_statusParent_poisoned != null) 
@@ -346,11 +346,11 @@ namespace AcrealUI
         {
             if (pointerData.button == PointerEventData.InputButton.Left)
             {
-                Delegate_OnLeftClicked?.Invoke(this);
+                Delegate_OnLeftClicked?.Invoke(this, pointerData.clickCount);
             }
             else if (pointerData.button == PointerEventData.InputButton.Right)
             {
-                Delegate_OnRightClicked?.Invoke(this);
+                Delegate_OnRightClicked?.Invoke(this, pointerData.clickCount);
             }
         }
         #endregion

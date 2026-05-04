@@ -29,6 +29,9 @@ namespace AcrealUI
         private UIButton _emptyListButton = null;
 
 
+        public event System.Action Event_OnButtonClicked_EmptyList = null;
+
+
         public override void Initialize()
         {
             base.Initialize();
@@ -41,10 +44,7 @@ namespace AcrealUI
 
                 if (_emptyListButton != null)
                 {
-                    _emptyListButton.Event_OnLeftClick += (_, _1) =>
-                    {
-                        ClearAllItemEntries();
-                    };
+                    _emptyListButton.Event_OnLeftClick += (_, _1) => { Event_OnButtonClicked_EmptyList?.Invoke(); };
                 }
             }
         }
