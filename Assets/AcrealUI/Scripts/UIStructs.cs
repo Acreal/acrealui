@@ -94,6 +94,11 @@ namespace AcrealUI
         public int forbiddenArmorsAsInt;
         public int forbiddenMaterialsAsInt;
         public int forbiddenProficienciesAsInt;
+
+        public int shopQuality;
+        public int holidayId;
+        public int factionId;
+        public bool valueIsPurchaseCost;
     }
     #endregion
 

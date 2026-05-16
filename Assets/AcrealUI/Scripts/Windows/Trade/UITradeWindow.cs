@@ -26,6 +26,7 @@ namespace AcrealUI
     [ImportedComponent]
     public class UITradeWindow : UIInventoryWindow
     {
+        #region Variables
         [SerializeField] private string _gameObjName_itemList_buy = null;
         [SerializeField] private string _gameObjName_itemList_sell = null;
         [SerializeField] private string _gameObjName_tradeTotalText = null;
@@ -35,55 +36,124 @@ namespace AcrealUI
         private UIItemList _sellList = null;
         private TextMeshProUGUI _tradeTotalText = null;
         private UIButton _confirmButton = null;
+        #endregion
 
 
+        #region Events
+        public event System.Action Event_OnConfirmTrade = null;
+        #endregion
+
+
+        #region Properties
         public UIItemList buyList { get { return _buyList; } }
         public UIItemList sellList { get { return _sellList; } }
+        #endregion
 
 
+        #region Initialization/Cleanup
         public override void Initialize()
         {
-            Transform buyTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_buy);
-            if (buyTForm != null)
+            if (_buyList == null)
             {
-                _buyList = buyTForm.GetComponent<UIItemList>();
-                if (_buyList != null)
+                Transform buyTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_buy);
+                if (buyTForm != null)
                 {
-                    _buyList.Initialize();
+                    _buyList = buyTForm.GetComponent<UIItemList>();
+                    if (_buyList != null)
+                    {
+                        _buyList.Initialize();
+                    }
+                    else { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Buy List!"); }
                 }
-                else { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Buy List!"); }
             }
 
-            Transform sellTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_sell);
-            if (sellTForm != null)
+            if (_sellList == null)
             {
-                _sellList = sellTForm.GetComponent<UIItemList>();
-                if (_sellList != null)
+                Transform sellTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_sell);
+                if (sellTForm != null)
                 {
-                    _sellList.Initialize();
+                    _sellList = sellTForm.GetComponent<UIItemList>();
+                    if (_sellList != null)
+                    {
+                        _sellList.Initialize();
+                    }
+                    else { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Sell List!"); }
                 }
-                else { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Sell List!"); }
             }
 
-            Transform totalTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_tradeTotalText);
-            if (totalTForm != null)
+            if (_tradeTotalText == null)
             {
-                _tradeTotalText = totalTForm.GetComponent<TextMeshProUGUI>();
-                if (_tradeTotalText == null) { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find TradeTotalText!"); }
+                Transform totalTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_tradeTotalText);
+                if (totalTForm != null)
+                {
+                    _tradeTotalText = totalTForm.GetComponent<TextMeshProUGUI>();
+                    if (_tradeTotalText == null) { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find TradeTotalText!"); }
+                }
             }
 
-            Transform confirmTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_confirmButton);
-            if (confirmTForm != null)
+            if (_confirmButton == null)
             {
-                _confirmButton = confirmTForm.GetComponent<UIButton>();
-                if (_confirmButton != null)
+                Transform confirmTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_confirmButton);
+                if (confirmTForm != null)
                 {
-                    _confirmButton.Initialize();
+                    _confirmButton = confirmTForm.GetComponent<UIButton>();
+                    if (_confirmButton != null)
+                    {
+                        _confirmButton.Initialize();
+                        _confirmButton.Event_OnLeftClick += (_, _1) => { Event_OnConfirmTrade?.Invoke(); };
+                    }
+                    else { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Trade ConfirmButton!"); }
                 }
-                else { Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Trade ConfirmButton!"); }
             }
 
             base.Initialize();
         }
+
+        public override void Cleanup()
+        {
+            Event_OnConfirmTrade = null;
+
+            _buyList?.Cleanup();
+            _buyList = null;
+
+            _sellList?.Cleanup();
+            _sellList = null;
+
+            _confirmButton?.Cleanup();
+            _confirmButton = null;
+
+            _tradeTotalText = null;
+
+            base.Cleanup();
+        }
+
+        public override void ResetWindow()
+        {
+            _buyList?.ResetList();
+            _sellList?.ResetList();
+            _confirmButton?.ResetElement();
+            base.ResetWindow();
+        }
+        #endregion
+
+
+        #region Public API
+        public void SetTotalTradeValueText(string totalValueText, Color textColor)
+        {
+            if (_tradeTotalText != null)
+            {
+                _tradeTotalText.text = totalValueText;
+                _tradeTotalText.color = textColor;
+            }
+        }
+
+        public void SetConfirmButtonEnabled(bool enabled)
+        {
+            if (_confirmButton != null)
+            {
+                _confirmButton.isDisabled = !enabled;
+            }
+        }
+        #endregion
     }
 }

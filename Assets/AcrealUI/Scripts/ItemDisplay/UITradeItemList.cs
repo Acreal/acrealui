@@ -17,21 +17,33 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop.Game.Utility.ModSupport;
+using TMPro;
 using UnityEngine;
 
 namespace AcrealUI
 {
+    [ImportedComponent]
     public class UITradeItemList : UIItemList
     {
+        #region Variable
         [Header("Buttons")]
         [SerializeField] private string _gameObjName_emptyListButton = null;
+        [SerializeField] private string _gameObjName_subtotalParent = null;
+        [SerializeField] private string _gameObjName_subtotalText = null;
 
         private UIButton _emptyListButton = null;
+        private GameObject _subtotalParent = null;
+        private TextMeshProUGUI _subtotalText = null;
+        #endregion
 
 
+        #region Events
         public event System.Action Event_OnButtonClicked_EmptyList = null;
+        #endregion
 
 
+        #region Initialization/Cleanup
         public override void Initialize()
         {
             base.Initialize();
@@ -40,12 +52,24 @@ namespace AcrealUI
             if (emptyListTform != null)
             {
                 _emptyListButton = emptyListTform.GetComponent<UIButton>();
-                _emptyListButton.Initialize();
 
                 if (_emptyListButton != null)
                 {
+                    _emptyListButton.Initialize();
                     _emptyListButton.Event_OnLeftClick += (_, _1) => { Event_OnButtonClicked_EmptyList?.Invoke(); };
                 }
+            }
+
+            Transform subParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_subtotalParent);
+            if (subParentTform != null)
+            {
+                _subtotalParent = subParentTform.gameObject;
+            }
+
+            Transform subtotalTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_subtotalText);
+            if (subtotalTform != null)
+            {
+                _subtotalText = subtotalTform.GetComponent<TextMeshProUGUI>();
             }
         }
 
@@ -54,5 +78,18 @@ namespace AcrealUI
             _emptyListButton?.Cleanup();
             base.Cleanup();
         }
+        #endregion
+
+
+        #region Public API
+        public void SetSubtotalText(string subtotalText)
+        {
+            if (_subtotalText != null)
+            {
+                _subtotalText.text = subtotalText;
+                _subtotalParent?.SetActive(!string.IsNullOrWhiteSpace(subtotalText));
+            }
+        }
+        #endregion
     }
 }

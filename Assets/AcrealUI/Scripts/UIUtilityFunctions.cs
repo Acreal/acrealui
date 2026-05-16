@@ -24,6 +24,8 @@ using DaggerfallWorkshop;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Banking;
 using DaggerfallWorkshop.Game.Entity;
+using DaggerfallWorkshop.Game.Formulas;
+using DaggerfallWorkshop.Game.Guilds;
 using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.MagicAndEffects;
 using DaggerfallWorkshop.Game.MagicAndEffects.MagicEffects;
@@ -76,12 +78,8 @@ namespace AcrealUI
                         queue.Enqueue(t);
                     }
                 }
-                Debug.LogError("[AcrealUI] Failed to Find Child Attached to GameObject \"" + (aParent != null ? aParent.gameObject.name : "NULL") + "\" by Name: " + aName);
+                Debug.LogWarning("[AcrealUI] Failed to Find Child Attached to GameObject \"" + (aParent != null ? aParent.gameObject.name : "NULL") + "\" by Name: " + aName);
             }
-            //else
-            //{
-            //    Debug.LogError("[AcrealUI] No Name Provided to Find Child Attached to GameObject \"" + (aParent != null ? aParent.gameObject.name : "NULL"));
-            //}
             return null;
         }
 
@@ -181,10 +179,9 @@ namespace AcrealUI
             return GetPaperDollHeadTexture();
         }
 
-        public static UIItemQueryOptions GetItemQueryOptionsForPlayer()
+        public static UIItemQueryOptions GetItemQueryOptionsForPlayer(IGuild guild = null)
         {
-            GameManager gm = GameManager.Instance;
-            PlayerEntity playerEntity = gm != null ? gm.PlayerEntity : null;
+            PlayerEntity playerEntity = GetPlayerEntity();
             DFCareer career = playerEntity != null ? playerEntity.Career : null;
             UIItemQueryOptions queryOptions = new UIItemQueryOptions();
             if (career != null)
@@ -194,7 +191,91 @@ namespace AcrealUI
                 queryOptions.forbiddenMaterialsAsInt = (int)career.ForbiddenMaterials;
                 queryOptions.forbiddenProficienciesAsInt = (int)career.ForbiddenProficiencies;
             }
+
+            uint minutes = DaggerfallUnity.Instance.WorldTime.DaggerfallDateTime.ToClassicDaggerfallTime();
+            queryOptions.holidayId = FormulaHelper.GetHolidayId(minutes, GameManager.Instance.PlayerGPS.CurrentRegionIndex);
+            queryOptions.factionId = guild != null ? guild.GetFactionId() : 0;
+            queryOptions.shopQuality = GameManager.Instance.PlayerEnterExit.BuildingDiscoveryData.quality;
             return queryOptions;
+        }
+
+        public static bool PlayerHasEnoughGold(int goldRequired)
+        {
+            PlayerEntity pe = GetPlayerEntity();
+            return pe != null && pe.GoldPieces >= goldRequired;
+        }
+
+        public static bool PlayerCanCarryItems(ItemCollection items, bool allowWagonOverflow, out List<int> playerCarryList)
+        {
+            PlayerEntity pe = GetPlayerEntity();
+            if (pe == null)
+            {
+                playerCarryList = new List<int>();
+                return false;
+            }
+            return PlayerCanCarryItems(items, pe.CarriedWeight, pe.MaxEncumbrance, pe.WagonWeight, allowWagonOverflow, out playerCarryList);
+        }
+
+        public static bool PlayerCanCarryItems(ItemCollection items, float currentPlayerWeight, float maxPlayerWeight, float currentWagonWeight, bool allowWagonOverflow, out List<int> playerCarryList)
+        {
+            playerCarryList = new List<int>();
+            if (items != null)
+            {
+                bool canCarryAll = true;
+
+                float cumulativePlayerWeight = currentPlayerWeight;
+                float cumulativeWagonWeight = currentWagonWeight;
+                
+                for (int i = 0; i < items.Count; i++)
+                {
+                    DaggerfallUnityItem item = items.GetItem(i);
+
+                    bool canCarry = PlayerCanCarryItem(item, cumulativePlayerWeight, maxPlayerWeight, cumulativeWagonWeight, allowWagonOverflow, out int numPlayerCanCarry);
+                    if (!canCarry) { canCarryAll = false; }
+
+                    playerCarryList.Add(numPlayerCanCarry);
+
+                    float unitWeight = item.EffectiveUnitWeightInKg();
+                    cumulativePlayerWeight += unitWeight * numPlayerCanCarry;
+                    cumulativeWagonWeight += unitWeight * (item.stackCount - numPlayerCanCarry);
+                }
+                return canCarryAll;
+            }
+            return false;
+        }
+
+        public static bool PlayerCanCarryItem(DaggerfallUnityItem item, bool allowWagonOverflow, out int numPlayerCanCarry)
+        {
+            PlayerEntity pe = GetPlayerEntity();
+            if (pe == null)
+            {
+                numPlayerCanCarry = 0;
+                return false;
+            }
+            return PlayerCanCarryItem(item, pe.CarriedWeight, pe.MaxEncumbrance, pe.WagonWeight, true, out numPlayerCanCarry);
+        }
+
+        public static bool PlayerCanCarryItem(DaggerfallUnityItem item, float currentPlayerWeight, float maxPlayerWeight, float currentWagonWeight, bool allowWagonOverflow, out int numPlayerCanCarry)
+        {
+            numPlayerCanCarry = 0;
+            if (item == null) { return false; }
+
+            int numOverflowedToWagon = 0;
+            float unitWeight = item.EffectiveUnitWeightInKg();
+            if (unitWeight > 0f)
+            {
+                numPlayerCanCarry = Mathf.FloorToInt(Math.Min(item.stackCount, (maxPlayerWeight - currentPlayerWeight) / unitWeight));
+
+                if (allowWagonOverflow && numPlayerCanCarry < item.stackCount)
+                {
+                    numOverflowedToWagon = Mathf.FloorToInt(Math.Min(item.stackCount - numPlayerCanCarry, (ItemHelper.WagonKgLimit - currentWagonWeight) / unitWeight));
+                }
+            }
+            else
+            {
+                numPlayerCanCarry = item.stackCount;
+            }
+            return numPlayerCanCarry + numOverflowedToWagon >= item.stackCount;
         }
         #endregion
 
@@ -244,7 +325,7 @@ namespace AcrealUI
                 EnemyBasics.GetEnemy(enemyType, out MobileEnemy mobileEnemy);
                 DFCareer career = DaggerfallEntity.GetMonsterCareerTemplate(enemyCareer);
                 int luck = career != null ? career.Luck : UIConstants.ENEMY_BASE_SKILL_LEVEL;
-                int agility = career != null ? career.Luck : UIConstants.ENEMY_BASE_SKILL_LEVEL;
+                int agility = career != null ? career.Agility : UIConstants.ENEMY_BASE_SKILL_LEVEL;
 
                 // Get armor value for struck body part
                 chanceToHit += (sbyte)(mobileEnemy.ArmorValue * UIConstants.ENEMY_ARMOR_MULTIPLIER);
@@ -853,6 +934,8 @@ namespace AcrealUI
         public static bool ItemIsEquippable(DaggerfallUnityItem item)
         {
             if (item == null) return false;
+            Debug.Log(item.LongName + " is lightSource? " + item.IsLightSource + " ItemGroup: " + item.ItemGroup + ",  TemplateIndex: " + item.TemplateIndex + "  (valid indexes: 247, 248, 253)");
+            if (item.IsLightSource) { return true; }
             PlayerEntity player = GameManager.Instance.PlayerEntity;
             return player != null ? player.ItemEquipTable.GetEquipSlot(item) != EquipSlots.None : false;
         }
@@ -933,17 +1016,17 @@ namespace AcrealUI
             }
         }
 
-        public static ItemColumnFlags ItemFilterToColumnFlags(ItemFilter filter)
+        public static ItemSortingFlags ItemFilterToSortFlags(ItemFilter filter)
         {
             switch (filter)
             {
-                case ItemFilter.Books: return ItemColumnFlags.Filter_Books;
-                case ItemFilter.QuestItems: return ItemColumnFlags.Filter_QuestItems;
-                case ItemFilter.MagicItems: return ItemColumnFlags.Filter_MagicItems;
-                case ItemFilter.MiscItems: return ItemColumnFlags.Filter_Misc;
-                case ItemFilter.Weapons: return ItemColumnFlags.Filter_Weapons;
-                case ItemFilter.Armor: return ItemColumnFlags.Filter_Armor;
-                default: return ItemColumnFlags.All;
+                case ItemFilter.Books: return ItemSortingFlags.BookFlags;
+                case ItemFilter.QuestItems: return ItemSortingFlags.QuestItemFlags;
+                case ItemFilter.MagicItems: return ItemSortingFlags.MagicItemFlags;
+                case ItemFilter.MiscItems: return ItemSortingFlags.MiscFlags;
+                case ItemFilter.Weapons: return ItemSortingFlags.WeaponFlags;
+                case ItemFilter.Armor: return ItemSortingFlags.ArmorFlags;
+                default: return ItemSortingFlags.Default;
             }
         }
 
@@ -1102,7 +1185,7 @@ namespace AcrealUI
                     showCondition = item.maxCondition > 1,
                     conditionPercent = conPerc,
                     weightValue = item.EffectiveUnitWeightInKg(),
-                    goldValue = item.value,
+                    goldValue = GetItemValue(item, itemQueryOptions.shopQuality, itemQueryOptions.holidayId, itemQueryOptions.factionId, itemQueryOptions.valueIsPurchaseCost),
                 };
             }
         }
@@ -1464,6 +1547,39 @@ namespace AcrealUI
             return powersList;
         }
 
+        public static int GetItemValue(DaggerfallUnityItem item, int shopQuality, int holidayId, int factionId, bool buying)
+        {
+            int itemValue = 0;
+            if (item != null)
+            {
+                if (buying)
+                {
+                    itemValue = FormulaHelper.CalculateCost(item.value, shopQuality) * item.stackCount;
+
+                    if ((holidayId == (int)DFLocation.Holidays.Merchants_Festival && factionId == 0) ||
+                        (holidayId == (int)DFLocation.Holidays.Tales_and_Tallow && factionId == (int)FactionFile.FactionIDs.The_Mages_Guild) ||
+                        (holidayId == (int)DFLocation.Holidays.Warriors_Festival && factionId == 0 && item.ItemGroup == ItemGroups.Weapons))
+                    {
+                        itemValue /= 2;
+                    }
+                }
+                else
+                {
+                    if (UIUtilityFunctions.ItemIsMagic(item))
+                    {
+                        // TODO: Fencing base price higher and guild rep affects it. Implement new formula or can this be used?
+                        itemValue += FormulaHelper.CalculateCost(item.value, shopQuality);
+                    }
+                    else
+                    {
+                        itemValue += FormulaHelper.CalculateCost(item.value, shopQuality, item.ConditionPercentage) * item.stackCount;
+                    }
+                }
+            }
+            itemValue = FormulaHelper.CalculateTradePrice(itemValue, shopQuality, !buying);
+            return itemValue;
+        }
+
         //private static string LocalizeEntityEffect(IEntityEffect entityEffect)
         //{
         //    StringBuilder stringBuilder = new StringBuilder(entityEffect.DisplayName);
@@ -1676,41 +1792,41 @@ namespace AcrealUI
 
 
         #region Item Sorting
-        public static void SortItemsByColumn(List<UIItemData> itemData, ItemColumnFlags column, bool sortAscending)
+        public static void SortItemsByColumn(List<UIItemData> itemData, ItemSortingFlags column, bool sortAscending)
         {
             if (itemData == null || itemData.Count == 0) { return; }
 
-            if (column == ItemColumnFlags.Armor)
+            if (column == ItemSortingFlags.Armor)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return x.armorValue.CompareTo(y.armorValue); }); }
                 else { itemData.Sort((x, y) => { return y.armorValue.CompareTo(x.armorValue); }); }
             }
-            else if (column == ItemColumnFlags.Condition)
+            else if (column == ItemSortingFlags.Condition)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return x.conditionPercent.CompareTo(y.conditionPercent); }); }
                 else { itemData.Sort((x, y) => { return y.conditionPercent.CompareTo(x.conditionPercent); }); }
             }
-            else if (column == ItemColumnFlags.Damage)
+            else if (column == ItemSortingFlags.Damage)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return x.maxDamageValue.CompareTo(y.maxDamageValue); }); }
                 else { itemData.Sort((x, y) => { return y.maxDamageValue.CompareTo(x.maxDamageValue); }); }
             }
-            else if (column == ItemColumnFlags.GoldValue)
+            else if (column == ItemSortingFlags.GoldValue)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return x.goldValue.CompareTo(y.goldValue); }); }
                 else { itemData.Sort((x, y) => { return y.goldValue.CompareTo(x.goldValue); }); }
             }
-            else if (column == ItemColumnFlags.ItemType)
+            else if (column == ItemSortingFlags.ItemType)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return x.itemArchetype.CompareTo(y.itemArchetype); }); }
                 else { itemData.Sort((x, y) => { return y.itemArchetype.CompareTo(x.itemArchetype); }); }
             }
-            else if (column == ItemColumnFlags.Name)
+            else if (column == ItemSortingFlags.Name)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return GetItemName(x).CompareTo(GetItemName(y)); }); }
                 else { itemData.Sort((x, y) => { return GetItemName(y).CompareTo(GetItemName(x)); }); }
             }
-            else if (column == ItemColumnFlags.Weight)
+            else if (column == ItemSortingFlags.Weight)
             {
                 if (sortAscending) { itemData.Sort((x, y) => { return x.weightValue.CompareTo(y.weightValue); }); }
                 else { itemData.Sort((x, y) => { return y.weightValue.CompareTo(x.weightValue); }); }
@@ -1953,6 +2069,16 @@ namespace AcrealUI
 
             return text;
         }
+
+        public static string BuildWeightString(float currentWeight, float maxWeight)
+        {
+            StringBuilder strBuilder = new StringBuilder();
+            strBuilder.AppendFormat("{0:N0}", currentWeight);
+            strBuilder.Append(" / ");
+            strBuilder.AppendFormat("{0:N0}", maxWeight);
+            strBuilder.Append(" Kg");
+            return strBuilder.ToString();
+        }
         #endregion
 
 
@@ -1999,6 +2125,7 @@ namespace AcrealUI
                 {
                     string filename = TextureFile.IndexToFileName(dropIconArchive);
                     ImageData containerImage = ImageReader.GetImageData(filename, DaggerfallLootDataTables.dropIconIdxs[dropIconArchive][dropIconTexture], 0, true);
+                    return UISpriteManager.GetOrCreateSprite(containerImage);
                 }
                 else if (dropIconArchive > 0)
                 {

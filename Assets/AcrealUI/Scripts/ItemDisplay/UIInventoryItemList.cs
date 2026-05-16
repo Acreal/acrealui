@@ -108,10 +108,10 @@ namespace AcrealUI
             #endregion
 
             #region Sort Toggle References
-            _sortToggle_damage = InitializeSortItemsToggle(_gameObjName_sortToggle_damage, ItemColumnFlags.Damage);
-            _sortToggle_armor = InitializeSortItemsToggle(_gameObjName_sortToggle_armor, ItemColumnFlags.Armor);
-            _sortToggle_condition = InitializeSortItemsToggle(_gameObjName_sortToggle_condition, ItemColumnFlags.Condition);
-            _sortToggle_weight = InitializeSortItemsToggle(_gameObjName_sortToggle_weight, ItemColumnFlags.Weight);
+            _sortToggle_damage = InitializeSortItemsToggle(_gameObjName_sortToggle_damage, ItemSortingFlags.Damage);
+            _sortToggle_armor = InitializeSortItemsToggle(_gameObjName_sortToggle_armor, ItemSortingFlags.Armor);
+            _sortToggle_condition = InitializeSortItemsToggle(_gameObjName_sortToggle_condition, ItemSortingFlags.Condition);
+            _sortToggle_weight = InitializeSortItemsToggle(_gameObjName_sortToggle_weight, ItemSortingFlags.Weight);
             #endregion
 
             //keep this at the bottom so the sort toggle group
@@ -182,17 +182,17 @@ namespace AcrealUI
         {
             if (gameObject.activeSelf && gameObject.activeInHierarchy)
             {
-                StartCoroutine(ScrollToBottomDelayed());
+                UIManager.Instance.RunCoroutine(GetInstanceID(), 0, ScrollToBottomDelayed(), null);
             }
         }
 
-        public override void SetItemColumnFlags(ItemColumnFlags filterFlags)
+        public override void SetItemSortingFlags(ItemSortingFlags sortFlags)
         {
-            base.SetItemColumnFlags(filterFlags);
-            if (_sortToggle_damage != null) { _sortToggle_damage.gameObject.SetActive((filterFlags & ItemColumnFlags.Damage) != 0); }
-            if (_sortToggle_armor != null) { _sortToggle_armor.gameObject.SetActive((filterFlags & ItemColumnFlags.Armor) != 0); }
-            if (_sortToggle_condition != null) { _sortToggle_condition.gameObject.SetActive((filterFlags & ItemColumnFlags.Condition) != 0); }
-            if (_sortToggle_weight != null) { _sortToggle_weight.gameObject.SetActive((filterFlags & ItemColumnFlags.Weight) != 0); }
+            base.SetItemSortingFlags(sortFlags);
+            if (_sortToggle_damage != null) { _sortToggle_damage.gameObject.SetActive((sortFlags & ItemSortingFlags.Damage) != 0); }
+            if (_sortToggle_armor != null) { _sortToggle_armor.gameObject.SetActive((sortFlags & ItemSortingFlags.Armor) != 0); }
+            if (_sortToggle_condition != null) { _sortToggle_condition.gameObject.SetActive((sortFlags & ItemSortingFlags.Condition) != 0); }
+            if (_sortToggle_weight != null) { _sortToggle_weight.gameObject.SetActive((sortFlags & ItemSortingFlags.Weight) != 0); }
         }
 
         public void SetFilterToggleDisabled(ItemFilter filter, bool disabled)
@@ -255,7 +255,7 @@ namespace AcrealUI
 
                 toggle.Event_OnToggledOn += (UIToggle tgl) =>
                 {
-                    SetItemColumnFlags(UIUtilityFunctions.ItemFilterToColumnFlags(filter));
+                    SetItemSortingFlags(UIUtilityFunctions.ItemFilterToSortFlags(filter));
                     SetItemFilter(filter);
                 };
 
@@ -264,7 +264,7 @@ namespace AcrealUI
             return null;
         }
 
-        private UISortToggle InitializeSortItemsToggle(string transformName, ItemColumnFlags sortColumn)
+        private UISortToggle InitializeSortItemsToggle(string transformName, ItemSortingFlags sortColumn)
         {
             Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
             UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;

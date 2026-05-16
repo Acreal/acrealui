@@ -58,6 +58,7 @@ namespace AcrealUI
         private GameObject _statusParent_prohibited = null;
         private GameObject _statusParent_magic = null;
         private GameObject _statusParent_poisoned = null;
+        private CanvasGroup _canvasGroup = null;
         private Image _image_highlight = null;
         private Color _defaultHighlightColor = Color.white;
         #endregion
@@ -77,8 +78,10 @@ namespace AcrealUI
 
 
         #region Initialization
-        public void Initalize()
+        public void Initialize()
         {
+            _canvasGroup = GetComponent<CanvasGroup>();
+
             Transform typeIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemTypeIcon);
             if (typeIconTform != null)
             {
@@ -308,6 +311,17 @@ namespace AcrealUI
             if (_statusParent_poisoned != null) 
             { 
                 _statusParent_poisoned.SetActive(poisoned);
+            }
+        }
+
+        public void EnableOrDisableInput(bool enableInput)
+        {
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = enableInput ? 1f : 0.25f;
+                _canvasGroup.ignoreParentGroups = !enableInput;
+                _canvasGroup.interactable = enableInput;
+                _canvasGroup.blocksRaycasts = enableInput;
             }
         }
 

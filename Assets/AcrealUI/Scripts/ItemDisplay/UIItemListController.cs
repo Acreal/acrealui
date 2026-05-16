@@ -17,6 +17,7 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop.Game.Guilds;
 using DaggerfallWorkshop.Game.Items;
 using System;
 using System.Collections.Generic;
@@ -29,12 +30,19 @@ namespace AcrealUI
         #region Variables
         private UIItemList _itemList = null;
         private ItemCollection _itemCollection = null;
+        private IGuild _guild = null;
+        private bool _isPurchaseList = false;
         #endregion
 
 
         #region Events
         public event Action<UIItemEntry, int> Event_OnItemLeftClicked = null;
         public event Action<UIItemEntry, int> Event_OnItemRightClicked = null;
+        #endregion
+
+
+        #region Data Sources
+        public UIDelegates.DataSourceDelegate_Bool DataSource_DisableItemEntryInput = null;
         #endregion
 
 
@@ -46,9 +54,11 @@ namespace AcrealUI
 
 
         #region Initialization/Cleanup
-        public UIItemListController(UIItemList itemList)
+        public UIItemListController(UIItemList itemList, IGuild guild, bool isPurchaseList = false)
         {
             _itemList = itemList;
+            _guild = guild;
+            _isPurchaseList = isPurchaseList;
         }
 
         public void Initialize()
@@ -77,6 +87,11 @@ namespace AcrealUI
 
         public void Cleanup()
         {
+            DataSource_DisableItemEntryInput = null;
+
+            Event_OnItemLeftClicked = null;
+            Event_OnItemRightClicked = null;
+
             _itemList?.Cleanup();
             _itemList = null;
             _itemCollection = null;
@@ -93,8 +108,8 @@ namespace AcrealUI
         public void SetItemCollection(ItemCollection itemCollection)
         {
             _itemCollection = itemCollection;
-            SetItemFilter(ItemFilter.All);
             UpdateItemFilterToggles();
+            SetItemFilter(ItemFilter.All);
         }
 
         public void SetItemFilter(ItemFilter filter)
@@ -107,7 +122,7 @@ namespace AcrealUI
             UIInventoryItemList inventoryItemList = _itemList as UIInventoryItemList;
             if (inventoryItemList == null) { return; }
 
-            //start at index 1 because we never disable the 'All' toggle
+            //start at index 1 because we never disable the 'Default' toggle
             for (int i = 1; i < (int)ItemFilter._COUNT; i++)
             {
                 bool hasItems = UIUtilityFunctions.ItemCollectionContainsItemsWithFilter(_itemCollection, (ItemFilter)i);
@@ -127,23 +142,32 @@ namespace AcrealUI
             if (_itemCollection == null) { return; }
 
             ItemFilter itemFilter = _itemList.activeItemFilter;
-            UIItemQueryOptions queryOptions = UIUtilityFunctions.GetItemQueryOptionsForPlayer();
+            
+            UIItemQueryOptions queryOptions = UIUtilityFunctions.GetItemQueryOptionsForPlayer(_guild);
+            queryOptions.valueIsPurchaseCost = _isPurchaseList;
+
             List<UIItemData> itemData = UIUtilityFunctions.ItemCollectionToItemDataList(_itemCollection, queryOptions, itemFilter);
             if (itemData != null && itemData.Count > 0)
             {
-                ItemColumnFlags sortByColumn = _itemList.sortByColumn;
+                ItemSortingFlags sortByColumn = _itemList.sortByColumn;
                 bool ascending = _itemList.sortByAscending;
                 UIUtilityFunctions.SortItemsByColumn(itemData, sortByColumn, ascending);
 
                 for (int i = 0; i < itemData.Count; i++)
                 {
                     UIItemEntry itemEntry = _itemList.AddItemEntry(itemData[i].UID);
-                    InitializeItemEntryWithItemData(_itemCollection, itemEntry, itemData[i], UIUtilityFunctions.ItemFilterToColumnFlags(itemFilter));
+                    InitializeItemEntryWithItemData(_itemCollection, itemEntry, itemData[i], _itemList.sortingFlags);
                     itemEntry.transform.SetSiblingIndex(i);
                     itemEntry.Delegate_OnPointerEnter = OnItemHoverBegin;
                     itemEntry.Delegate_OnPointerExit = OnItemHoverEnd;
                     itemEntry.Delegate_OnLeftClicked = OnItemLeftClicked;
                     itemEntry.Delegate_OnRightClicked = OnItemRightClicked;
+
+                    if (DataSource_DisableItemEntryInput != null)
+                    {
+                        bool disableInput = DataSource_DisableItemEntryInput(itemEntry.gameObject);
+                        itemEntry.EnableOrDisableInput(!disableInput);
+                    }
                 }
             }
         }
@@ -151,10 +175,10 @@ namespace AcrealUI
 
 
         #region Item Entries
-        protected void InitializeItemEntryWithItemData(ItemCollection itemCollection, UIItemEntry itemEntry, UIItemData itemData, ItemColumnFlags columnFlags)
+        protected void InitializeItemEntryWithItemData(ItemCollection itemCollection, UIItemEntry itemEntry, UIItemData itemData, ItemSortingFlags columnFlags)
         {
             string name = null;
-            if ((columnFlags & ItemColumnFlags.Name) != 0)
+            if ((columnFlags & ItemSortingFlags.Name) != 0)
             {
                 name = UIUtilityFunctions.GetItemName(itemData);
             }
@@ -165,7 +189,7 @@ namespace AcrealUI
             DaggerfallUnityItem item = itemCollection != null ? itemCollection.GetItem(itemData.UID) : null;
             bool ignoreDamage = item != null && item.ItemGroup == ItemGroups.Weapons && item.TemplateIndex == (int)Weapons.Arrow;
 
-            if (((columnFlags & ItemColumnFlags.Damage) == 0))
+            if (((columnFlags & ItemSortingFlags.Damage) == 0))
             {
                 itemEntry.SetColumnValue_Damage(null);
             }
@@ -174,7 +198,7 @@ namespace AcrealUI
                 itemEntry.SetColumnValue_Damage(ignoreDamage ? "-" : string.Format("{0:N0}-{1:N0}", itemData.minDamageValue, itemData.maxDamageValue));
             }
 
-            if (((columnFlags & ItemColumnFlags.Armor) == 0))
+            if (((columnFlags & ItemSortingFlags.Armor) == 0))
             {
                 itemEntry.SetColumnValue_Armor(null);
             }
@@ -183,7 +207,7 @@ namespace AcrealUI
                 itemEntry.SetColumnValue_Armor(itemData.armorValue > 0 ? itemData.armorValue.ToString("N0") : "-");
             }
 
-            if ((columnFlags & ItemColumnFlags.Condition) == 0)
+            if ((columnFlags & ItemSortingFlags.Condition) == 0)
             {
                 itemEntry.SetColumnValue_Condition(-1f); //disables the slider
                 itemEntry.SetNoConditionText(null);
@@ -200,11 +224,11 @@ namespace AcrealUI
             }
 
             string valueStr = itemData.goldValue > 0 ? itemData.goldValue.ToString("N0") : "-";
-            itemEntry.SetColumnValue_GoldValue(((columnFlags & ItemColumnFlags.GoldValue) != 0) ? valueStr : null);
+            itemEntry.SetColumnValue_GoldValue(((columnFlags & ItemSortingFlags.GoldValue) != 0) ? valueStr : null);
 
             //NOTE(Acreal): add option to count total stack weight and not just unit weight?
             string weightStr = itemData.weightValue > float.Epsilon ? itemData.weightValue.ToString("F2") : "-";
-            itemEntry.SetColumnValue_Weight(((columnFlags & ItemColumnFlags.Weight) != 0) ? weightStr : null);
+            itemEntry.SetColumnValue_Weight(((columnFlags & ItemSortingFlags.Weight) != 0) ? weightStr : null);
 
             itemEntry.SetStatusIcons((itemData.itemStatusFlags & ItemStatusFlags.Prohibited) != 0,
                                      (itemData.itemStatusFlags & ItemStatusFlags.Equipped) != 0,
@@ -296,8 +320,7 @@ namespace AcrealUI
                     {
                         itemPowerData.Add(new ItemPowerData()
                         {
-                            //Sprite_Circle_Empty
-                            icon = UIManager.mod.GetAsset<Sprite>("Sprite_Circle_Empty"),
+                            icon = UIManager.referenceManager.sprite_emptyCircle,
                             description = itemPowerStrings[i],
                         });
                     }

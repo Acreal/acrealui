@@ -25,6 +25,19 @@ namespace AcrealUI
     {
         #region Variables
         private IWindowController _activePopupController = null;
+        
+        private readonly UIConfirmationWindowController _textConfirmationController = null;
+        private readonly UISliderConfirmationWindowController _sliderConfirmationController = null;
+        #endregion
+
+
+        #region Initialization/Cleanup
+
+        public UIPopupManager()
+        {
+            _textConfirmationController = new UIConfirmationWindowController();
+            _sliderConfirmationController = new UISliderConfirmationWindowController();
+        }
         #endregion
 
 
@@ -33,33 +46,30 @@ namespace AcrealUI
         {
             HideActivePopupWindow();
 
-            UIConfirmationWindowController windowController = new UIConfirmationWindowController();
-            if (windowController != null)
+            if (_textConfirmationController != null)
             {
-                _activePopupController = windowController;
-
-                windowController.SetText(title, message);
-                windowController.SetDataPayload(dataPayload);
-                windowController.RegisterEvents(onConfirm, onCancel);
-                windowController.ShowWindow();
+                _textConfirmationController.SetText(title, message);
+                _textConfirmationController.SetDataPayload(dataPayload);
+                _textConfirmationController.RegisterEvents(onConfirm, onCancel);
+                _textConfirmationController.ShowWindow();
             }
+            _activePopupController = _textConfirmationController;
         }
 
-        public void ShowSliderConfirmationWindow(string title, string message, int minSliderValue, int maxSliderValue, bool useWholeNumbers, object[] dataPayload, System.Action<float, object[]> onConfirm, System.Action<object[]> onCancel)
+        public void ShowSliderConfirmationWindow(string title, string message, float minSliderValue, float maxSliderValue, float currentSliderValue, bool useWholeNumbers, object[] dataPayload, System.Action<float, object[]> onConfirm, System.Action<object[]> onCancel)
         {
             HideActivePopupWindow();
 
-            UISliderConfirmationWindowController windowController = new UISliderConfirmationWindowController();
-            if (windowController != null)
+            if (_sliderConfirmationController != null)
             {
-                _activePopupController = windowController;
-
-                windowController.SetText(title, message);
-                windowController.SetSliderMinMax(minSliderValue, maxSliderValue, useWholeNumbers);
-                windowController.SetDataPayload(dataPayload);
-                windowController.RegisterEvents(onConfirm, onCancel);
-                windowController.ShowWindow();
+                _sliderConfirmationController.SetText(title, message);
+                _sliderConfirmationController.SetSliderMinMax(minSliderValue, maxSliderValue, useWholeNumbers);
+                _sliderConfirmationController.SetSliderValue(currentSliderValue, false);
+                _sliderConfirmationController.SetDataPayload(dataPayload);
+                _sliderConfirmationController.RegisterEvents(onConfirm, onCancel);
+                _sliderConfirmationController.ShowWindow();
             }
+            _activePopupController = _sliderConfirmationController;
         }
 
         public void HideActivePopupWindow()

@@ -208,50 +208,12 @@ namespace AcrealUI
 
                     _saveLoadGameWindowInstance.Event_ButtonClick_SaveGame += () =>
                     {
-                        string characterName = GameManager.Instance.PlayerEntity.Name;
-                        string saveName = _saveLoadGameWindowInstance.inputFieldValue;
-
-                        if (string.IsNullOrWhiteSpace(saveName))
-                        {
-                            DaggerfallUI.MessageBox(TextManager.Instance.GetLocalizedText("youMustEnterASaveName"));
-                            return;
-                        }
-
-                        int key = GameManager.Instance.SaveLoadManager.FindSaveFolderByNames(characterName, saveName);
-                        if (key != -1)
-                        {
-                            DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, this);
-                            messageBox.SetText(new string[] { TextManager.Instance.GetLocalizedText("confirmOverwriteSave"), "" });
-                            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Yes);
-                            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.No);
-                            messageBox.OnButtonClick += (DaggerfallMessageBox sender, DaggerfallMessageBox.MessageBoxButtons messageBoxButton) =>
-                            {
-                                if (messageBoxButton == DaggerfallMessageBox.MessageBoxButtons.Yes)
-                                {
-                                    GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
-                                    DaggerfallUI.Instance.PopToHUD();
-                                }
-                                else
-                                {
-                                    CloseWindow();
-                                }
-                            };
-                            uiManager.PushWindow(messageBox);
-                        }
-                        else
-                        {
-                            GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
-                            DaggerfallUI.Instance.PopToHUD();
-                        }
+                        SaveLoadEventHandler(null, Vector2.zero);
                     };
 
                     _saveLoadGameWindowInstance.Event_ButtonClick_LoadGame += () =>
                     {
-                        int saveKey = _selectedSaveGameData.saveKey;
-                        if (saveKey >= 0)
-                        {
-                            GameManager.Instance.SaveLoadManager.Load(saveKey);
-                        }
+                        SaveLoadEventHandler(null, Vector2.zero);
                     };
 
                     _saveLoadGameWindowInstance.Event_ButtonClick_RenameSave += () =>
@@ -436,6 +398,56 @@ namespace AcrealUI
                         }
                     }
                     break;
+            }
+        }
+
+        protected override void SaveLoadEventHandler(BaseScreenComponent sender, Vector2 position)
+        {
+            if (mode == Modes.SaveGame)
+            {
+                string characterName = GameManager.Instance.PlayerEntity.Name;
+                string saveName = _saveLoadGameWindowInstance.inputFieldValue;
+
+                if (string.IsNullOrWhiteSpace(saveName))
+                {
+                    DaggerfallUI.MessageBox(TextManager.Instance.GetLocalizedText("youMustEnterASaveName"));
+                    return;
+                }
+
+                int key = GameManager.Instance.SaveLoadManager.FindSaveFolderByNames(characterName, saveName);
+                if (key != -1)
+                {
+                    DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, this);
+                    messageBox.SetText(new string[] { TextManager.Instance.GetLocalizedText("confirmOverwriteSave"), "" });
+                    messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Yes);
+                    messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.No);
+                    messageBox.OnButtonClick += (DaggerfallMessageBox _, DaggerfallMessageBox.MessageBoxButtons messageBoxButton) =>
+                    {
+                        if (messageBoxButton == DaggerfallMessageBox.MessageBoxButtons.Yes)
+                        {
+                            GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
+                            DaggerfallUI.Instance.PopToHUD();
+                        }
+                        else
+                        {
+                            CloseWindow();
+                        }
+                    };
+                    uiManager.PushWindow(messageBox);
+                }
+                else
+                {
+                    GameManager.Instance.SaveLoadManager.Save(characterName, saveName);
+                    DaggerfallUI.Instance.PopToHUD();
+                }
+            }
+            else
+            {
+                int saveKey = _selectedSaveGameData.saveKey;
+                if (saveKey >= 0)
+                {
+                    GameManager.Instance.SaveLoadManager.Load(saveKey);
+                }
             }
         }
 

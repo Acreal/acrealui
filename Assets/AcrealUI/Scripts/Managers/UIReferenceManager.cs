@@ -69,6 +69,8 @@ namespace AcrealUI
 
         public GameObject prefab_hud = null;
 
+        public Sprite sprite_emptyCircle = null;
+
         private Dictionary<DFCareer.Stats, Sprite> _statToIconDict = null;
         private Dictionary<DFCareer.Skills, Sprite> _skillToIconDict = null;
         private Dictionary<SkillRank, Sprite> _skillRankToIconDict = null;
@@ -175,6 +177,9 @@ namespace AcrealUI
 
             GameObject npcDialogueEntryObj = mod.GetAsset<GameObject>("Prefab_NpcDialogueEntry");
             prefab_npcDialogueEntry = npcDialogueEntryObj != null ? npcDialogueEntryObj.GetComponent<UIDialogueEntry>() : null;
+
+            Sprite emptyCircle = mod.GetAsset<Sprite>("Sprite_Circle_Empty");
+            sprite_emptyCircle = emptyCircle;
 
             _keyCodeToIconDict = new Dictionary<KeyCode, Sprite>()
             {

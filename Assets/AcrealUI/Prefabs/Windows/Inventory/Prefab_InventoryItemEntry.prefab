@@ -1988,6 +1988,7 @@ GameObject:
   - component: {fileID: -2499464410854535546}
   - component: {fileID: 5760624105764822198}
   - component: {fileID: 5760624105764822197}
+  - component: {fileID: -5851104899694953725}
   m_Layer: 5
   m_Name: Prefab_InventoryItemEntry
   m_TagString: Untagged
@@ -2095,6 +2096,18 @@ MonoBehaviour:
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
+--- !u!225 &-5851104899694953725
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5760624105764822192}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &5760624105800863615
 GameObject:
   m_ObjectHideFlags: 0

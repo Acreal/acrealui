@@ -22,7 +22,7 @@ using System;
 namespace AcrealUI
 {
     [Flags]
-    public enum ItemColumnFlags
+    public enum ItemSortingFlags
     {
         Name = 1 << 0,
         ItemType = 1 << 1,
@@ -32,14 +32,15 @@ namespace AcrealUI
         GoldValue = 1 << 5,
         Condition = 1 << 6,
 
-        All = ItemType | Name | Condition | Weight | GoldValue,
-        Filter_Weapons = ItemType | Name | Damage | Condition | Weight | GoldValue,
-        Filter_Armor = ItemType | Name | Armor | Condition | Weight | GoldValue,
-        Filter_Potions = ItemType | Name | Weight | GoldValue,
-        Filter_MagicItems = ItemType | Name | Condition | Weight | GoldValue,
-        Filter_Misc = ItemType | Name | Weight | GoldValue,
-        Filter_Books = ItemType | Name | Weight | GoldValue,
-        Filter_QuestItems = ItemType | Name | Weight | GoldValue,
+        Default = ItemType | Name | Condition | Weight | GoldValue,
+        WeaponFlags = ItemType | Name | Damage | Condition | Weight | GoldValue,
+        ArmorFlags = ItemType | Name | Armor | Condition | Weight | GoldValue,
+        PotionsFlags = ItemType | Name | Weight | GoldValue,
+        MagicItemFlags = ItemType | Name | Condition | Weight | GoldValue,
+        MiscFlags = ItemType | Name | Weight | GoldValue,
+        BookFlags = ItemType | Name | Weight | GoldValue,
+        QuestItemFlags = ItemType | Name | Weight | GoldValue,
+        MerchantItemFlags = ItemType | Name | GoldValue,
     }
 
     public enum ItemType

@@ -83,6 +83,14 @@ namespace AcrealUI
                 _slider.SetSliderMinMax(min, max, useWholeNumbers);
             }
         }
+
+        public void SetSliderValue(float value, bool setWithoutNotify)
+        {
+            if (_slider != null)
+            {
+                _slider.SetSliderValue(value, setWithoutNotify);
+            }
+        }
         #endregion
     }
 }

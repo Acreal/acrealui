@@ -17,13 +17,16 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 DEALINGS IN THE SOFTWARE.
 */
 
+using DaggerfallWorkshop.Game.Utility.ModSupport;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace AcrealUI
 {
+    [ImportedComponent]
     public abstract class UIItemList : MonoBehaviour
     {
         #region Variables
@@ -38,14 +41,22 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_sortToggle_name = null;
         [SerializeField] private string _gameObjName_sortToggle_value = null;
 
+        [Header("Text")]
+        [SerializeField] private string _gameObjName_weightGoldParent = null;
+        [SerializeField] private string _gameObjName_text_totalGold = null;
+        [SerializeField] private string _gameObjName_text_totalWeight = null;
+
+
         protected RectTransform _itemEntryParent = null;
         protected UISortToggle _activeSortToggle = null;
-        protected ItemColumnFlags _sortItemsColumn = ItemColumnFlags.ItemType;
+        protected ItemSortingFlags _sortItemsColumn = ItemSortingFlags.ItemType;
 
         private UIToggleGroup _sortToggleGroup = null;
         private UISortToggle _sortToggle_type = null;
         private UISortToggle _sortToggle_name = null;
         private UISortToggle _sortToggle_value = null;
+        private TextMeshProUGUI _totalGoldText = null;
+        private TextMeshProUGUI _totalWeightText = null;
         private Dictionary<ulong, UIItemEntry> _uidToItemEntryDict = null;
         private Stack<UIItemEntry> _itemEntryStack = null;
         private HorizontalOrVerticalLayoutGroup[] _layoutGroups = null;
@@ -67,11 +78,18 @@ namespace AcrealUI
             get { return _uidToItemEntryDict != null ? _uidToItemEntryDict.Count : 0; }
         }
         
-        public ItemColumnFlags sortByColumn
+        public ItemSortingFlags sortByColumn
         {
             get { return _sortItemsColumn; }
         }
-        
+
+        public ItemSortingFlags sortingFlags 
+        {
+            get;
+            private set;
+        }
+
+
         public bool sortByAscending
         {
             get { return _activeSortToggle == null || _activeSortToggle.sortByAscending; }
@@ -125,9 +143,9 @@ namespace AcrealUI
             }
 
             #region Sort Toggle References
-            _sortToggle_type = InitializeSortItemsToggle(_gameObjName_sortToggle_type, ItemColumnFlags.ItemType);
-            _sortToggle_name = InitializeSortItemsToggle(_gameObjName_sortToggle_name, ItemColumnFlags.Name);
-            _sortToggle_value = InitializeSortItemsToggle(_gameObjName_sortToggle_value, ItemColumnFlags.GoldValue);
+            _sortToggle_type = InitializeSortItemsToggle(_gameObjName_sortToggle_type, ItemSortingFlags.ItemType);
+            _sortToggle_name = InitializeSortItemsToggle(_gameObjName_sortToggle_name, ItemSortingFlags.Name);
+            _sortToggle_value = InitializeSortItemsToggle(_gameObjName_sortToggle_value, ItemSortingFlags.GoldValue);
 
             Transform groupTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_sortToggleGroup);
             if (groupTForm != null)
@@ -140,12 +158,19 @@ namespace AcrealUI
                 }
             }
             #endregion
+
+            #region Text References
+            Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
+            _totalGoldText = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
+
+            Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalWeight);
+            _totalWeightText = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
+            #endregion
         }
 
         public virtual void Cleanup()
         {
-            StopAllCoroutines();
-
+            Event_OnItemFilterChanged = null;
             Event_OnSortItemsColumnChanged = null;
             Event_OnSortAscendingChanged = null;
 
@@ -171,9 +196,7 @@ namespace AcrealUI
 
         public virtual void ResetList()
         {
-            StopAllCoroutines();
             ClearAllItemEntries();
-            SetItemFilter(ItemFilter.All);
         }
         #endregion
 
@@ -181,18 +204,14 @@ namespace AcrealUI
         #region Public API
         public UIItemEntry AddItemEntry(ulong itemUID)
         {
-            if (_uidToItemEntryDict != null)
+            UIItemEntry entry = null;
+            _uidToItemEntryDict.TryGetValue(itemUID, out entry);
+            if (entry != null)
             {
-                UIItemEntry entry;
-                _uidToItemEntryDict.TryGetValue(itemUID, out entry);
-                if (entry != null)
-                {
-                    return entry;
-                }
+                return entry;
             }
 
             if (_itemEntryStack == null) { return null; }
-
             if (_itemEntryStack.Count == 0)
             {
                 SpawnItemEntryBlock();
@@ -200,7 +219,7 @@ namespace AcrealUI
 
             if (_itemEntryStack.Count > 0)
             {
-                UIItemEntry entry = _itemEntryStack.Pop();
+                entry = _itemEntryStack.Pop();
                 entry.SetItemUID(itemUID);
                 entry.ClearEvents();
                 entry.transform.SetAsLastSibling();
@@ -209,19 +228,15 @@ namespace AcrealUI
                 isPendingLayoutUpdate = true;
                 return entry;
             }
-
             return null;
         }
 
         public bool RemoveItemEntry(ulong itemUID)
         {
             if (itemUID == 0 || _uidToItemEntryDict == null) { return false; }
-
-            UIItemEntry itemEntry;
-            if (_uidToItemEntryDict.TryGetValue(itemUID, out itemEntry))
+            if (_uidToItemEntryDict.TryGetValue(itemUID, out UIItemEntry itemEntry))
             {
                 bool success = _uidToItemEntryDict.Remove(itemUID);
-
                 if (itemEntry != null && success)
                 {
                     itemEntry.SetItemUID(0);
@@ -229,7 +244,6 @@ namespace AcrealUI
                     _itemEntryStack.Push(itemEntry);
                     isPendingLayoutUpdate = true;
                 }
-
                 return success;
             }
             return false;
@@ -245,8 +259,8 @@ namespace AcrealUI
                     entry.ClearEvents();
                     entry.gameObject.SetActive(false);
                     _itemEntryStack.Push(entry);
-                    isPendingLayoutUpdate = true;
                 }
+                isPendingLayoutUpdate = true;
                 _uidToItemEntryDict.Clear();
             }
         }
@@ -258,11 +272,29 @@ namespace AcrealUI
             Event_OnItemFilterChanged?.Invoke(_activeItemFilter);
         }
 
-        public virtual void SetItemColumnFlags(ItemColumnFlags filterFlags)
+        public virtual void SetItemSortingFlags(ItemSortingFlags sortFlags)
         {
-            if (_sortToggle_type != null) { _sortToggle_type.gameObject.SetActive((filterFlags & ItemColumnFlags.ItemType) != 0); }
-            if (_sortToggle_name != null) { _sortToggle_name.gameObject.SetActive((filterFlags & ItemColumnFlags.Name) != 0); }
-            if (_sortToggle_value != null) { _sortToggle_value.gameObject.SetActive((filterFlags & ItemColumnFlags.GoldValue) != 0); }
+            sortingFlags = sortFlags;
+
+            if (_sortToggle_type != null) { _sortToggle_type.gameObject.SetActive((sortFlags & ItemSortingFlags.ItemType) != 0); }
+            if (_sortToggle_name != null) { _sortToggle_name.gameObject.SetActive((sortFlags & ItemSortingFlags.Name) != 0); }
+            if (_sortToggle_value != null) { _sortToggle_value.gameObject.SetActive((sortFlags & ItemSortingFlags.GoldValue) != 0); }
+        }
+
+        public void SetTotalGoldText(string goldText)
+        {
+            if (_totalGoldText != null)
+            {
+                _totalGoldText.text = goldText;
+            }
+        }
+
+        public void SetTotalWeightText(string weightText)
+        {
+            if (_totalWeightText != null)
+            {
+                _totalWeightText.text = weightText;
+            }
         }
         #endregion
 
@@ -291,7 +323,7 @@ namespace AcrealUI
             {
                 UIItemEntry itemEntry = Instantiate(UIManager.referenceManager.prefab_itemEntry, _itemEntryParent);
                 itemEntry.transform.localScale = Vector3.one;
-                itemEntry.Initalize();
+                itemEntry.Initialize();
                 itemEntry.gameObject.SetActive(false);
                 _itemEntryStack.Push(itemEntry);
             }
@@ -300,7 +332,7 @@ namespace AcrealUI
 
 
         #region Sorting Toggles
-        private UISortToggle InitializeSortItemsToggle(string transformName, ItemColumnFlags sortColumn)
+        private UISortToggle InitializeSortItemsToggle(string transformName, ItemSortingFlags sortColumn)
         {
             Transform nameTform = UIUtilityFunctions.FindDeepChild(transform, transformName);
             UISortToggle sortToggle = nameTform != null ? nameTform.GetComponent<UISortToggle>() : null;

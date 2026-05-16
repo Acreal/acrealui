@@ -43,11 +43,6 @@ namespace AcrealUI
         [Header("Images")]
         [SerializeField] private string _gameObjName_lootPileImage = null;
 
-        [Header("Text")]
-        [SerializeField] private string _gameObjName_weightGoldParent = null;
-        [SerializeField] private string _gameObjName_text_totalGold = null;
-        [SerializeField] private string _gameObjName_text_totalWeight = null;
-
         [Header("Tweening")]
         [SerializeField] private float _defaultLocalItemContainerSize = 400f;
         [SerializeField] private float _defaultRemoteItemContainerSize = 325f;
@@ -68,8 +63,6 @@ namespace AcrealUI
         private UIToggle _inventoryTabToggle_wagon = null;
         private UIButton _lootPileButton = null;
         private UIButton _goldButton = null;
-        private TextMeshProUGUI _text_totalGold = null;
-        private TextMeshProUGUI _text_totalWeight = null;
         private Image _lootPileImage = null;
         private bool _isShowingRemoteItemPanel = false;
         #endregion
@@ -109,12 +102,6 @@ namespace AcrealUI
                 if (_itemList_localItems != null)
                 {
                     _itemList_localItems.Initialize();
-
-                    LayoutElement playerLayoutElem = _itemList_localItems.GetComponent<LayoutElement>();
-                    if (playerLayoutElem != null)
-                    {
-                        _defaultLocalItemContainerSize = Mathf.Max(playerLayoutElem.minWidth, playerLayoutElem.preferredWidth);
-                    }
                 }
                 else { Debug.LogError("[AcrealUI.UIInventoryWindow] Failed to Find PlayerInventory ItemList!"); }
             }
@@ -126,16 +113,9 @@ namespace AcrealUI
                 if (_itemList_remoteItems != null)
                 {
                     _itemList_remoteItems.Initialize();
-
-                    LayoutElement containerLayoutElem = _itemList_remoteItems.GetComponent<LayoutElement>();
-                    if (containerLayoutElem != null)
-                    {
-                        _defaultRemoteItemContainerSize = Mathf.Max(containerLayoutElem.minWidth, containerLayoutElem.preferredWidth);
-                    }
                 }
                 else { Debug.LogError("[AcrealUI.UIInventoryWindow] Failed to Find Container ItemList!"); }
             }
-
 
             #region Tab Toggle References
             Transform playerTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_inventoryTabToggle_player);
@@ -173,7 +153,6 @@ namespace AcrealUI
             _lootPileImage = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
             #endregion
 
-
             #region Gold Display
             Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
             if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
@@ -184,15 +163,6 @@ namespace AcrealUI
                     Event_OnButtonClicked_Gold?.Invoke();
                 };
             }
-            #endregion
-
-
-            #region Text References
-            Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
-            _text_totalGold = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
-
-            Transform weightTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalWeight);
-            _text_totalWeight = weightTform != null ? weightTform.GetComponent<TextMeshProUGUI>() : null;
             #endregion
         }
 
@@ -297,22 +267,6 @@ namespace AcrealUI
             {
                 _lootPileImage.sprite = icon;
                 _lootPileImage.gameObject.SetActive(icon != null);
-            }
-        }
-
-        public void SetTotalGoldText(string goldText)
-        {
-            if (_text_totalGold != null)
-            {
-                _text_totalGold.text = goldText;
-            }
-        }
-
-        public void SetTotalWeightText(string weightText)
-        {
-            if (_text_totalWeight != null)
-            {
-                _text_totalWeight.text = weightText;
             }
         }
         #endregion

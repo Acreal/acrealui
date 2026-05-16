@@ -94,8 +94,8 @@ namespace AcrealUI
             {
                 _inventoryWindowInstance.Show();
 
-                _inventoryWindowInstance.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
-                _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+                _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
 
                 bool hasWagon = UIUtilityFunctions.PlayerHasWagonAccess();
                 _inventoryWindowInstance.EnableOrDisableTabs(hasWagon, hasWagon);
@@ -135,11 +135,13 @@ namespace AcrealUI
                 _characterPanelController = new UICharacterPanelController(_inventoryWindowInstance.characterPanel);
                 _characterPanelController.Initialize();
 
-                _localItemsController = new UIItemListController(_inventoryWindowInstance.itemList_localItems);
+                _localItemsController = new UIItemListController(_inventoryWindowInstance.itemList_localItems, null);
                 _localItemsController.Initialize();
+                _localItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
 
-                _remoteItemsController = new UIItemListController(_inventoryWindowInstance.itemList_remoteItems);
+                _remoteItemsController = new UIItemListController(_inventoryWindowInstance.itemList_remoteItems, null);
                 _remoteItemsController.Initialize();
+                _remoteItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
 
 
                 #region Events
@@ -154,7 +156,7 @@ namespace AcrealUI
                     usingWagon = false;
                     localItems = playerEntity.Items;
                     _localItemsController.SetItemCollection(localItems);
-                    _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
                 };
 
                 _inventoryWindowInstance.Event_ToggledOn_InventoryTab_Wagon += () =>
@@ -162,7 +164,7 @@ namespace AcrealUI
                     usingWagon = true;
                     localItems = playerEntity.WagonItems;
                     _localItemsController.SetItemCollection(localItems);
-                    _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
                 };
 
                 _inventoryWindowInstance.Event_OnButtonClicked_Gold += () =>
@@ -200,26 +202,9 @@ namespace AcrealUI
         #region Weight
         private string BuildPlayerWeightString()
         {
-            float totalWeight = usingWagon ? localItems.GetWeight() : playerEntity.CarriedWeight;
-            string totalWeightStr = totalWeight.ToString("N1");
-            StringBuilder strBuilder = new StringBuilder(totalWeightStr);
-            strBuilder.Append(" / ");
-
-            if (usingWagon)
-            {
-                strBuilder.Append(ItemHelper.WagonKgLimit.ToString("F1"));
-            }
-            else if(playerEntity != null)
-            {
-                strBuilder.Append(playerEntity.MaxEncumbrance.ToString("F1"));
-            }
-            else
-            {
-                strBuilder.Append("0.0");
-            }
-
-            strBuilder.Append(" Kg");
-            return strBuilder.ToString();
+            float totalWeight = usingWagon ? playerEntity.WagonWeight : playerEntity.CarriedWeight;
+            float maxWeight = usingWagon ? ItemHelper.WagonKgLimit : playerEntity.MaxEncumbrance;
+            return UIUtilityFunctions.BuildWeightString(totalWeight, maxWeight);
         }
         #endregion
 
@@ -280,7 +265,7 @@ namespace AcrealUI
                         }
                     }
 
-                    _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
                 }
             }
         }
@@ -298,9 +283,8 @@ namespace AcrealUI
                         int maxCount = item.stackCount - 1;
                         int defaultValue = item.stackCount / 2;
 
-                        // TODO(Acreal): localize "Split Stack" string
-                        UIManager.popupManager.ShowSliderConfirmationWindow("Split Stack", String.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
-                                                                        0, item.stackCount - 1, true, //slider params
+                        UIManager.popupManager.ShowSliderConfirmationWindow(UITextStrings.InventoryWindow_Label_SplitStack.GetText(), String.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
+                                                                        0, item.stackCount - 1, defaultValue, true, //slider params
                                                                         new object[3] { localItems, remoteItems, item }, //additional meta data to pass along
                                                                         (float sliderValue, object[] dataPayload) => //on confirm
                                                                         {
@@ -355,7 +339,7 @@ namespace AcrealUI
 
                 if (_inventoryWindowInstance != null)
                 {
-                    _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
                     _inventoryWindowInstance.SetLootPileActive(LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
                     _inventoryWindowInstance.ShowRemoteItemsPanel();
                 }
@@ -376,8 +360,8 @@ namespace AcrealUI
                         int defaultValue = item.stackCount / 2;
 
                         // TODO(Acreal): localize "Split Stack" string
-                        UIManager.popupManager.ShowSliderConfirmationWindow("Split Stack", string.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
-                                                                        0, item.stackCount - 1, true, //slider params
+                        UIManager.popupManager.ShowSliderConfirmationWindow(UITextStrings.InventoryWindow_Label_SplitStack.GetText(), string.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
+                                                                        0, item.stackCount - 1, defaultValue, true, //slider params
                                                                         new object[3] { localItems, remoteItems, item }, //additional meta data to pass along
                                                                         (float sliderValue, object[] dataPayload) => //on confirm
                                                                         {
@@ -443,10 +427,10 @@ namespace AcrealUI
 
                     if (UIUtilityFunctions.ItemIsGold(item))
                     {
-                        _inventoryWindowInstance.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+                        _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
                     }
 
-                    _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
 
                     if (remoteItems.Count == 0)
                     {
@@ -494,8 +478,8 @@ namespace AcrealUI
                     //update player gold display
                     if (_inventoryWindowInstance.itemList_localItems != null)
                     {
-                        _inventoryWindowInstance.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
-                        _inventoryWindowInstance.SetTotalWeightText(BuildPlayerWeightString());
+                        _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+                        _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
                     }
 
                     //update and show dropped item display

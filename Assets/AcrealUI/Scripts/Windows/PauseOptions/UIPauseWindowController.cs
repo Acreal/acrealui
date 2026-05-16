@@ -70,6 +70,7 @@ namespace AcrealUI
                 UIWindowType.Inventory,
                 UIWindowType.Talk,
                 UIWindowType.UnitySaveGame,
+                UIWindowType.Trade,
             };
 
             ResetKeybindDict();

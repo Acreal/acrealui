@@ -100,6 +100,14 @@ namespace AcrealUI
                 _sliderConfirmationWindow.SetSliderMinMax(min, max, useWholeNumbers);
             }
         }
+        
+        public void SetSliderValue(float value, bool setWithoutNotify)
+        {
+            if (_sliderConfirmationWindow != null)
+            {
+                _sliderConfirmationWindow.SetSliderValue(value, setWithoutNotify);
+            }
+        }
 
         public void SetDataPayload(object[] data)
         {
