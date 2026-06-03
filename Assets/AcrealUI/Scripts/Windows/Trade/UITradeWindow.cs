@@ -27,11 +27,13 @@ namespace AcrealUI
     public class UITradeWindow : UIInventoryWindow
     {
         #region Variables
+        [SerializeField] private string _gameObjName_tradePanelParent = null;
         [SerializeField] private string _gameObjName_itemList_buy = null;
         [SerializeField] private string _gameObjName_itemList_sell = null;
         [SerializeField] private string _gameObjName_tradeTotalText = null;
         [SerializeField] private string _gameObjName_confirmButton = null;
 
+        private GameObject _tradePanelParent = null;
         private UIItemList _buyList = null;
         private UIItemList _sellList = null;
         private TextMeshProUGUI _tradeTotalText = null;
@@ -53,9 +55,24 @@ namespace AcrealUI
         #region Initialization/Cleanup
         public override void Initialize()
         {
+            if (_tradePanelParent == null)
+            {
+                Transform tradeParentTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_tradePanelParent);
+                if (tradeParentTForm != null)
+                {
+                    _tradePanelParent = tradeParentTForm.gameObject;
+                    if (_tradePanelParent == null)
+                    {
+                        Debug.LogError("[AcrealUI.UITradeWindow] Failed to Find Trade Panel Parent!");
+                    }
+                }
+            }
+            
+            Transform rootTform = _tradePanelParent != null ? _tradePanelParent.transform : transform;
+            
             if (_buyList == null)
             {
-                Transform buyTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_buy);
+                Transform buyTForm = UIUtilityFunctions.FindDeepChild(rootTform, _gameObjName_itemList_buy);
                 if (buyTForm != null)
                 {
                     _buyList = buyTForm.GetComponent<UIItemList>();
@@ -69,7 +86,7 @@ namespace AcrealUI
 
             if (_sellList == null)
             {
-                Transform sellTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_itemList_sell);
+                Transform sellTForm = UIUtilityFunctions.FindDeepChild(rootTform, _gameObjName_itemList_sell);
                 if (sellTForm != null)
                 {
                     _sellList = sellTForm.GetComponent<UIItemList>();
@@ -83,7 +100,7 @@ namespace AcrealUI
 
             if (_tradeTotalText == null)
             {
-                Transform totalTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_tradeTotalText);
+                Transform totalTForm = UIUtilityFunctions.FindDeepChild(rootTform, _gameObjName_tradeTotalText);
                 if (totalTForm != null)
                 {
                     _tradeTotalText = totalTForm.GetComponent<TextMeshProUGUI>();
@@ -93,7 +110,7 @@ namespace AcrealUI
 
             if (_confirmButton == null)
             {
-                Transform confirmTForm = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_confirmButton);
+                Transform confirmTForm = UIUtilityFunctions.FindDeepChild(rootTform, _gameObjName_confirmButton);
                 if (confirmTForm != null)
                 {
                     _confirmButton = confirmTForm.GetComponent<UIButton>();
@@ -138,6 +155,14 @@ namespace AcrealUI
 
 
         #region Public API
+        public void SetTradePanelActive(bool active)
+        {
+            if (_tradePanelParent != null)
+            {
+                _tradePanelParent.SetActive(active);
+            }
+        }
+        
         public void SetTotalTradeValueText(string totalValueText, Color textColor)
         {
             if (_tradeTotalText != null)

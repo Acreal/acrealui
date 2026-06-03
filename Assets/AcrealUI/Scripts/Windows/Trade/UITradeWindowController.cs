@@ -150,6 +150,9 @@ namespace AcrealUI
             _tradeWindowInstance?.Show(true);
             _tradeWindowInstance?.ShowRemoteItemsPanel();
 
+            bool hasWagon = UIUtilityFunctions.PlayerHasWagonAccess();
+            _tradeWindowInstance?.EnableOrDisableTabs(hasWagon, hasWagon);
+
             _characterPanelController.UpdateAll();
 
             _localItemsController.SetItemCollection(localItems);
@@ -157,6 +160,11 @@ namespace AcrealUI
 
             _buyListController.SetItemCollection(_buyCollection);
             _sellListController.SetItemCollection(_sellCollection);
+
+            _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+            _localItemsController.itemList?.SetTotalWeightText(UIUtilityFunctions.GetPlayerCarriedWeightString());
+
+            _remoteItemsController.itemList?.SetGoldAndWeightParentActive(false);
 
             UpdateBuySubtotal();
             UpdateSellSubtotal();
@@ -167,197 +175,156 @@ namespace AcrealUI
         {
             IsSetup = true;
 
-            if (_tradeWindowInstance == null)
+            if (_tradeWindowInstance != null) return;
+
+            #region Window Instance
+            UITradeWindow tradeWindow = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Trade) as UITradeWindow;
+            if (tradeWindow == null)
             {
-                #region Window Instance
-                UITradeWindow tradeWindow = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Trade) as UITradeWindow;
-                if (tradeWindow == null)
+                Debug.LogError("[AcrealUI.UITradeWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.Trade) returned " + (tradeWindow == null ? " NULL!" : "a window of the wrong type! Expected type UITradeWindow, but got " + tradeWindow.GetType() + "!"));
+                return;
+            }
+
+            _tradeWindowInstance = tradeWindow;
+            _tradeWindowInstance.Initialize();
+
+            _tradeWindowInstance.SetTradePanelActive(WindowMode == WindowModes.Buy || WindowMode == WindowModes.Sell || WindowMode == WindowModes.SellMagic);
+
+            _tradeWindowInstance.Event_ToggledOn_InventoryTab_Player += () =>
+            {
+                usingWagon = false;
+                localItems = playerEntity.Items;
+                _localItemsController.SetItemCollection(localItems);
+            };
+
+            _tradeWindowInstance.Event_ToggledOn_InventoryTab_Wagon += () =>
+            {
+                usingWagon = true;
+                localItems = playerEntity.WagonItems;
+                _localItemsController.SetItemCollection(localItems);
+            };
+
+            _tradeWindowInstance.Event_OnConfirmTrade += () =>
+            {
+                if (playerEntity == null) { return; }
+
+                int totalValue = GetNetTradeValue();
+                bool canAfford = totalValue <= 0 || playerEntity.GoldPieces >= totalValue;
+                if (canAfford && UIUtilityFunctions.PlayerCanCarryItems(_buyCollection, true, out List<int> playerCarryList))
                 {
-                    Debug.LogError("[AcrealUI.UITradeWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.Trade) returned " + (tradeWindow == null ? " NULL!" : "a window of the wrong type! Expected type UITradeWindow, but got " + tradeWindow.GetType().ToString() + "!"));
-                    return;
+                    TransferAll(_sellListController, _remoteItemsController);
+
+                    //transfer bought items to player, overflowing to wagon
+                    //if necessary based on weight
+                    for (int i = 0; i < _buyCollection.Count; i++)
+                    {
+                        DaggerfallUnityItem item = _buyCollection.GetItem(i);
+                        
+                        int playerStackSize = playerCarryList[i];
+                        if (playerStackSize == 0)
+                        {
+                            playerEntity.WagonItems.AddItem(item);
+                        }
+                        else if (playerStackSize < item.stackCount)
+                        {
+                            DaggerfallUnityItem splitItem = _buyCollection.SplitStack(item, playerStackSize);
+                            playerEntity.Items.AddItem(splitItem);
+                            playerEntity.WagonItems.AddItem(item);
+                        }
+                        else
+                        {
+                            playerEntity.Items.AddItem(item);
+                        }
+                    }
+                    _buyCollection.Clear();
+                    _buyListController.UpdateItemList(true);
+
+                    //handle payment to player
+                    bool receivedLetterOfCredit = false;
+                    if (totalValue < 0f)
+                    {
+                        totalValue = Mathf.Abs(totalValue);
+                        float gWeight = totalValue * DaggerfallBankManager.goldPieceWeightInKg;
+                        if (playerEntity.MaxEncumbrance - playerEntity.CarriedWeight >= gWeight)
+                        {
+                            playerEntity.GoldPieces += totalValue;
+                        }
+                        else
+                        {
+                            DaggerfallUnityItem loc = ItemBuilder.CreateItem(ItemGroups.MiscItems, (int)MiscItems.Letter_of_credit);
+                            loc.value = totalValue;
+                            playerEntity.Items.AddItem(loc);
+                            receivedLetterOfCredit = true;
+                        }
+                    }
+                    else
+                    {
+                        playerEntity.DeductGoldAmount(totalValue);
+                    }
+
+                    //play sound effect
+                    DaggerfallUI.Instance.PlayOneShot(receivedLetterOfCredit
+                        ? SoundClips.ParchmentScratching
+                        : SoundClips.GoldPieces);
+
+                    //NOTE(Acreal): tallying the skill this way means that to optimize
+                    //for advancing this skill, you want to confirm trades one item at
+                    //a time.
+                    //tally per item?
+                    //tally per action? (ie buy, sell, repair)
+                    playerEntity.TallySkill(DFCareer.Skills.Mercantile, 1);
+                        
+                    //notify player of letter of credit
+                    if (receivedLetterOfCredit)
+                    {
+                        DaggerfallUI.MessageBox(TextManager.Instance.GetLocalizedText("letterOfCredit"));
+                    }
+                        
+                    //refresh UI elements
+                    _localItemsController.UpdateItemList(true);
+                    _localItemsController.itemList?.SetTotalGoldText(UIUtilityFunctions.GetPlayerGoldString());
+                    _localItemsController.itemList?.SetTotalWeightText(UIUtilityFunctions.GetPlayerCarriedWeightString());
+                    _sellListController.itemList?.SetTotalWeightText(UIUtilityFunctions.BuildWeightString(0f, -1f));
+                    _buyListController.itemList?.SetTotalWeightText(UIUtilityFunctions.BuildWeightString(0f, -1f));
+                    UpdateBuySubtotal();
+                    UpdateSellSubtotal();
+                    UpdateTradeTotal();
                 }
+            };
+            #endregion
 
-                _tradeWindowInstance = tradeWindow;
-                _tradeWindowInstance.Initialize();
+            #region Character Panel
+            _characterPanelController = new UICharacterPanelController(_tradeWindowInstance.characterPanel);
+            _characterPanelController.Initialize();
+            #endregion
 
-                _tradeWindowInstance.Event_ToggledOn_InventoryTab_Player += () =>
+            #region Local List
+            _localItemsController = new UIItemListController(_tradeWindowInstance.itemList_localItems, Guild);
+            _localItemsController.Initialize();
+            _localItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
+
+            _localItemsController.DataSource_DisableItemEntryInput = (GameObject sender) =>
+            {
+                UIItemEntry itemEntry = sender.GetComponent<UIItemEntry>();
+                DaggerfallUnityItem item = localItems.GetItem(itemEntry.itemUID);
+                return item == null || _itemTypesAccepted == null || !_itemTypesAccepted.Contains(item.ItemGroup);
+            };
+
+            _localItemsController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                if (clickCount == 2)
                 {
-                    usingWagon = false;
-                    localItems = playerEntity.Items;
-                    _localItemsController.SetItemCollection(localItems);
-                };
+                    TransferItem(itemEntry, _localItemsController, _sellListController);
+                    UpdateSellSubtotal();
+                    UpdateTradeTotal();
+                }
+            };
 
-                _tradeWindowInstance.Event_ToggledOn_InventoryTab_Wagon += () =>
+            _localItemsController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                if (itemEntry != null)
                 {
-                    usingWagon = true;
-                    localItems = playerEntity.WagonItems;
-                    _localItemsController.SetItemCollection(localItems);
-                };
-
-                _tradeWindowInstance.Event_OnConfirmTrade += () =>
-                {
-                    if (playerEntity == null) { return; }
-
-                    int totalValue = GetNetTradeValue();
-                    bool canAfford = totalValue <= 0 || playerEntity.GoldPieces >= totalValue;
-                    if (canAfford && UIUtilityFunctions.PlayerCanCarryItems(_buyCollection, true, out List<int> playerCarryList))
-                    {
-                        TransferAll(_sellListController, _remoteItemsController);
-
-                        for (int i = 0; i < _buyCollection.Count; i++)
-                        {
-                            DaggerfallUnityItem item = _buyCollection.GetItem(i);
-                            
-                            int playerStackSize = playerCarryList[i];
-                            if (playerStackSize == 0)
-                            {
-                                playerEntity.WagonItems.AddItem(item);
-                            }
-                            else if (playerStackSize < item.stackCount)
-                            {
-                                DaggerfallUnityItem splitItem = _buyCollection.SplitStack(item, playerStackSize);
-                                playerEntity.Items.AddItem(splitItem);
-                                playerEntity.WagonItems.AddItem(item);
-                            }
-                            else
-                            {
-                                playerEntity.Items.AddItem(item);
-                            }
-                        }
-                        _buyCollection.Clear();
-                        _buyListController.UpdateItemList(true);
-
-                        //handle payment to player
-                        bool receivedLetterOfCredit = false;
-                        if (totalValue < 0f)
-                        {
-                            totalValue = Mathf.Abs(totalValue);
-                            float gWeight = totalValue * DaggerfallBankManager.goldPieceWeightInKg;
-                            if (playerEntity.MaxEncumbrance - playerEntity.CarriedWeight >= gWeight)
-                            {
-                                playerEntity.GoldPieces += totalValue;
-                            }
-                            else
-                            {
-                                DaggerfallUnityItem loc = ItemBuilder.CreateItem(ItemGroups.MiscItems, (int)MiscItems.Letter_of_credit);
-                                loc.value = totalValue;
-                                playerEntity.Items.AddItem(loc);
-                                receivedLetterOfCredit = true;
-                            }
-                        }
-                        else //handle payment to merchant
-                        {
-                            playerEntity.DeductGoldAmount(totalValue);
-                        }
-
-                        //play sound effect
-                        DaggerfallUI.Instance.PlayOneShot(receivedLetterOfCredit
-                            ? SoundClips.ParchmentScratching
-                            : SoundClips.GoldPieces);
-
-                        //NOTE(Acreal): tallying the skill this way means that to optimize
-                        //for advancing this skill, you want to confirm trades one item at
-                        //a time.
-                        //tally per item?
-                        //tally per action? (ie buy, sell, repair)
-                        playerEntity.TallySkill(DFCareer.Skills.Mercantile, 1);
-                        
-                        if (receivedLetterOfCredit)
-                        {
-                            DaggerfallUI.MessageBox(TextManager.Instance.GetLocalizedText("letterOfCredit"));
-                        }
-                        
-                        _localItemsController?.UpdateItemList(true);
-                    }
-                };
-                #endregion
-
-                #region Character Panel
-                _characterPanelController = new UICharacterPanelController(_tradeWindowInstance.characterPanel);
-                _characterPanelController.Initialize();
-                #endregion
-
-                #region Local List
-                _localItemsController = new UIItemListController(_tradeWindowInstance.itemList_localItems, Guild);
-                _localItemsController.Initialize();
-                _localItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
-
-                _localItemsController.DataSource_DisableItemEntryInput = (GameObject sender) =>
-                {
-                    UIItemEntry itemEntry = sender.GetComponent<UIItemEntry>();
-                    DaggerfallUnityItem item = localItems.GetItem(itemEntry.itemUID);
-                    return item == null || _itemTypesAccepted == null || !_itemTypesAccepted.Contains(item.ItemGroup);
-                };
-
-                _localItemsController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
-                {
-                    if (clickCount == 2)
-                    {
-                        TransferItem(itemEntry, _localItemsController, _sellListController);
-                        UpdateSellSubtotal();
-                        UpdateTradeTotal();
-                    }
-                };
-
-                _localItemsController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
-                {
-                    if (itemEntry != null)
-                    {
-                        DaggerfallUnityItem item = localItems?.GetItem(itemEntry.itemUID);
-                        if (item != null)
-                        {
-                            bool splitting = item.IsAStack() && item.stackCount >= 2 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
-                            if (splitting)
-                            {
-                                int maxCount = item.stackCount - 1;
-                                int defaultValue = item.stackCount / 2;
-
-                                UIManager.popupManager.ShowSliderConfirmationWindow(UITextStrings.InventoryWindow_Label_SplitStack.GetText(), string.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
-                                                                                0, item.stackCount - 1, defaultValue, true, //slider params
-                                                                                new object[1] { item }, //additional meta data to pass along
-                                                                                (float sliderValue, object[] dataPayload) => //on confirm
-                                                                                {
-                                                                                    UIManager.popupManager.HideActivePopupWindow();
-
-                                                                                    DaggerfallUnityItem itemToSplit = dataPayload[0] as DaggerfallUnityItem;
-
-                                                                                    int splitSize = (int)sliderValue;
-                                                                                    DaggerfallUnityItem splitItem = _localItemsController.itemCollection.SplitStack(itemToSplit, splitSize);
-                                                                                    TransferItem(splitItem, _localItemsController, _sellListController);
-                                                                                    UpdateSellSubtotal();
-                                                                                    UpdateTradeTotal();
-                                                                                },
-                                                                                (_) => { UIManager.popupManager.HideActivePopupWindow(); });
-                            }
-                            else
-                            {
-                                TransferItem(itemEntry, _localItemsController, _sellListController);
-                                UpdateSellSubtotal();
-                                UpdateTradeTotal();
-                            }
-                        }
-                    }
-                };
-                #endregion
-
-                #region Remote List
-                _remoteItemsController = new UIItemListController(_tradeWindowInstance.itemList_remoteItems, Guild, true);
-                _remoteItemsController.Initialize();
-                _remoteItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
-
-                _remoteItemsController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
-                {
-                    if (clickCount == 2)
-                    {
-                        TransferItem(itemEntry, _remoteItemsController, _buyListController);
-                        UpdateBuySubtotal();
-                        UpdateTradeTotal();
-                    }
-                };
-
-                _remoteItemsController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
-                {
-                    DaggerfallUnityItem item = remoteItems?.GetItem(itemEntry.itemUID);
+                    DaggerfallUnityItem item = localItems?.GetItem(itemEntry.itemUID);
                     if (item != null)
                     {
                         bool splitting = item.IsAStack() && item.stackCount >= 2 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
@@ -367,98 +334,151 @@ namespace AcrealUI
                             int defaultValue = item.stackCount / 2;
 
                             UIManager.popupManager.ShowSliderConfirmationWindow(UITextStrings.InventoryWindow_Label_SplitStack.GetText(), string.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
-                                                                            0, item.stackCount - 1, defaultValue, true, //slider params
-                                                                            new object[1] { item }, //additional meta data to pass along
-                                                                            (float sliderValue, object[] dataPayload) => //on confirm
-                                                                            {
-                                                                                UIManager.popupManager.HideActivePopupWindow();
+                                0, item.stackCount - 1, defaultValue, true, //slider params
+                                new object[] { item }, //additional meta data to pass along
+                                (float sliderValue, object[] dataPayload) => //on confirm
+                                {
+                                    UIManager.popupManager.HideActivePopupWindow();
 
-                                                                                DaggerfallUnityItem itemToSplit = dataPayload[0] as DaggerfallUnityItem;
+                                    DaggerfallUnityItem itemToSplit = dataPayload[0] as DaggerfallUnityItem;
 
-                                                                                int splitSize = (int)sliderValue;
-                                                                                DaggerfallUnityItem splitItem = _remoteItemsController.itemCollection.SplitStack(itemToSplit, splitSize);
-                                                                                TransferItem(splitItem, _remoteItemsController, _buyListController);
-                                                                                UpdateBuySubtotal();
-                                                                                UpdateTradeTotal();
-                                                                            },
-                                                                            (_) => { UIManager.popupManager.HideActivePopupWindow(); });
+                                    int splitSize = (int)sliderValue;
+                                    DaggerfallUnityItem splitItem = _localItemsController.itemCollection.SplitStack(itemToSplit, splitSize);
+                                    TransferItem(splitItem, _localItemsController, _sellListController);
+                                    UpdateSellSubtotal();
+                                    UpdateTradeTotal();
+                                },
+                                (_) => { UIManager.popupManager.HideActivePopupWindow(); });
                         }
                         else
                         {
-                            TransferItem(itemEntry, _remoteItemsController, _buyListController);
-                            UpdateBuySubtotal();
+                            TransferItem(itemEntry, _localItemsController, _sellListController);
+                            UpdateSellSubtotal();
                             UpdateTradeTotal();
                         }
                     }
-                };
-                #endregion
+                }
+            };
+            #endregion
 
-                #region Buy List
-                _buyListController = new UIItemListController(_tradeWindowInstance.buyList, Guild, true);
-                _buyListController.Initialize();
-                _buyListController.itemList.SetItemSortingFlags(ItemSortingFlags.MerchantItemFlags);
+            #region Remote List
+            _remoteItemsController = new UIItemListController(_tradeWindowInstance.itemList_remoteItems, Guild, true);
+            _remoteItemsController.Initialize();
+            _remoteItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
 
-                _buyListController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
+            _remoteItemsController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                if (clickCount == 2)
                 {
-                    if (clickCount == 2)
+                    TransferItem(itemEntry, _remoteItemsController, _buyListController);
+                    UpdateBuySubtotal();
+                    UpdateTradeTotal();
+                }
+            };
+
+            _remoteItemsController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                DaggerfallUnityItem item = remoteItems?.GetItem(itemEntry.itemUID);
+                if (item != null)
+                {
+                    bool splitting = item.IsAStack() && item.stackCount >= 2 && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+                    if (splitting)
                     {
-                        TransferItem(itemEntry, _buyListController, _remoteItemsController);
+                        int maxCount = item.stackCount - 1;
+                        int defaultValue = item.stackCount / 2;
+
+                        UIManager.popupManager.ShowSliderConfirmationWindow(UITextStrings.InventoryWindow_Label_SplitStack.GetText(), string.Format(TextManager.Instance.GetLocalizedText("howManyItems"), maxCount),
+                            0, item.stackCount - 1, defaultValue, true, //slider params
+                            new object[1] { item }, //additional meta data to pass along
+                            (float sliderValue, object[] dataPayload) => //on confirm
+                            {
+                                UIManager.popupManager.HideActivePopupWindow();
+
+                                DaggerfallUnityItem itemToSplit = dataPayload[0] as DaggerfallUnityItem;
+
+                                int splitSize = (int)sliderValue;
+                                DaggerfallUnityItem splitItem = _remoteItemsController.itemCollection.SplitStack(itemToSplit, splitSize);
+                                TransferItem(splitItem, _remoteItemsController, _buyListController);
+                                UpdateBuySubtotal();
+                                UpdateTradeTotal();
+                            },
+                            (_) => { UIManager.popupManager.HideActivePopupWindow(); });
+                    }
+                    else
+                    {
+                        TransferItem(itemEntry, _remoteItemsController, _buyListController);
                         UpdateBuySubtotal();
                         UpdateTradeTotal();
                     }
-                };
+                }
+            };
+            #endregion
 
-                _buyListController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
+            #region Buy List
+            _buyListController = new UIItemListController(_tradeWindowInstance.buyList, Guild, true);
+            _buyListController.Initialize();
+            _buyListController.itemList.SetItemSortingFlags(ItemSortingFlags.MerchantItemFlags);
+
+            _buyListController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                if (clickCount == 2)
                 {
                     TransferItem(itemEntry, _buyListController, _remoteItemsController);
                     UpdateBuySubtotal();
                     UpdateTradeTotal();
-                };
-
-                UITradeItemList buyTradeList = _buyListController.itemList as UITradeItemList;
-                if (buyTradeList != null)
-                {
-                    buyTradeList.Event_OnButtonClicked_EmptyList += () =>
-                    {
-                        TransferAll(_buyListController, _remoteItemsController);
-                        UpdateBuySubtotal();
-                        UpdateTradeTotal();
-                    };
                 }
-                #endregion
+            };
 
-                #region Sell List
-                _sellListController = new UIItemListController(_tradeWindowInstance.sellList, Guild);
-                _sellListController.Initialize();
-                _sellListController.itemList.SetItemSortingFlags(ItemSortingFlags.MerchantItemFlags);
+            _buyListController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                TransferItem(itemEntry, _buyListController, _remoteItemsController);
+                UpdateBuySubtotal();
+                UpdateTradeTotal();
+            };
 
-                _sellListController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
+            UITradeItemList buyTradeList = _buyListController.itemList as UITradeItemList;
+            if (buyTradeList != null)
+            {
+                buyTradeList.Event_OnButtonClicked_EmptyList += () =>
                 {
-                    if (clickCount != 2) return;
-                    TransferItem(itemEntry, _sellListController, _localItemsController);
-                    UpdateSellSubtotal();
+                    TransferAll(_buyListController, _remoteItemsController);
+                    UpdateBuySubtotal();
                     UpdateTradeTotal();
                 };
-
-                _sellListController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
-                {
-                    TransferItem(itemEntry, _sellListController, _localItemsController);
-                    UpdateSellSubtotal();
-                    UpdateTradeTotal();
-                };
-
-                UITradeItemList sellTradeList = _sellListController.itemList as UITradeItemList;
-                if (sellTradeList != null)
-                {
-                    sellTradeList.Event_OnButtonClicked_EmptyList += () =>
-                    {
-                        TransferAll(_sellListController, _localItemsController);
-                        UpdateSellSubtotal();
-                        UpdateTradeTotal();
-                    };
-                }
-                #endregion
             }
+            #endregion
+
+            #region Sell List
+            _sellListController = new UIItemListController(_tradeWindowInstance.sellList, Guild);
+            _sellListController.Initialize();
+            _sellListController.itemList.SetItemSortingFlags(ItemSortingFlags.MerchantItemFlags);
+
+            _sellListController.Event_OnItemLeftClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                if (clickCount != 2) return;
+                TransferItem(itemEntry, _sellListController, _localItemsController);
+                UpdateSellSubtotal();
+                UpdateTradeTotal();
+            };
+
+            _sellListController.Event_OnItemRightClicked += (UIItemEntry itemEntry, int clickCount) =>
+            {
+                TransferItem(itemEntry, _sellListController, _localItemsController);
+                UpdateSellSubtotal();
+                UpdateTradeTotal();
+            };
+
+            UITradeItemList sellTradeList = _sellListController.itemList as UITradeItemList;
+            if (sellTradeList != null)
+            {
+                sellTradeList.Event_OnButtonClicked_EmptyList += () =>
+                {
+                    TransferAll(_sellListController, _localItemsController);
+                    UpdateSellSubtotal();
+                    UpdateTradeTotal();
+                };
+            }
+            #endregion
         }
 
         //unused functions
@@ -527,7 +547,7 @@ namespace AcrealUI
                     color = totalValue > 0 ? Color.red : Color.green;
                 }
                 totalValue = Mathf.Abs(totalValue);
-                _tradeWindowInstance.SetTotalTradeValueText(symbol + totalValue.ToString("N0"), color);
+                _tradeWindowInstance?.SetTotalTradeValueText(symbol + totalValue.ToString("N0"), color);
             }
         }
 

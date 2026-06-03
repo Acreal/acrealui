@@ -26,6 +26,7 @@ namespace AcrealUI
         #region Variables
         private UIConfirmationWindow _confirmationWindow = null;
         private object[] _dataPayload = null;
+        private bool _isSetup = false;
         #endregion
 
 
@@ -36,26 +37,26 @@ namespace AcrealUI
 
 
         #region Initialization
-        public UIConfirmationWindowController()
+        public void Setup()
         {
-            if (_confirmationWindow == null)
-            {
-                UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Confirmation);
-                if (window == null || !(window is UIConfirmationWindow))
-                {
-                    Debug.LogError("[AcrealUI.UIConfirmationWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.Confirmation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConfirmationWindow, but got " + window.GetType().ToString() + "!"));
-                    return;
-                }
+            _isSetup = true;
+            if (_confirmationWindow != null) return;
 
-                _confirmationWindow = window as UIConfirmationWindow;
-                _confirmationWindow.Initialize();
-                _confirmationWindow.Hide();
-                _confirmationWindow.SetBackButtonActive(false);
-                _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
-                _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
-                _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(_dataPayload); };
-                _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+            UIWindow window = UIManager.Instance.GetWindowInstance(UIWindowInstanceType.Confirmation);
+            if (window == null || !(window is UIConfirmationWindow))
+            {
+                Debug.LogError("[AcrealUI.UIConfirmationWindowController] UIManager.GetWindowInstance(UIWindowInstanceType.Confirmation) returned " + (window == null ? " NULL!" : "a window of the wrong type! Expected type UIConfirmationWindow, but got " + window.GetType().ToString() + "!"));
+                return;
             }
+
+            _confirmationWindow = window as UIConfirmationWindow;
+            _confirmationWindow.Initialize();
+            _confirmationWindow.Hide();
+            _confirmationWindow.SetBackButtonActive(false);
+            _confirmationWindow.Event_ButtonClick_CloseWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+            _confirmationWindow.Event_ButtonClick_PrevWindow += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
+            _confirmationWindow.Event_OnConfirm += () => { Event_ButtonClick_OnConfirm?.Invoke(_dataPayload); };
+            _confirmationWindow.Event_OnCancel += () => { Event_ButtonClick_OnCancel?.Invoke(_dataPayload); };
         }
         #endregion
 
@@ -63,6 +64,10 @@ namespace AcrealUI
         #region IWindowController
         public void ShowWindow()
         {
+            if (!_isSetup)
+            {
+                Setup();
+            }
             _confirmationWindow?.Show();
         }
 

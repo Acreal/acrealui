@@ -22,7 +22,6 @@ using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.UserInterface;
 using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using System;
-using System.Text;
 using UnityEngine;
 
 using Debug = UnityEngine.Debug;
@@ -95,7 +94,9 @@ namespace AcrealUI
                 _inventoryWindowInstance.Show();
 
                 _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
-                _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
+                _localItemsController.itemList?.SetTotalWeightText(usingWagon ? UIUtilityFunctions.GetPlayerWagonWeightString() : UIUtilityFunctions.GetPlayerCarriedWeightString());
+
+                _remoteItemsController.itemList?.SetGoldAndWeightParentActive(false);
 
                 bool hasWagon = UIUtilityFunctions.PlayerHasWagonAccess();
                 _inventoryWindowInstance.EnableOrDisableTabs(hasWagon, hasWagon);
@@ -138,6 +139,21 @@ namespace AcrealUI
                 _localItemsController = new UIItemListController(_inventoryWindowInstance.itemList_localItems, null);
                 _localItemsController.Initialize();
                 _localItemsController.itemList.SetItemSortingFlags(ItemSortingFlags.Default);
+                _localItemsController.itemList.Event_OnButtonClicked_Gold += () =>
+                {
+                    // Show message box
+                    const int goldToDropTextId = 25;
+                    DaggerfallInputMessageBox mb = new DaggerfallInputMessageBox(DaggerfallUI.UIManager);
+                    mb.SetTextTokens(goldToDropTextId);
+                    mb.TextPanelDistanceY = 0;
+                    mb.InputDistanceX = 15;
+                    mb.InputDistanceY = -6;
+                    mb.TextBox.Numeric = true;
+                    mb.TextBox.MaxCharacters = 8;
+                    mb.TextBox.Text = "0";
+                    mb.OnGotUserInput += DropGoldPopup_OnGotUserInput;
+                    mb.Show();
+                };
 
                 _remoteItemsController = new UIItemListController(_inventoryWindowInstance.itemList_remoteItems, null);
                 _remoteItemsController.Initialize();
@@ -156,7 +172,7 @@ namespace AcrealUI
                     usingWagon = false;
                     localItems = playerEntity.Items;
                     _localItemsController.SetItemCollection(localItems);
-                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(usingWagon ? UIUtilityFunctions.GetPlayerWagonWeightString() : UIUtilityFunctions.GetPlayerCarriedWeightString());
                 };
 
                 _inventoryWindowInstance.Event_ToggledOn_InventoryTab_Wagon += () =>
@@ -164,23 +180,7 @@ namespace AcrealUI
                     usingWagon = true;
                     localItems = playerEntity.WagonItems;
                     _localItemsController.SetItemCollection(localItems);
-                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
-                };
-
-                _inventoryWindowInstance.Event_OnButtonClicked_Gold += () =>
-                {
-                    // Show message box
-                    const int goldToDropTextId = 25;
-                    DaggerfallInputMessageBox mb = new DaggerfallInputMessageBox(uiManager, this);
-                    mb.SetTextTokens(goldToDropTextId);
-                    mb.TextPanelDistanceY = 0;
-                    mb.InputDistanceX = 15;
-                    mb.InputDistanceY = -6;
-                    mb.TextBox.Numeric = true;
-                    mb.TextBox.MaxCharacters = 8;
-                    mb.TextBox.Text = "0";
-                    mb.OnGotUserInput += DropGoldPopup_OnGotUserInput;
-                    mb.Show();
+                    _localItemsController.itemList?.SetTotalWeightText(usingWagon ? UIUtilityFunctions.GetPlayerWagonWeightString() : UIUtilityFunctions.GetPlayerCarriedWeightString());
                 };
                 #endregion
             }
@@ -199,12 +199,54 @@ namespace AcrealUI
         #endregion
 
 
-        #region Weight
-        private string BuildPlayerWeightString()
+        #region Gold and Weight
+        private void DropGoldPopup_OnGotUserInput(DaggerfallInputMessageBox sender, string input)
         {
-            float totalWeight = usingWagon ? playerEntity.WagonWeight : playerEntity.CarriedWeight;
-            float maxWeight = usingWagon ? ItemHelper.WagonKgLimit : playerEntity.MaxEncumbrance;
-            return UIUtilityFunctions.BuildWeightString(totalWeight, maxWeight);
+            // Determine how many gold pieces to drop
+            int goldToDrop = 0;
+            bool result = int.TryParse(input, out goldToDrop);
+            if (!result || goldToDrop < 1)
+            {
+                return;
+            }
+
+            if (playerEntity != null)
+            {
+                // Get player gold count
+                int playerGold = playerEntity.GoldPieces;
+                if (goldToDrop > playerGold)
+                {
+                    return;
+                }
+
+                // Create new item for gold pieces and add to other container
+                DaggerfallUnityItem goldPieces = ItemBuilder.CreateGoldPieces(goldToDrop);
+                remoteItems.AddItem(goldPieces);
+
+                // Remove gold count from player
+                GameManager.Instance.PlayerEntity.GoldPieces -= goldToDrop;
+
+                //update player gold display
+                if (_localItemsController.itemList != null)
+                {
+                    _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
+                    _localItemsController.itemList?.SetTotalWeightText(UIUtilityFunctions.BuildWeightString(playerEntity.CarriedWeight, playerEntity.MaxEncumbrance));
+                }
+
+                if (_remoteItemsController != null)
+                {
+                    _remoteItemsController.UpdateItemFilterToggles();
+                    _remoteItemsController.UpdateItemList(false);
+                }
+
+                //update and show dropped item display
+                _inventoryWindowInstance.SetLootPileActive(LootTarget != null || (remoteItems != null && remoteItems.Count > 0));
+                _inventoryWindowInstance.SetLootPileIcon(UIUtilityFunctions.GetLootContainerIcon(lootTarget));
+                _inventoryWindowInstance.ShowRemoteItemsPanel();
+
+                UIManager.tooltipManager.HideActiveTooltip();
+
+            }
         }
         #endregion
 
@@ -265,7 +307,7 @@ namespace AcrealUI
                         }
                     }
 
-                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(usingWagon ? UIUtilityFunctions.GetPlayerWagonWeightString() : UIUtilityFunctions.GetPlayerCarriedWeightString());
                 }
             }
         }
@@ -339,7 +381,7 @@ namespace AcrealUI
 
                 if (_inventoryWindowInstance != null)
                 {
-                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(usingWagon ? UIUtilityFunctions.GetPlayerWagonWeightString() : UIUtilityFunctions.GetPlayerCarriedWeightString());
                     _inventoryWindowInstance.SetLootPileActive(LootTarget != null || (droppedItems != null && droppedItems.Count > 0));
                     _inventoryWindowInstance.ShowRemoteItemsPanel();
                 }
@@ -430,7 +472,7 @@ namespace AcrealUI
                         _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
                     }
 
-                    _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
+                    _localItemsController.itemList?.SetTotalWeightText(usingWagon ? UIUtilityFunctions.GetPlayerWagonWeightString() : UIUtilityFunctions.GetPlayerCarriedWeightString());
 
                     if (remoteItems.Count == 0)
                     {
@@ -442,57 +484,6 @@ namespace AcrealUI
                         {
                             _inventoryWindowInstance.HideRemoteItemsPanel();
                         }
-                    }
-                }
-            }
-        }
-
-        private void DropGoldPopup_OnGotUserInput(DaggerfallInputMessageBox sender, string input)
-        {
-            // Determine how many gold pieces to drop
-            int goldToDrop = 0;
-            bool result = int.TryParse(input, out goldToDrop);
-            if (!result || goldToDrop < 1)
-            {
-                return;
-            }
-
-            if(playerEntity != null)
-            {
-                // Get player gold count
-                int playerGold = playerEntity.GoldPieces;
-                if (goldToDrop > playerGold)
-                {
-                    return;
-                }
-
-                // Create new item for gold pieces and add to other container
-                DaggerfallUnityItem goldPieces = ItemBuilder.CreateGoldPieces(goldToDrop);
-                remoteItems.AddItem(goldPieces);
-
-                // Remove gold count from player
-                GameManager.Instance.PlayerEntity.GoldPieces -= goldToDrop;
-
-                if (_inventoryWindowInstance != null)
-                {
-                    //update player gold display
-                    if (_inventoryWindowInstance.itemList_localItems != null)
-                    {
-                        _localItemsController.itemList?.SetTotalGoldText(playerEntity.GoldPieces.ToString("N0"));
-                        _localItemsController.itemList?.SetTotalWeightText(BuildPlayerWeightString());
-                    }
-
-                    //update and show dropped item display
-                    if (_inventoryWindowInstance.itemList_remoteItems != null)
-                    {
-                        _inventoryWindowInstance.SetLootPileActive(LootTarget != null || (remoteItems != null && remoteItems.Count > 0));
-                        _inventoryWindowInstance.SetLootPileIcon(UIUtilityFunctions.GetLootContainerIcon(lootTarget));
-                        _remoteItemsController.UpdateItemFilterToggles();
-                        _remoteItemsController.UpdateItemList(false);
-
-                        UIManager.tooltipManager.HideActiveTooltip();
-
-                        _inventoryWindowInstance.ShowRemoteItemsPanel();
                     }
                 }
             }

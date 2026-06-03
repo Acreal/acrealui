@@ -37,7 +37,6 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_inventoryTabToggle_wagon = null;
 
         [Header("Buttons")]
-        [SerializeField] private string _gameObjName_goldButton = null;
         [SerializeField] private string _gameObjName_lootPileButton = null;
 
         [Header("Images")]
@@ -62,7 +61,6 @@ namespace AcrealUI
         private UIToggle _inventoryTabToggle_player = null;
         private UIToggle _inventoryTabToggle_wagon = null;
         private UIButton _lootPileButton = null;
-        private UIButton _goldButton = null;
         private Image _lootPileImage = null;
         private bool _isShowingRemoteItemPanel = false;
         #endregion
@@ -79,7 +77,6 @@ namespace AcrealUI
         public event Action Event_ToggledOn_InventoryTab_Player = null;
         public event Action Event_ToggledOn_InventoryTab_Wagon = null;
         public event Action Event_OnButtonClicked_LootPile = null;
-        public event Action Event_OnButtonClicked_Gold = null;
         #endregion
 
 
@@ -151,18 +148,6 @@ namespace AcrealUI
 
             Transform lootIconTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_lootPileImage);
             _lootPileImage = lootIconTform != null ? lootIconTform.GetComponent<Image>() : null;
-            #endregion
-
-            #region Gold Display
-            Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
-            if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
-            if (_goldButton != null)
-            {
-                _goldButton.Event_OnAnyClick += (_, _1) =>
-                {
-                    Event_OnButtonClicked_Gold?.Invoke();
-                };
-            }
             #endregion
         }
 
@@ -254,6 +239,11 @@ namespace AcrealUI
         {
             if (_inventoryTabToggle_player != null) { _inventoryTabToggle_player.gameObject.SetActive(enablePlayerTab); }
             if (_inventoryTabToggle_wagon != null) { _inventoryTabToggle_wagon.gameObject.SetActive(enableWagonTab); }
+            if (_inventoryTabToggleGroup != null)
+            {
+                bool active = enablePlayerTab || enableWagonTab;
+                _inventoryTabToggleGroup.gameObject.SetActive(active);
+            }
         }
 
         public void SetLootPileActive(bool active)

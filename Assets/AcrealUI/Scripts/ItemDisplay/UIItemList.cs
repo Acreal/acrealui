@@ -41,8 +41,9 @@ namespace AcrealUI
         [SerializeField] private string _gameObjName_sortToggle_name = null;
         [SerializeField] private string _gameObjName_sortToggle_value = null;
 
-        [Header("Text")]
+        [Header("Weight/Gold")]
         [SerializeField] private string _gameObjName_weightGoldParent = null;
+        [SerializeField] private string _gameObjName_goldButton = null;
         [SerializeField] private string _gameObjName_text_totalGold = null;
         [SerializeField] private string _gameObjName_text_totalWeight = null;
 
@@ -55,6 +56,8 @@ namespace AcrealUI
         private UISortToggle _sortToggle_type = null;
         private UISortToggle _sortToggle_name = null;
         private UISortToggle _sortToggle_value = null;
+        private GameObject _weightGoldParent = null;
+        private UIButton _goldButton = null;
         private TextMeshProUGUI _totalGoldText = null;
         private TextMeshProUGUI _totalWeightText = null;
         private Dictionary<ulong, UIItemEntry> _uidToItemEntryDict = null;
@@ -69,6 +72,7 @@ namespace AcrealUI
         public event Action<ItemFilter> Event_OnItemFilterChanged = null;
         public event Action Event_OnSortItemsColumnChanged = null;
         public event Action Event_OnSortAscendingChanged = null;
+        public event Action Event_OnButtonClicked_Gold = null;
         #endregion
 
 
@@ -83,7 +87,7 @@ namespace AcrealUI
             get { return _sortItemsColumn; }
         }
 
-        public ItemSortingFlags sortingFlags 
+        public ItemSortingFlags sortingFlags
         {
             get;
             private set;
@@ -159,7 +163,23 @@ namespace AcrealUI
             }
             #endregion
 
-            #region Text References
+            #region Gold and Weight Display
+            Transform weightGoldParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_weightGoldParent);
+            if (weightGoldParentTform != null)
+            {
+                _weightGoldParent = weightGoldParentTform.gameObject;
+            }
+
+            Transform goldBtnParentTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_goldButton);
+            if (goldBtnParentTform != null) { _goldButton = goldBtnParentTform.GetComponent<UIButton>(); }
+            if (_goldButton != null)
+            {
+                _goldButton.Event_OnAnyClick += (_, _1) =>
+                {
+                    Event_OnButtonClicked_Gold?.Invoke();
+                };
+            }
+
             Transform goldTform = UIUtilityFunctions.FindDeepChild(transform, _gameObjName_text_totalGold);
             _totalGoldText = goldTform != null ? goldTform.GetComponent<TextMeshProUGUI>() : null;
 
@@ -279,6 +299,14 @@ namespace AcrealUI
             if (_sortToggle_type != null) { _sortToggle_type.gameObject.SetActive((sortFlags & ItemSortingFlags.ItemType) != 0); }
             if (_sortToggle_name != null) { _sortToggle_name.gameObject.SetActive((sortFlags & ItemSortingFlags.Name) != 0); }
             if (_sortToggle_value != null) { _sortToggle_value.gameObject.SetActive((sortFlags & ItemSortingFlags.GoldValue) != 0); }
+        }
+
+        public void SetGoldAndWeightParentActive(bool active)
+        {
+            if (_weightGoldParent != null)
+            {
+                _weightGoldParent.SetActive(active);
+            }
         }
 
         public void SetTotalGoldText(string goldText)

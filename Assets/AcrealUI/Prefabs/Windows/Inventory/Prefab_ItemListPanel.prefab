@@ -82,8 +82,8 @@ MonoBehaviour:
   m_Padding:
     m_Left: 9
     m_Right: 15
-    m_Top: -5
-    m_Bottom: 0
+    m_Top: 2
+    m_Bottom: 3
   m_ChildAlignment: 4
   m_Spacing: 5
   m_ChildForceExpandWidth: 0
@@ -233,8 +233,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 5}
-  m_SizeDelta: {x: -10, y: 5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -10, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &30668218825588387
 CanvasRenderer:
@@ -1893,7 +1893,7 @@ MonoBehaviour:
     m_Top: 10
     m_Bottom: 4
   m_ChildAlignment: 1
-  m_Spacing: 5
+  m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -2767,6 +2767,7 @@ MonoBehaviour:
   _gameObjName_sortToggle_name: Column_Name
   _gameObjName_sortToggle_value: Column_Value
   _gameObjName_weightGoldParent: Parent_WeightGold
+  _gameObjName_goldButton: Button_Gold
   _gameObjName_text_totalGold: Text_TotalGoldValue
   _gameObjName_text_totalWeight: Text_TotalWeightValue
   _gameObjName_toggleGroup: ToggleGroup_FilterSelection
@@ -2897,8 +2898,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 2, y: 2}
-  m_SizeDelta: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 2, y: 0}
+  m_SizeDelta: {x: 10, y: -4}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &1597125646703979150
 CanvasRenderer:
@@ -3635,8 +3636,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initializeOnAwake: 1
-  _gameObjName_titleText: 
-  _gameObjName_valueText: 
+  _gameObjName_titleText: Text_TotalGoldValue
+  _gameObjName_valueText: Icon_TotalGold
 --- !u!1 &2312880937833755672
 GameObject:
   m_ObjectHideFlags: 0
@@ -4329,7 +4330,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -16, y: -12.289997}
+  m_AnchoredPosition: {x: -22, y: -12.289997}
   m_SizeDelta: {x: 22, y: 22}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &5879131766938460135
@@ -5140,7 +5141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 10
+    m_Left: 20
     m_Right: 8
     m_Top: 0
     m_Bottom: 2
@@ -6478,11 +6479,11 @@ RectTransform:
   m_Father: {fileID: 6582622434499845093}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -14, y: -12.290039}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: -5, y: -0.2900381}
   m_SizeDelta: {x: 28, y: 28}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &2125886299677272727
 CanvasRenderer:
   m_ObjectHideFlags: 0

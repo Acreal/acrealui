@@ -115,10 +115,35 @@ namespace AcrealUI
             return currentLevel - Mathf.FloorToInt(currentLevel);
         }
 
+        public static int GetPlayerGold()
+        {
+            PlayerEntity pe = GetPlayerEntity();
+            return pe != null ? pe.GoldPieces : 0;
+        }
+
+        public static string GetPlayerGoldString()
+        {
+            return GetPlayerGold().ToString("N0");
+        }
+
         public static float GetPlayerCarriedWeight()
         {
-            PlayerEntity e = GetPlayerEntity();
-            return e != null ? e.CarriedWeight : 0f;
+            PlayerEntity pe = GetPlayerEntity();
+            return pe != null ? pe.CarriedWeight : 0f;
+        }
+
+        public static string GetPlayerCarriedWeightString()
+        {
+            PlayerEntity pe = GetPlayerEntity();
+            if (pe == null) return string.Empty;
+            return BuildWeightString(pe.CarriedWeight, pe.MaxEncumbrance);
+        }
+
+        public static string GetPlayerWagonWeightString()
+        {
+            PlayerEntity pe = GetPlayerEntity();
+            if (pe == null) return string.Empty;
+            return BuildWeightString(pe.WagonWeight, ItemHelper.WagonKgLimit);
         }
 
         public static bool PlayerHasWagonAccess()
@@ -2070,12 +2095,22 @@ namespace AcrealUI
             return text;
         }
 
+        /// <summary>
+        /// takes current and max weight and uses a StringBuilder to create a display string
+        /// </summary>
+        /// <param name="currentWeight">current total weight to display</param>
+        /// <param name="maxWeight">maximum weight to display (less than 0 will hide the max weight)</param>
         public static string BuildWeightString(float currentWeight, float maxWeight)
         {
             StringBuilder strBuilder = new StringBuilder();
-            strBuilder.AppendFormat("{0:N0}", currentWeight);
-            strBuilder.Append(" / ");
-            strBuilder.AppendFormat("{0:N0}", maxWeight);
+            strBuilder.AppendFormat("{0:F2}", currentWeight);
+
+            if (maxWeight >= 0f)
+            {
+                strBuilder.Append(" / ");
+                strBuilder.AppendFormat("{0:F2}", maxWeight);
+            }
+
             strBuilder.Append(" Kg");
             return strBuilder.ToString();
         }

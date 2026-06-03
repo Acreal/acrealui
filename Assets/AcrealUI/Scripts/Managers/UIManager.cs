@@ -80,7 +80,7 @@ namespace AcrealUI
 
 
         #region Properties
-        public static UIManager Instance { get { return _instance; } }
+        public static UIManager Instance => _instance;
         public static UIReferenceManager referenceManager { get; private set; }
         public static UITooltipManager tooltipManager { get; private set; }
         public static UIPopupManager popupManager{ get; private set; }
@@ -112,6 +112,7 @@ namespace AcrealUI
                 UIWindowInstanceType.Conversation,
                 UIWindowInstanceType.Inventory,
                 UIWindowInstanceType.SaveOrLoadGame,
+                UIWindowInstanceType.Trade,
             };
             _windowTypeToInstanceDict = new Dictionary<UIWindowInstanceType, UIWindow>();
             _defaultCoreWindowTypes = new Dictionary<UIWindowType, Type>();
@@ -131,7 +132,7 @@ namespace AcrealUI
             SaveLoadManager.OnLoad += PostLoadGame;
 
             #if UNITY_EDITOR
-            ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset All Keybinds to Defaults", string.Empty, (_) =>
+            ConsoleCommandsDatabase.RegisterCommand("resetkeybinds", "Reset Default Keybinds to Defaults", string.Empty, (_) =>
             {
                 try
                 {
@@ -164,10 +165,14 @@ namespace AcrealUI
             IUserInterfaceWindow talkWindow = UIWindowFactory.GetInstance(UIWindowType.Talk, DaggerfallUI.UIManager, null);
             _defaultCoreWindowTypes[UIWindowType.Talk] = talkWindow != null ? talkWindow.GetType() : typeof(DaggerfallTalkWindow);
 
+            IUserInterfaceWindow tradeWindow = UIWindowFactory.GetInstanceWithArgs(UIWindowType.Trade, new object[] { DaggerfallUI.UIManager, null, DaggerfallTradeWindow.WindowModes.Buy, null });
+            _defaultCoreWindowTypes[UIWindowType.Trade] = tradeWindow != null ? tradeWindow.GetType() : typeof(DaggerfallTradeWindow);
+
             EnableCoreWindow(UIWindowType.PauseOptions);
             EnableCoreWindow(UIWindowType.Inventory);
             EnableCoreWindow(UIWindowType.Talk);
             EnableCoreWindow(UIWindowType.UnitySaveGame);
+            EnableCoreWindow(UIWindowType.Trade);
             ApplyCoreWindowChanges();
 
             //daggerfall unity starts with a depth clear only,
@@ -338,6 +343,10 @@ namespace AcrealUI
 
                         case UIWindowType.UnitySaveGame:
                             UIWindowFactory.RegisterCustomUIWindow(UIWindowType.UnitySaveGame, typeof(UISaveLoadWindowController));
+                            break;
+
+                        case UIWindowType.Trade:
+                            UIWindowFactory.RegisterCustomUIWindow(UIWindowType.Trade, typeof(UITradeWindowController));
                             break;
                     }
                 }
